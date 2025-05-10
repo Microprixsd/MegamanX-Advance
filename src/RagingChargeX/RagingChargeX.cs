@@ -1,106 +1,65 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using static MMXOnline.XUnpoProjBase;
+using static RCXupshot;
 
 namespace MMXOnline;
-
 public class RagingChargeX : Character {
 	public int shotCount;
 	public float punchCooldown;
 	public float saberCooldown;
-	public float parryCooldown;
-	public float maxParryCooldown = 30;
+	public float Parrycooldowm;
 	public bool doSelfDamage;
 	public float selfDamageCooldown;
 	public float selfDamageMaxCooldown = 120;
 	public Projectile? absorbedProj;
 	public RagingChargeBuster ragingBuster;
-
-	public RagingChargeX(
-		Player player, float x, float y, int xDir,
-		bool isVisible, ushort? netId, bool ownedByLocalPlayer,
-		bool isWarpIn = true
-	) : base(
-		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn
-	) {
-		charId = CharIds.RagingChargeX;
-
-		// Start with 5s spawn leitency.
-		selfDamageCooldown = selfDamageMaxCooldown * 4;
-
-		// For easy HUD display we add it to weapon list.
-		ragingBuster = new RagingChargeBuster();
-		weapons.Add(ragingBuster);
-		altSoundId = AltSoundIds.X1;
-	}
-
-	public override void preUpdate() {
-		base.preUpdate();
-		if (selfDamageCooldown > 0 && isDecayImmune()) {
-			selfDamageCooldown -= speedMul;
-			if (selfDamageCooldown <= 0) {
-				selfDamageCooldown = 0;
-				doSelfDamage = true;
-			}
-		}
-	}
-
+	public float busterupcooldown;
+	public float busterdowncooldown;
 	public override void update() {
 		base.update();
-		if (musicSource == null) {
-			addMusicSource("introStageBreisX4_JX", getCenterPos(), true);
-		}
-		if (!ownedByLocalPlayer) { return; }
-
-		// Allow cancel normals into parry.
-		if (player.input.isWeaponLeftOrRightPressed(player) &&
-			parryCooldown == 0 &&
-			charState is XUPPunchState or XUPGrabState or X6SaberState
-		) {
-			enterParry();
-		}
-		if (!isDecayImmune()) {
-			if (doSelfDamage) {
-				applyDamage(1, player, this, null, (int)ProjIds.SelfDmg);
+		// Reducir el saberCooldown gradualmente hasta llegar a 0
+		if (saberCooldown > 0) {
+			saberCooldown -= Global.spf; // Reduce el cooldown en segundos
+			if (saberCooldown < 0) {
+				saberCooldown = 0; // Asegurarse de que no sea negativo
 			}
-		} else {
-			doSelfDamage = false;
 		}
-		shotCount = 0;
-		shotCount = MathInt.Floor(ragingBuster.ammo / ragingBuster.getAmmoUsage(0));
-	}
 
-	public override void postUpdate() {
-		base.preUpdate();
-		if (!isDecayImmune() && selfDamageCooldown < selfDamageMaxCooldown) {
-			selfDamageCooldown = selfDamageMaxCooldown;
+		// Reducir el punchCooldown gradualmente hasta llegar a 0
+		if (punchCooldown > 0) {
+			punchCooldown -= Global.spf; // Reduce el cooldown en segundos
+			if (punchCooldown < 0) {
+				punchCooldown = 0; // Asegurarse de que no sea negativo
+			}
+		}
+		if (busterupcooldown > 0) {
+			busterupcooldown -= Global.spf; // Reduce el cooldown en segundos
+			if (busterupcooldown < 0) {
+				busterupcooldown = 0; // Asegurarse de que no sea negativo
+			}
+		}
+		if (busterdowncooldown > 0) {
+			busterdowncooldown -= Global.spf; // Reduce el cooldown en segundos
+			if (busterdowncooldown < 0) {
+				busterdowncooldown = 0; // Asegurarse de que no sea negativo
+			}
+		}
+		if (Parrycooldowm > 0) {
+			Parrycooldowm -= Global.spf; // Reduce el cooldown en segundos
+			if (Parrycooldowm < 0) {
+				Parrycooldowm = 0; // Asegurarse de que no sea negativo
+			}
 		}
 	}
-
-	public override bool normalCtrl() {
-		if (player.input.isPressed(Control.Special1, player) && charState is Dash or AirDash) {
-			charState.isGrabbing = true;
-			changeSpriteFromName("unpo_grab_dash", true);
-		}
-		return base.normalCtrl();
-	}
-
-	public override bool attackCtrl() {
-		if (player.input.isWeaponLeftOrRightPressed(player) && parryCooldown == 0) {
-			enterParry();
-			return true;
-		}
-		if (player.input.isPressed(Control.Shoot, player) && shotCount <= 0) {
-			punchCooldown = 0.5f;
-			changeState(new XUPPunchState(grounded), true);
-			return true;
-		}
-		if (player.input.isPressed(Control.Special1, player) && saberCooldown == 0) {
-			saberCooldown = 60;
-			changeState(new X6SaberState(grounded), true);
-			return true;
-		}
-		return base.attackCtrl();
+        // Otras actualizaciones específicas de RagingChargeX
+        // ...
+	public override string getSprite(string spriteName) {
+		return "mmx_" + spriteName;
 	}
 
 	public void enterParry() {
@@ -112,7 +71,88 @@ public class RagingChargeX : Character {
 		changeState(new XUPParryStartState(), true);
 		return;
 	}
+	// Agregar una instancia de EstadoCargaHandler
+	private EstadoCargaHandler estadoCargaHandler;
 
+	public RagingChargeX(
+		Player player, float x, float y, int xDir,
+		bool isVisible, ushort? netId, bool ownedByLocalPlayer,
+		bool isWarpIn = true
+	) : base(
+		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn
+	) {
+		charId = CharIds.RagingChargeX;
+
+		// Inicializar EstadoCargaHandler
+		estadoCargaHandler = new EstadoCargaHandler();
+
+		// Start with 5s spawn leitency.
+		selfDamageCooldown = selfDamageMaxCooldown * 4;
+
+		// For easy HUD display we add it to weapon list.
+		ragingBuster = new RagingChargeBuster();
+		weapons.Add(ragingBuster);
+		altSoundId = AltSoundIds.X1;
+	}
+
+	public override bool attackCtrl() {
+		// 🔥 Prioridad 1: Acciones sin carga
+		if (player.input.isPressed(Control.Special1, player) && saberCooldown <= 0 && player.input.isHeld(Control.Down, player)) {
+			saberCooldown = 1; // Reinicia el cooldown del sable
+			changeState(new X6SaberState(grounded), true);
+			return true;
+		}else if (player.input.isPressed(Control.Special1, player) && punchCooldown <= 0) {
+			punchCooldown = 1; // Establece un cooldown para los golpes
+			changeState(new XUPPunchState(grounded), true);
+			return true;
+		}
+		if (player.input.isWeaponLeftOrRightPressed(player) && Parrycooldowm == 0 ) {
+			Parrycooldowm = 2;
+			enterParry();
+			return true;
+		}
+
+		// 🔥 Prioridad 2: Disparos cargados
+		if (player.input.isPressed(Control.Shoot, player) && estadoCargaHandler.estadoCarga == EstadoCarga.CargaAlta) {
+			if (player.input.isHeld(Control.Up, player) && busterupcooldown ==  0) {
+				// Cambia al estado de disparo hacia arriba
+				busterupcooldown = 1;
+				changeState(new RCXupshot(player, estadoCargaHandler), true);
+				return true;
+			} else if (player.input.isHeld(Control.Down, player) && !grounded && busterdowncooldown == 0) {
+				// Cambia al estado de disparo hacia abajo
+				busterdowncooldown = 1;
+				changeState(new RCXDownShot(player, estadoCargaHandler), true);
+				return true;
+			}
+		}
+
+		// 🔥 Prioridad 3: Disparos cargados liberados
+		if (!player.input.isHeld(Control.Shoot, player) && estadoCargaHandler.estadoCarga > EstadoCarga.CargaAlta) {
+			if (player.input.isHeld(Control.Up, player)) {
+				// Cambia al estado de disparo hacia arriba
+				changeState(new RCXupshot(player, estadoCargaHandler), true);
+				return true;
+			} else if (player.input.isHeld(Control.Down, player) && !grounded) {
+				// Cambia al estado de disparo hacia abajo
+				changeState(new RCXDownShot(player, estadoCargaHandler), true);
+				return true;
+			}
+		}
+
+		// 🔥 Prioridad 4: Incrementar carga
+		if (player.input.isHeld(Control.Shoot, player)) {
+			
+			estadoCargaHandler.IncrementarCarga(this); // Pasa la instancia actual de Character
+			return true; // Evita que otras acciones interfieran mientras se carga
+		}
+
+		// Si ninguna acción fue realizada, llama al método base
+		return base.attackCtrl();
+	}
+
+
+	// Si ninguna acción fue realizada, llama al método base
 	public override bool isNonDamageStatusImmune() {
 		return true;
 	}
@@ -128,7 +168,7 @@ public class RagingChargeX : Character {
 			or GenericGrabbedState
 		);
 	}
-	
+
 	// This can run on both owners and non-owners. So data used must be in sync.
 	public override int getHitboxMeleeId(Collider hitbox) {
 		return (int)(sprite.name switch {
@@ -162,7 +202,7 @@ public class RagingChargeX : Character {
 		};
 		return proj;
 	}
-
+}
 	public enum MeleeIds {
 		None = -1,
 		DashGrab,
@@ -170,4 +210,3 @@ public class RagingChargeX : Character {
 		Punch,
 		ZSaber,
 	}
-}

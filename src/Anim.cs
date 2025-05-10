@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using SFML.Graphics;
 
 namespace MMXOnline;
@@ -373,10 +374,84 @@ public class AssassinBulletTrailAnim : Anim {
 			destroySelf();
 		}
 	}
+	public class PlayershotUPAnim : Anim {
+		Point startPos;
+		Character playerCharacter;
+		Point lastPlayerPos;
+		float fadeTime;
+		const float maxFadeTime = 0.5f;
 
-	public override void render(float x, float y) {
-		byte alpha = (byte)(255 * (maxFadeTime - fadeTime));
-		DrawWrappers.DrawLine(sPos.x, sPos.y, lastProjPos.x, lastProjPos.y, new Color(128, 128, 128, alpha), 4, zIndex - 100);
-		DrawWrappers.DrawLine(sPos.x, sPos.y, lastProjPos.x, lastProjPos.y, new Color(255, 255, 255, alpha), 2, zIndex - 100);
+		public PlayershotUPAnim(Point pos, Character playerCharacter, string spriteName, ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+			base(pos, spriteName, playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
+			this.playerCharacter = playerCharacter;
+			startPos = pos;
+			lastPlayerPos = playerCharacter.pos;
+
+
+			// Cambiar el sprite si el jugador está en el aire
+			if (playerCharacter.grounded == false) {
+				changeSprite("mmx_unpo_up_air_shot", resetFrame: true);
+			} else if (playerCharacter.grounded == true) {
+				changeSprite("mmx_unpo_up_shot", resetFrame: true);
+			}
+		}
+
+		public override void update() {
+			base.update();
+
+			// Actualizar la posición de la animación para que siga al jugador
+			if (playerCharacter != null) {
+				lastPlayerPos = playerCharacter.pos;
+				changePos(lastPlayerPos);
+			}
+
+			// Incrementar el tiempo de desvanecimiento
+			fadeTime += Global.spf;
+			if (fadeTime > maxFadeTime) {
+				destroySelf();
+			}
+		}
+	}
+	public class PlayershotDownAnim : Anim {
+		private Point startPos;
+		private Character playerCharacter;
+		private Point lastPlayerPos;
+		private float fadeTime;
+		private const float maxFadeTime = 0.5f; // Duración máxima de la animación en segundos
+
+		public PlayershotDownAnim(Point pos, Character playerCharacter, string spriteName = "mmx_unpo_down_shot", ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+			base(pos, spriteName, playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
+			this.playerCharacter = playerCharacter;
+			startPos = pos;
+			lastPlayerPos = playerCharacter.pos;
+
+			// Configurar el sprite inicial
+			if (spriteName != "mmx_unpo_down_shot") {
+				Console.WriteLine("Cambiando sprite a mmx_unpo_down_shot");
+				changeSprite("mmx_unpo_down_shot", resetFrame: true);
+			}
+		}
+
+		public override void update() {
+			base.update();
+
+			// Verificar si el jugador aún existe
+			if (playerCharacter == null || playerCharacter.destroyed) {
+				Console.WriteLine("Jugador destruido o no válido, destruyendo animación");
+				destroySelf();
+				return;
+			}
+
+			// Actualizar la posición de la animación para que siga al jugador
+			lastPlayerPos = playerCharacter.pos;
+			changePos(lastPlayerPos);
+
+			// Incrementar el tiempo de desvanecimiento
+			fadeTime += Global.spf;
+			if (fadeTime > maxFadeTime) {
+				Console.WriteLine("Duración máxima alcanzada, destruyendo animación");
+				destroySelf();
+			}
+		}
 	}
 }

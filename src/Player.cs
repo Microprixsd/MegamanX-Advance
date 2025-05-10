@@ -227,22 +227,55 @@ public partial class Player {
 		{ (int)CharIds.PunchyZero, new() },
 		{ (int)CharIds.BusterZero, new() },
 		{ (int)CharIds.Rock, new() },
+		{ (int)CharIds.RagingChargeX, new() },
 	};
 
 	// Getter functions.
 	public List<SubTank> subtanks {
-		get { return charSubTanks[isDisguisedAxl ? 3 : charNum]; }
-		set { charSubTanks[isDisguisedAxl ? 3 : charNum] = value; }
+		get {
+			int localNum = charNum;
+			if (charNum == (int)CharIds.RagingChargeX) {
+				localNum = (int)CharIds.X;
+			}
+			if (isDisguisedAxl) {
+				localNum = 3;
+			}
+			return charSubTanks[localNum];
+		}
+		set {
+			int localNum = charNum;
+			if (charNum == (int)CharIds.RagingChargeX) {
+				localNum = (int)CharIds.X;
+			}
+			if (isDisguisedAxl) {
+				localNum = 3;
+			}
+			charSubTanks[localNum] = value;
+		}
 	}
 	public int heartTanks {
 		get {
-			if (!ownedByLocalPlayer) {
-				return charHeartTanks[isDisguisedAxl ? 3 : charNum].unsafeVal;
+			int localNum = charNum;
+			if (charNum == (int)CharIds.RagingChargeX) {
+				localNum = (int)CharIds.X;
 			}
-			return charHeartTanks[isDisguisedAxl ? 3 : charNum].value;
+			if (isDisguisedAxl) {
+				localNum = 3;
+			}
+			if (!ownedByLocalPlayer) {
+				return charHeartTanks[localNum].unsafeVal;
+			}
+			return charHeartTanks[localNum].value;
 		}
 		set {
-			charHeartTanks[isDisguisedAxl ? 3 : charNum].value = value;
+			int localNum = charNum;
+			if (charNum == (int)CharIds.RagingChargeX) {
+				localNum = (int)CharIds.X;
+			}
+			if (isDisguisedAxl) {
+				localNum = 3;
+			}
+			charHeartTanks[localNum].value = value;
 		}
 	}
 
@@ -253,13 +286,27 @@ public partial class Player {
 	public ProtectedArrayInt charCurrency = new ProtectedArrayInt(maxCharCurrencyId);
 	public int currency {
 		get {
-			if (!ownedByLocalPlayer) {
-				return charCurrency.unsafeVal(isDisguisedAxl ? 3 : charNum);
+			int localNum = charNum;
+			if (charNum == (int)CharIds.RagingChargeX) {
+				localNum = (int)CharIds.X;
 			}
-			return charCurrency[isDisguisedAxl ? 3 : charNum];
+			if (isDisguisedAxl) {
+				localNum = 3;
+			}
+			if (!ownedByLocalPlayer) {
+				return charCurrency.unsafeVal(localNum);
+			}
+			return charCurrency[localNum];
 		}
 		set {
-			charCurrency[isDisguisedAxl ? 3 : charNum] = value;
+			int localNum = charNum;
+			if (charNum == (int)CharIds.RagingChargeX) {
+				localNum = (int)CharIds.X;
+			}
+			if (isDisguisedAxl) {
+				localNum = 3;
+			}
+			charCurrency[localNum] = value;
 		}
 	}
 
@@ -910,7 +957,7 @@ public partial class Player {
 			}
 		} else if (isX) {
 			if (canReviveX() && (input.isPressed(Control.Special2, this) || Global.shouldAiAutoRevive)) {
-				//reviveX();
+				reviveX();
 			}
 		}
 
@@ -2145,12 +2192,9 @@ public partial class Player {
 		Character oldChar = character;
 		destroyCharacter(oldChar, true);
 		// Spawn RCX in the old position in the same frame.
-		character = spawnCharAtPoint(
-			(int)CharIds.RagingChargeX, [],
-			oldChar.pos, oldChar.xDir,
-			getNextATransNetId(), true,
-			forceSpawn: true
-		) ?? throw new Exception("Error spawning RCX.");
+		character = new RagingChargeX(
+			this, oldChar.pos.x, oldChar.pos.y, 1, true, getNextATransNetId(), true, false
+		);
 		// Set the inital state.
 		character.health = 0;
 		character.changeState(new XRevive(), true);

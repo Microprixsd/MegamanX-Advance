@@ -43,7 +43,6 @@ public partial class Actor : GameObject {
 			sprite.frameIndex = newFrameIndex;
 		}
 	}
-
 	public float speedMul { get; set; } = 1;
 	public bool useFrameProjs;
 	public Dictionary<string, List<Projectile>> spriteFrameToProjs = new Dictionary<string, List<Projectile>>();
@@ -1829,4 +1828,10 @@ public partial class Actor : GameObject {
 		}
 		return closeActors.ToArray();
 	}
+
+	List<ShaderWrapper> GameObject.getShaders(ShaderWrapper shader) {
+		throw new NotImplementedException();
+	}
 }
+
+ 

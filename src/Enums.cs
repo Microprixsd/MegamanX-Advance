@@ -300,6 +300,8 @@ public enum ProjIds {
 	Buster4Giga2,
 	Buster4Max,
 	BusterUnpo,
+	BusterUnpoUp,
+	BusterUnpoDown,
 	BusterX3Proj2,
 	BusterX3Plasma,
 	BusterX3PlasmaHit,

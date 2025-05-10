@@ -451,3 +451,56 @@ public class BusterPlasmaHitProj : Projectile {
 		);
 	}
 }
+public class XUnpoProjBase : Projectile {
+	public XUnpoProjBase(
+		Actor owner, Point pos, int xDir, ushort netId, float velocidadX, float velocidadY, int damage, string sprite, float angulo, bool sendRpc = false
+	) : base(
+		pos, xDir, owner, sprite, netId
+	) {
+		weapon = XBuster.netWeapon;
+		damager.damage = damage;
+		damager.hitCooldown = 30;
+		maxTime = 2f;
+		projId = (int)ProjIds.BusterUnpo;
+		destroyOnHit = false;
+		netcodeOverride = NetcodeModel.FavorDefender;
+		vel.x = velocidadX;
+		vel.y = velocidadY;
+		angle = angulo;
+
+		if (sendRpc) {
+			rpcCreate(pos, ownerPlayer, netId, xDir);
+		}
+	}
+public class XUnpoProjFuerte : XUnpoProjBase {
+	public XUnpoProjFuerte(Actor owner, Point pos, int xDir, ushort netId, DireccionDisparo direccion, bool sendRpc = false)
+		: base(owner, pos, xDir, netId, GetVelX(direccion), GetVelY(direccion), 2, "buster3", GetAngulo(direccion), sendRpc) { }
+}
+
+// Proyectil máximo (Carga máxima)
+public class XUnpoProjMaximo : XUnpoProjBase {
+	public XUnpoProjMaximo(Actor owner, Point pos, int xDir, ushort netId, DireccionDisparo direccion, bool sendRpc = false)
+		: base(owner, pos, xDir, netId, GetVelX(direccion), GetVelY(direccion), 3, "buster_unpo", GetAngulo(direccion), sendRpc) { }
+}
+
+// Métodos para calcular velocidad y ángulo según la dirección del disparo
+private static float GetVelX(DireccionDisparo direccion) {
+		return direccion == DireccionDisparo.Frente ? 200f : 0f;
+	}
+
+	private static float GetVelY(DireccionDisparo direccion) {
+		return direccion switch {
+			DireccionDisparo.Arriba => -200f,
+			DireccionDisparo.Abajo => 200f,
+			_ => 0f
+		};
+	}
+
+	public static float GetAngulo(DireccionDisparo direccion) {
+		return direccion switch {
+			DireccionDisparo.Arriba => -90,
+			DireccionDisparo.Abajo => 90,
+			DireccionDisparo.Frente => 0f,
+			_ => 0f
+		}; }
+	}

@@ -106,4 +106,8 @@ public class Geometry : GameObject {
 	public void registerCollision(CollideData collideData) {
 		onCollision(collideData);
 	}
+
+	List<ShaderWrapper> GameObject.getShaders(ShaderWrapper shader) {
+		throw new System.NotImplementedException();
+	}
 }

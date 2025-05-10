@@ -75,8 +75,8 @@ public partial class Actor {
 		}
 		// The rest are just contain actual bool data.
 		mask[5] = visible;                      // Visibility
-		mask[6] = (xDir > -1);	// xDir
-		mask[7] = (yDir > -1);	// yDir
+		mask[6] = (xDir > -1);  // xDir
+		mask[7] = (yDir > -1);  // yDir
 
 		// Check if anything changed on these bools.
 		if (lastXDir != xDir || lastYDir != yDir || lastVisible != visible) {
@@ -106,9 +106,24 @@ public partial class Actor {
 		lastAngle = byteAngle;
 		lastVisible = visible;
 	}
-}
 
-public class RPCUpdateActor : RPC {
+	public virtual Point getShootPos(DireccionDisparo direccion) {
+		try {
+			switch (direccion) {
+				case DireccionDisparo.Arriba:
+					return new Point(pos.x, pos.y - 10);
+				case DireccionDisparo.Abajo:
+					return new Point(pos.x, pos.y + 10);
+				default:
+					throw new Exception("Dirección de disparo no válida.");
+			}
+		} catch (Exception ex) {
+			Console.WriteLine($"Error en getShootPos: {ex.Message}");
+			return pos; // Devuelve la posición actual como valor por defecto
+		}
+	}
+}
+	public class RPCUpdateActor : RPC {
 	public RPCUpdateActor() {
 		netDeliveryMethod = NetDeliveryMethod.ReliableOrdered;
 		isPreUpdate = true;

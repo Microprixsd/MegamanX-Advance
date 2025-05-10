@@ -86,7 +86,6 @@ public class XUPParryStartState : CharState {
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
-		mmx.parryCooldown = mmx.maxParryCooldown;
 	}
 }
 
@@ -187,7 +186,6 @@ public class XUPParryMeleeState : CharState {
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
-		mmx.parryCooldown = mmx.maxParryCooldown;
 	}
 }
 
@@ -296,7 +294,6 @@ public class XUPParryProjState : CharState {
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		absorbAnim?.destroySelf();
-		mmx.parryCooldown = mmx.maxParryCooldown;
 	}
 }
 
@@ -614,6 +611,7 @@ public class XRevive : CharState {
 		invincible = true;
 		immuneToWind = true;
 		enterSound = "xRevive";
+		useGravity = false;
 	}
 
 	public override void update() {

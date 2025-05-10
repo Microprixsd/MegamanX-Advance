@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MMXOnline;
@@ -264,6 +264,7 @@ public partial class RPCCreateProj : RPC {
 		// Rides
 		{ (int)ProjIds.MechTorpedo, TorpedoProjMech.rpcInvoke },
 
+		// Advace X stuff.
 	};
 
 }
