@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using SFML.Graphics;
-using MiNET.Blocks;
 using System.Diagnostics;
-using MiNET.LevelDB;
 using System.Windows.Data;
 using System.Windows.Media;
 namespace MMXOnline;
