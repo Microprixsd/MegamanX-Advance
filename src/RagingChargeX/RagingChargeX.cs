@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using SFML.Graphics;
 using System.Diagnostics;
-using System.Windows.Data;
-using System.Windows.Media;
 namespace MMXOnline;
 public class RagingChargeX : Character {
 	public int shotCount;
