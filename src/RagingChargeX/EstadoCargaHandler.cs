@@ -1,8 +1,7 @@
 ﻿using MMXOnline;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SFML.Graphics;
+using System;
 
 public class EstadoCargaHandler {
 	public EstadoCarga estadoCarga { get; private set; }
@@ -12,105 +11,96 @@ public class EstadoCargaHandler {
 	private LoopingSound? sonidoActual; // Referencia al sonido en curso
 	private ShaderWrapper? shaderPrioritario; // Shader prioritario
 
-	public EstadoCargaHandler() {
+	// Instancia única para garantizar que nunca sea null
+	private static EstadoCargaHandler? instance;
+
+	public static EstadoCargaHandler GetInstance() {
+		if (instance == null) {
+			instance = new EstadoCargaHandler();
+		}
+		return instance;
+	}
+
+	private EstadoCargaHandler() {
 		estadoCarga = EstadoCarga.CargaAlta;
 
-		// Inicializa los shaders para cada estado
 		shadersPorEstado = new Dictionary<EstadoCarga, ShaderWrapper> {
-			{ EstadoCarga.CargaMaxima, Player.XGreenC }, // Shader para carga máxima
-            { EstadoCarga.CargaAlta, Player.XBlueC }    // Shader para carga alta
-        };
-
-		// Inicializa los sonidos para cada estado
-		sonidosPorEstado = new Dictionary<EstadoCarga, string> {
-			{ EstadoCarga.CargaMaxima, "charge_start" },
-			{ EstadoCarga.CargaAlta, "charge_loop" }
+			{ EstadoCarga.CargaMaxima, Player.XGreenC },
+			{ EstadoCarga.CargaAlta, Player.XYellowC }
 		};
 
-		// Inicializa el temporizador
+		sonidosPorEstado = new Dictionary<EstadoCarga, string> {
+			{ EstadoCarga.CargaMaxima, "charge_start" },
+			{ EstadoCarga.CargaAlta, "" }
+		};
+
 		temporizador = new Stopwatch();
 		temporizador.Start();
 	}
 
-	public void IncrementarCarga(Character character) {
-		// Verifica si han pasado al menos 1500 milisegundos
-		if (temporizador.ElapsedMilliseconds >= 1500) {
-			// Incrementa el estado de carga si no ha alcanzado el máximo
-			if (estadoCarga < EstadoCarga.CargaMaxima) {
-				estadoCarga++;
-				Console.WriteLine($"Estado de carga incrementado a: {estadoCarga}");
-				AplicarShaderYSonido(character); // Aplica el shader y reproduce el sonido
-			}
+	public void IncrementarCarga(Player player, Character character) {
+		if (player == null || character == null) {
+			Console.WriteLine("Error: player o character es null en IncrementarCarga()");
+			return;
+		}
 
-			// Reinicia el temporizador
+		if (temporizador.ElapsedMilliseconds >= 3000) {
+			estadoCarga = (EstadoCarga)Math.Min((int)estadoCarga + 1, (int)EstadoCarga.CargaMaxima);
+			AplicarShaderYSonido(player, character);
 			temporizador.Restart();
 		}
 	}
 
 	public void ReiniciarCarga() {
 		estadoCarga = EstadoCarga.CargaAlta;
-		temporizador.Restart(); // Reinicia el temporizador al reiniciar la carga
-		DetenerSonido(); // Detiene el sonido en curso
-		Console.WriteLine("Estado de carga reiniciado a CargaAlta.");
+		temporizador.Restart();
+		DetenerSonido();
 	}
 
 	public void EstablecerShaderPrioritario(ShaderWrapper shader) {
 		shaderPrioritario = shader;
-		Console.WriteLine($"Shader prioritario establecido: {shader}");
 	}
 
 	public void LimpiarShaderPrioritario() {
 		shaderPrioritario = null;
-		Console.WriteLine("Shader prioritario eliminado.");
 	}
 
-	private void AplicarShaderYSonido(Character character) {
-		// Obtiene la lista de shaders para el estado de carga actual
+	private void AplicarShaderYSonido(Player player, Character character) {
+		if (character == null) {
+			Console.WriteLine("Error: character es null en AplicarShaderYSonido()");
+			return;
+		}
+
 		List<ShaderWrapper> chargeShaders = GetChargeShaders();
 
-		// Si hay un shader prioritario, lo aplica primero
 		if (shaderPrioritario != null) {
-			chargeShaders.Clear(); // Limpia cualquier shader basado en la carga
-			chargeShaders.Add(shaderPrioritario); // Aplica el shader prioritario
-			Console.WriteLine($"Shader prioritario aplicado: {shaderPrioritario}");
+			chargeShaders.Clear();
+			chargeShaders.Add(shaderPrioritario);
 		}
 
-		// Aplica los shaders al jugador
 		var shaderWrappers = character.getShaders();
 		if (shaderWrappers != null) {
-			shaderWrappers.Clear(); // Limpia los shaders actuales
-			shaderWrappers.AddRange(chargeShaders); // Asigna los nuevos shaders
-			Console.WriteLine($"Shaders aplicados al jugador: {string.Join(", ", chargeShaders)}");
-		} else {
-			Console.WriteLine("No se pudo obtener la lista de shaders del jugador.");
+			shaderWrappers.Clear();
+			shaderWrappers.AddRange(chargeShaders);
 		}
 
-		// Reproduce el sonido correspondiente al estado de carga
 		if (sonidosPorEstado.TryGetValue(estadoCarga, out var sonido)) {
 			ReproducirSonido(character, sonido);
-		} else {
-			Console.WriteLine($"No se encontró un sonido para el estado de carga: {estadoCarga}");
 		}
 	}
 
 	private void ReproducirSonido(Character character, string sonido) {
-		// Lógica para reproducir el sonido
 		if (!string.IsNullOrEmpty(sonido)) {
-			DetenerSonido(); // Detiene cualquier sonido en curso antes de reproducir uno nuevo
-			sonidoActual = new LoopingSound(sonido, sonido, character); // Crea un nuevo sonido en bucle
+			DetenerSonido();
+			sonidoActual = new LoopingSound(sonido, sonido, character);
 			sonidoActual.play();
-			Console.WriteLine($"Sonido {sonido} reproducido para el estado de carga.");
-		} else {
-			Console.WriteLine("El sonido proporcionado está vacío o es nulo.");
 		}
 	}
 
 	private void DetenerSonido() {
-		// Detiene el sonido en curso si existe
 		if (sonidoActual != null) {
-			sonidoActual.stopRev(0); // Detiene el sonido suavemente
+			sonidoActual.stopRev(0);
 			sonidoActual = null;
-			Console.WriteLine("Sonido detenido.");
 		}
 	}
 
@@ -120,12 +110,10 @@ public class EstadoCargaHandler {
 			chargeShaders.Add(shader);
 		}
 
-		// Ejemplo de lógica adicional para agregar más shaders según condiciones
 		if (estadoCarga == EstadoCarga.CargaMaxima) {
-			chargeShaders.Add(Player.XOrangeC); // Agrega un shader adicional para CargaMaxima
+			chargeShaders.Add(Player.XOrangeC);
 		}
 
 		return chargeShaders;
 	}
 }
-
