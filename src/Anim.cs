@@ -390,9 +390,9 @@ public class AssassinBulletTrailAnim : Anim {
 
 			// Cambiar el sprite si el jugador está en el aire
 			if (playerCharacter.grounded == false) {
-				changeSprite("mmx_unpo_up_air_shot", resetFrame: true);
+				changeSprite("unpo_up_air_shot", resetFrame: true);
 			} else if (playerCharacter.grounded == true) {
-				changeSprite("mmx_unpo_up_shot", resetFrame: true);
+				changeSprite("unpo_up_shot", resetFrame: true);
 			}
 		}
 
@@ -412,23 +412,22 @@ public class AssassinBulletTrailAnim : Anim {
 			}
 		}
 	}
-	public class PlayershotDownAnim : Anim {
+}		public class PlayershotDownAnim : Anim {
 		private Point startPos;
 		private Character playerCharacter;
 		private Point lastPlayerPos;
 		private float fadeTime;
 		private const float maxFadeTime = 0.5f; // Duración máxima de la animación en segundos
 
-		public PlayershotDownAnim(Point pos, Character playerCharacter, string spriteName = "mmx_unpo_down_shot", ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+		public PlayershotDownAnim(Point pos, Character playerCharacter, string spriteName = "unpo_down_shot", ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
 			base(pos, spriteName, playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
 			this.playerCharacter = playerCharacter;
 			startPos = pos;
 			lastPlayerPos = playerCharacter.pos;
 
 			// Configurar el sprite inicial
-			if (spriteName != "mmx_unpo_down_shot") {
-				Console.WriteLine("Cambiando sprite a mmx_unpo_down_shot");
-				changeSprite("mmx_unpo_down_shot", resetFrame: true);
+			if (spriteName != "unpo_down_shot") {
+				changeSprite("unpo_down_shot", resetFrame: true);
 			}
 		}
 
@@ -453,5 +452,98 @@ public class AssassinBulletTrailAnim : Anim {
 				destroySelf();
 			}
 		}
+		public class XshotAnimation : Anim {
+			private Point startPos;
+			private Character playerCharacter;
+			private Point lastPlayerPos;
+			private float fadeTime;
+			private const float maxFadeTime = 0.5f;
+		// Duración máxima de la animación en segundos
+
+			public XshotAnimation(Point pos, Character playerCharacter, string spriteName = "mmx_shoot", ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+		base(pos, spriteName, playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
+				this.playerCharacter = playerCharacter;
+				startPos = pos;
+				lastPlayerPos = playerCharacter.pos;
+
+				// Configurar el sprite inicial
+				if (spriteName == "mmx_idle") {
+					changeSprite("mmx_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_run") {
+					changeSprite("mmx_run_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_wall_kick") {
+					changeSprite("mmx_wall_kick_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_wall_slide") {
+					changeSprite("mmx_wall_slide_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_fall") {
+					changeSprite("mmx_fall_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_fall_start") {
+					changeSprite("mmx_fall_start_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_wall_kick") {
+					changeSprite("mmx_wall_kick_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_hover") {
+					changeSprite("mmx_hover_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_hover_foward") {
+					changeSprite("mmx_hover_foward_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_hover_backward") {
+					changeSprite("mmx_hover_backward_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_jump") {
+					changeSprite("mmx_jump_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_jump_start") {
+					changeSprite("mmx_jump_start_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_land") {
+					changeSprite("mmx_land_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_dash") {
+					changeSprite("mmx_dash_shoot", resetFrame: false);
+				}
+				if (spriteName == "mmx_dash_end_shoot") {
+					changeSprite("mmx_dash_end_shoot", resetFrame: false);
+				}
+			if (spriteName == "mmx_jump") {
+				changeSprite("mmx_jump_shoot", resetFrame: false);
+			}
+			if (spriteName == "mmx_dash_end") {
+				changeSprite("mmx_dash_end_shoot", resetFrame: false);
+			}
+		}
+
+
+			public override void update() {
+				base.update();
+
+				// Verificar si el jugador aún existe
+				if (playerCharacter == null || playerCharacter.destroyed) {
+					Console.WriteLine("Jugador destruido o no válido, destruyendo animación");
+					destroySelf();
+					return;
+				}
+
+				// Actualizar la posición de la animación para que siga al jugador
+				lastPlayerPos = playerCharacter.pos;
+				changePos(lastPlayerPos);
+
+				// Incrementar el tiempo de desvanecimiento
+				fadeTime += Global.spf;
+				if (fadeTime > maxFadeTime) {
+					Console.WriteLine("Duración máxima alcanzada, destruyendo animación");
+					destroySelf();
+				}
+			}
+
+		}
 	}
-}
+
+

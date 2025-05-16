@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MMXOnline;
 
 namespace MMXOnline;
 
@@ -88,7 +89,7 @@ public class CharState {
 	public bool canUseShootAnim() {
 		return !string.IsNullOrEmpty(shootSprite);
 	}
-
+	
 	public Player player {
 		get {
 			return character.player;
@@ -595,16 +596,29 @@ public class Run : CharState {
 		base.update();
 		var move = new Point(0, 0);
 		float runSpeed = character.getRunSpeed();
+
+		// Ajustar velocidad de carrera en los primeros frames
 		if (stateFrames <= 4) {
 			runSpeed = 60 * character.getRunDebuffs();
 		}
+
+		// Movimiento hacia la izquierda
 		if (player.input.isHeld(Control.Left, player)) {
 			character.xDir = -1;
 			if (character.canMove()) move.x = -runSpeed;
-		} else if (player.input.isHeld(Control.Right, player)) {
+		}
+		// Movimiento hacia la derecha
+		else if (player.input.isHeld(Control.Right, player)) {
 			character.xDir = 1;
 			if (character.canMove()) move.x = runSpeed;
 		}
+
+		// Verificar si el personaje es X y está disparando
+		if (character is MegamanX && player.input.isPressed(Control.Shoot, player)) {
+			character.changeSpriteFromName("mmx_run_shoot", true);
+		}
+
+		// Movimiento o cambio a estado Idle/Fall
 		if (move.magnitude > 0) {
 			character.move(move);
 		} else {
@@ -612,6 +626,7 @@ public class Run : CharState {
 		}
 	}
 }
+
 
 public class Crouch : CharState {
 	public Crouch(string transitionSprite = "crouch_start"
@@ -1010,7 +1025,6 @@ public class WallSlide : CharState {
 		enterSound = "wallLand";
 		enterSoundArgs = "larmor";
 	}
-
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		mmx = character as MegamanX;
@@ -1135,9 +1149,10 @@ public class WallSlideAttack : CharState {
 			character.sprite.frameIndex = character.sprite.totalFrameNum - 1;
 			return;
 		}
-	}
-}
 
+
+	} }
+	
 public class WallKick : CharState {
 	public WallKick() : base("wall_kick", "wall_kick_shoot") {
 		accuracy = 5;
@@ -1609,10 +1624,12 @@ public class GenericGrabbedState : CharState {
 		character.useGravity = true;
 		character.setzIndex(savedZIndex);
 	}
+
 }
 
 public class NetLimbo : CharState {
 	public NetLimbo() : base("not_a_real_sprite") {
 
 	}
+
 }

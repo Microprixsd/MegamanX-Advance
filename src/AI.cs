@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MMXOnline;
 
 namespace MMXOnline;
 
@@ -248,7 +249,27 @@ public class AI {
 					aMaxDist: 400
 				);
 			}
+
+		// Verificar si el personaje está en movimiento
+		bool isMoving = player.input.isHeld(Control.Left, player) || player.input.isHeld(Control.Right, player);
+
+		// Verificar si el botón de disparo ha sido presionado
+		if (isMoving && player.input.isPressed(Control.Shoot, player)) {
+			// Incrementar el frame de la animación actual
+			int currentFrame = character.sprite.frameIndex;
+			int totalFrames = character.sprite.totalFrameNum;
+
+			// Cambiar al siguiente frame, asegurándose de no exceder el total de frames
+			if (currentFrame < totalFrames - 1) {
+				character.sprite.frameIndex = currentFrame + 1;
+			} else {
+				character.sprite.frameIndex = 0; // Reiniciar al primer frame si se excede
+			}
+
+			// Opcional: Forzar la actualización del frame actual
+			character.sprite.frameTime = 0;
 		}
+	}
 		/*if (character is KaiserSigma || character is BaseSigma sigma && sigma.isHyperSigma) {
 			int attack = Helpers.randomRange(0, 1);
 			if (attack == 0) {
@@ -263,6 +284,7 @@ public class AI {
 			}
 			return;
 		}*/
+
 
 		if (aiState is not InJumpZone) {
 			var jumpZones = Global.level.getTerrainTriggerList(
@@ -776,6 +798,7 @@ public class AimAtPlayer : AIState {
 	public float jumpDelay = 0;
 	public AimAtPlayer(Character character) : base(character) {
 	}
+	public MMXOnline.Character Character { get; }
 
 	public override void update() {
 		base.update();

@@ -1413,9 +1413,9 @@ public partial class Actor : GameObject {
 	public void shakeCamera(bool sendRpc = false) {
 		Point originPoint = Global.level.getSoundListenerOrigin();
 		var dist = originPoint.distanceTo(pos);
-		float distFactor = ownedByLocalPlayer ? Global.screenW : Global.screenW * 0.5f;
+		float distFactor = ownedByLocalPlayer ? Global.screenW : Global.screenW * 0.25f;
 		var percent = Helpers.clamp01(1 - (dist / (distFactor)));
-		Global.level.shakeY = percent * 24f;
+		Global.level.shakeY = percent * 0.2f;
 		if (sendRpc) {
 			RPC.actorToggle.sendRpc(netId, RPCActorToggleType.ShakeCamera);
 		}
