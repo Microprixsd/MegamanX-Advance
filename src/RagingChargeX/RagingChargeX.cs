@@ -259,12 +259,13 @@ public class RagingChargeX : Character {
 	public override bool attackCtrl() {
 		CharState charState = this.charState;
 		EstadoCarga estadoCarga = cargaHandler.estadoCarga;
-        if (player.input.isPressed(Control.WeaponRight,player) && unlimitedcrushCooldown == 0)
+        if (player.input.isPressed(Control.WeaponLeft,player) && unlimitedcrushCooldown == 0)
 		{
 			changeState(new UnlimitedCrushState(), true);
+			unlimitedcrushCooldown = 150f;
 			return true;
 		}
-		if (player.input.isPressed(Control.WeaponLeft, player) && parryCooldown == 0)
+		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0)
 		{
 			parryCooldown = 4;
 			enterParry();
@@ -389,7 +390,7 @@ public class RagingChargeX : Character {
 			),
 			(int)MeleeIds.UnlimitedCrush => new GenericMeleeProj(
 				UnlimitedCrush.netWeapon, projPos, ProjIds.UnlimitedCrush, player,
-				3, Global.halfFlinch, 30, addToLevel: addToLevel
+				1, Global.halfFlinch, 30, addToLevel: addToLevel
 			),
 			(int)MeleeIds.ZSaber => new GenericMeleeProj(
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,

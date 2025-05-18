@@ -392,7 +392,7 @@ public class UnlimitedCrushState : CharState
     public float GigaTime;
 public UnlimitedCrushState() : base("unpo_gigga")
 	{
-		enterSound = "gigaCrushX2";
+		enterSound = "gigaCrushLate";
 		invincible = true;
 	}
 	public override void update()
