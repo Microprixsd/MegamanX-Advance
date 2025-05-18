@@ -347,37 +347,117 @@ public class XUPPunchState : CharState {
 	}
 }
 
-public class XUPGrabState : CharState {
+public class KickChargeState : CharState
+{
+	public float dashTime; //Tiempo del dash
+	public float dustTime; //Generador de Polvo con tiempo
+
+	public KickChargeState() : base("unpo_slide", "")
+	{
+		enterSound = "fsplasher";
+	}
+
+	public override void update()
+	{
+		base.update();
+		character.move(new Point(character.xDir * 250, 0f));
+		dashTime += Global.spf;
+		if ((double)dashTime > 0.6)
+		{
+			character.changeState(new Idle());
+			return;
+		}
+		if ((double)dustTime > 0.1)
+		{
+			dustTime = 0f;
+			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
+			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
+		}
+	}
+
+	public override void onEnter(CharState oldState)
+	{
+		base.onEnter(oldState);
+		character.isDashing = true;
+	}
+	public override void onExit(CharState newState)
+	{
+		base.onExit(newState);
+		character.useGravity = true;
+	}
+}
+
+public class UnlimitedCrushState : CharState
+{
+    public float GigaTime;
+public UnlimitedCrushState() : base("unpo_gigga")
+	{
+		enterSound = "gigaCrushX2";
+		invincible = true;
+	}
+	public override void update()
+	{
+		base.update();
+		if (base.player != null)
+		{
+			GigaTime += Global.spf;
+			if ((double)GigaTime > 0.5)
+			{
+				character.changeState(new Idle());
+			}
+		}
+	}
+	public override void onEnter(CharState oldState)
+	{
+		base.onEnter(oldState);
+		base.player.character.useGravity = true;
+	}
+	public override void onExit(CharState newState)
+	{
+		base.onExit(newState);
+		base.player.character.useGravity = true;
+	}
+}
+public class XUPGrabState : CharState
+{
 	public Character? victim;
 	float leechTime = 1;
 	public bool victimWasGrabbedSpriteOnce;
 	float timeWaiting;
-	public XUPGrabState(Character? victim) : base("unpo_grab") {
+	public XUPGrabState(Character? victim) : base("unpo_grab")
+	{
 		this.victim = victim;
 		grabTime = UPGrabbed.maxGrabTime;
 	}
 
-	public override void update() {
+	public override void update()
+	{
 		base.update();
 		grabTime -= Global.spf;
 		leechTime += Global.spf;
 
-		if (victimWasGrabbedSpriteOnce && !victim.sprite.name.EndsWith("_grabbed")) {
+		if (victimWasGrabbedSpriteOnce && !victim.sprite.name.EndsWith("_grabbed"))
+		{
 			character.changeToIdleOrFall();
 			return;
 		}
 
-		if (victim.sprite.name.EndsWith("_grabbed") || victim.sprite.name.EndsWith("_die")) {
+		if (victim.sprite.name.EndsWith("_grabbed") || victim.sprite.name.EndsWith("_die"))
+		{
 			// Consider a max timer of 0.5-1 second here before the move just shorts out. Same with other command grabs
 			victimWasGrabbedSpriteOnce = true;
 		}
-		if (!victimWasGrabbedSpriteOnce) {
+		if (!victimWasGrabbedSpriteOnce)
+		{
 			timeWaiting += Global.spf;
-			if (timeWaiting > 1) {
+			if (timeWaiting > 1)
+			{
 				victimWasGrabbedSpriteOnce = true;
 			}
-			if (character.isDefenderFavored()) {
-				if (leechTime > 0.33f) {
+			if (character.isDefenderFavored())
+			{
+				if (leechTime > 0.33f)
+				{
 					leechTime = 0;
 					character.addHealth(1);
 				}
@@ -385,7 +465,8 @@ public class XUPGrabState : CharState {
 			}
 		}
 
-		if (character.sprite.name.Contains("unpo_grab")) {
+		if (character.sprite.name.Contains("unpo_grab"))
+		{
 			Point enemyHeadPos = victim.getHeadPos() ?? victim.getCenterPos().addxy(0, -10);
 			Point poi = character.getFirstPOIOffsetOnly() ?? new Point();
 
@@ -393,43 +474,51 @@ public class XUPGrabState : CharState {
 
 			character.changePos(Point.lerp(character.pos, snapPos, 0.25f));
 
-			if (!character.grounded && !character.sprite.name.EndsWith("2")) {
+			if (!character.grounded && !character.sprite.name.EndsWith("2"))
+			{
 				character.changeSpriteFromName("unpo_grab2", true);
 			}
 		}
 
-		if (leechTime > 0.33f) {
+		if (leechTime > 0.33f)
+		{
 			leechTime = 0;
 			character.addHealth(1);
 			var damager = new Damager(player, 1, 0, 0);
 			damager.applyDamage(victim, false, new RCXGrab(), character, (int)ProjIds.UPGrab);
 		}
 
-		if (player.input.isPressed(Control.Special1, player)) {
+		if (player.input.isPressed(Control.Special1, player))
+		{
 			character.changeToIdleOrFall();
 			character.changeState(new XUPPunchState(character.grounded), true);
 			return;
 		}
-		if (player.input.isPressed(Control.WeaponRight, player)) {
+		if (player.input.isPressed(Control.WeaponRight, player))
+		{
 			character.changeToIdleOrFall();
-			if (character is RagingChargeX rcx) {
+			if (character is RagingChargeX rcx)
+			{
 				rcx.enterParry();
 			}
 			return;
 		}
 
-		if (grabTime <= 0) {
+		if (grabTime <= 0)
+		{
 			character.changeToIdleOrFall();
 			return;
 		}
 	}
 
-	public override void onEnter(CharState oldState) {
+	public override void onEnter(CharState oldState)
+	{
 		base.onEnter(oldState);
 		character.useGravity = false;
 	}
 
-	public override void onExit(CharState? newState) {
+	public override void onExit(CharState? newState)
+	{
 		base.onExit(newState);
 		character.useGravity = true;
 		//character.grabCooldown = 1;

@@ -7,6 +7,8 @@ namespace MMXOnline;
 public class RagingChargeX : Character {
 	public int shotCount;
 	public float punchCooldown;
+	public float kickchargeCooldown;
+	public float unlimitedcrushCooldown;
 	public float saberCooldown;
 	public float parryCooldown;
 	public float maxParryCooldown = 30;
@@ -138,6 +140,8 @@ public class RagingChargeX : Character {
 		busterupcooldown = Math.Max(0, busterupcooldown - 1f);
 		busterdowncooldown = Math.Max(0, busterdowncooldown - 1f);
 		punchCooldown = Math.Max(0, punchCooldown - 1f);
+		kickchargeCooldown = Math.Max(0, kickchargeCooldown - 1f);
+		unlimitedcrushCooldown = Math.Max(0, unlimitedcrushCooldown - 1f);
 		saberCooldown = Math.Max(0, saberCooldown - 1f);
 		parryCooldown = Math.Max(0, parryCooldown - 1f);
 
@@ -255,7 +259,13 @@ public class RagingChargeX : Character {
 	public override bool attackCtrl() {
 		CharState charState = this.charState;
 		EstadoCarga estadoCarga = cargaHandler.estadoCarga;
-		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
+        if (player.input.isPressed(Control.WeaponRight,player) && unlimitedcrushCooldown == 0)
+		{
+			changeState(new UnlimitedCrushState(), true);
+			return true;
+		}
+		if (player.input.isPressed(Control.WeaponLeft, player) && parryCooldown == 0)
+		{
 			parryCooldown = 4;
 			enterParry();
 			return true;
@@ -320,6 +330,11 @@ public class RagingChargeX : Character {
 					return true;
 				}
 			}
+			if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player)) {
+				changeState(new KickChargeState(), true);
+				return true;
+			}
+				
 
 		return base.attackCtrl();
 	}
@@ -347,6 +362,8 @@ public class RagingChargeX : Character {
 			"mmx_beam_saber2" or "mmx_beam_saber_air2" => MeleeIds.ZSaber,
 			"mmx_unpo_grab_dash" => MeleeIds.DashGrab,
 			"mmx_unpo_punch" or "mmx_unpo_air_punch" => MeleeIds.Punch,
+			"mmx_unpo_slide" => MeleeIds.KickCharge,
+			"mmx_unpo_gigga" => MeleeIds.UnlimitedCrush,
 			"mmx_unpo_parry_start" => MeleeIds.ParryBlock,
 			_ => MeleeIds.None
 		});
@@ -366,6 +383,14 @@ public class RagingChargeX : Character {
 				RCXPunch.netWeapon, projPos, ProjIds.UPPunch, player,
 				3, Global.halfFlinch, 30, addToLevel: addToLevel
 			),
+			(int)MeleeIds.KickCharge => new GenericMeleeProj(
+				RCXKickCharge.netWeapon, projPos, ProjIds.KickCharge, player,
+				3, Global.halfFlinch, 30, addToLevel: addToLevel
+			),
+			(int)MeleeIds.UnlimitedCrush => new GenericMeleeProj(
+				UnlimitedCrush.netWeapon, projPos, ProjIds.UnlimitedCrush, player,
+				3, Global.halfFlinch, 30, addToLevel: addToLevel
+			),
 			(int)MeleeIds.ZSaber => new GenericMeleeProj(
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
 				3, 0 , 30, addToLevel: addToLevel
@@ -380,5 +405,7 @@ public class RagingChargeX : Character {
 		DashGrab,
 		ParryBlock,
 		Punch,
+		KickCharge,
+		UnlimitedCrush,
 		ZSaber,
 	}
