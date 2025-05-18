@@ -407,6 +407,14 @@ public class XUPGrabState : CharState {
 
 		if (player.input.isPressed(Control.Special1, player)) {
 			character.changeToIdleOrFall();
+			character.changeState(new XUPPunchState(character.grounded), true);
+			return;
+		}
+		if (player.input.isPressed(Control.WeaponRight, player)) {
+			character.changeToIdleOrFall();
+			if (character is RagingChargeX rcx) {
+				rcx.enterParry();
+			}
 			return;
 		}
 

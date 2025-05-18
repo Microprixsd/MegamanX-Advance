@@ -545,5 +545,81 @@ public class AssassinBulletTrailAnim : Anim {
 
 		}
 	}
+	public class PlayerGrabAnim : Anim {
+	private Character playerCharacter;
+
+	public PlayerGrabAnim(Point pos, Character playerCharacter, ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+	base(pos, "mmx_unpo_grab", playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
+		this.playerCharacter = playerCharacter;
+	}
+
+	public override void update() {
+		base.update();
+
+		// Mantener la animaci贸n ligada al personaje
+		if (playerCharacter != null && !playerCharacter.destroyed) {
+			changePos(playerCharacter.pos);
+		} else {
+			destroySelf();
+		}
+	}
+}
+public class PlayerGrabAnim2 : Anim {
+private Character playerCharacter;
+
+public PlayerGrabAnim2(Point pos, Character playerCharacter, ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+base(pos, "mmx_unpo_grab2", playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
+this.playerCharacter = playerCharacter;
+}
+
+public override void update() {
+base.update();
+
+// Mantener la animaci贸n ligada al personaje
+if (playerCharacter != null && !playerCharacter.destroyed) {
+changePos(playerCharacter.pos);
+} else {
+destroySelf();
+}
+}
+}
+public class PlayerGrabbedAnim : Anim {
+private Character playerCharacter;
+
+public PlayerGrabbedAnim(Point pos, Character playerCharacter, ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+base(pos, "mmx_grabbed", playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
+this.playerCharacter = playerCharacter;
+}
+
+public override void update() {
+base.update();
+
+// Mantener la animaci贸n ligada al personaje
+if (playerCharacter != null && !playerCharacter.destroyed) {
+changePos(playerCharacter.pos);
+} else {
+destroySelf();
+}
+}
+}
+public class PlayerDashGrab : Anim {
+private Character playerCharacter;
+
+public PlayerDashGrab(Point pos, Character playerCharacter, ushort? netId = null, bool sendRpc = false, bool ownedByLocalPlayer = true) :
+base(pos, "mmx_unpo_grab_dash", playerCharacter.xDir, netId, false, sendRpc, ownedByLocalPlayer) {
+this.playerCharacter = playerCharacter;
+}
+
+public override void update() {
+base.update();
+
+// Mantener la animaci贸n ligada al personaje
+if (playerCharacter != null && !playerCharacter.destroyed) {
+changePos(playerCharacter.pos);
+} else {
+destroySelf();
+}
+}
+}
 
 

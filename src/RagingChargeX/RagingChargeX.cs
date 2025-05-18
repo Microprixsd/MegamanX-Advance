@@ -19,6 +19,8 @@ public class RagingChargeX : Character {
 	public float bustercooldown;
 	public float busterupcooldown;
 	public float busterdowncooldown;
+	public Character? victim;
+	public Character character;
 
 	// Temporizador para la animación de disparo (se aplica cuando se muestra una animación con "_shoot")
 	private float animacionRestaurarTimer = 0.5f;
@@ -227,9 +229,31 @@ public class RagingChargeX : Character {
 	}
 
 
+	public void ejecutarRCXGrabDash() {
+        if (charState is Dash || charState is AirDash) {
+            charState.isGrabbing = true;
+            charState.superArmor = true; //peakbalance
+
+            // Aplicar la animación mmx_unpo_grab_dash y dejar que se ejecute completamente
+            if (sprite != null && sprite.name != "mmx_unpo_grab_dash") {
+                cambiarAnimacion("mmx_unpo_grab_dash", 0.5f);
+            }
+
+            // Verificar si la hitbox del personaje ha tocado a victim mientras la animación está activa
+            if (victim != null && victim.sprite != null && sprite.name == "mmx_unpo_grab_dash" && victim.sprite.name.Contains("_grabbed")) {
+                changeState(new XUPGrabState(victim));
+            }
+
+            // Esperar hasta que la animación termine antes de restaurar los valores
+            if (sprite != null && isAnimOver()) {
+                charState.isGrabbing = false;
+                charState.superArmor = false;
+            }
+        }
+    }
 
 	public override bool attackCtrl() {
-		CharState charState;
+		CharState charState = this.charState;
 		EstadoCarga estadoCarga = cargaHandler.estadoCarga;
 		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
 			parryCooldown = 4;
@@ -237,27 +261,27 @@ public class RagingChargeX : Character {
 			return true;
 		}
 
+
 		// Disparo cargado en diferentes direcciones
 		if (player.input.isPressed(Control.Shoot, player)) {
 			if (estadoCarga == EstadoCarga.CargaAlta) {
 				if (player.input.isHeld(Control.Up, player) && busterupcooldown == 0) {
-					busterupcooldown = 120f;
+					busterupcooldown = 90f; busterdowncooldown = 90f; bustercooldown = 90f;
 					changeState(new RCXupshot(player, cargaHandler));
 					return true;
 				}
 				if (player.input.isHeld(Control.Down, player) && busterdowncooldown == 0 && !grounded) {
-					busterdowncooldown = 120f;
+					busterdowncooldown = 90f; busterupcooldown = 90f; bustercooldown = 90f;
 					changeState(new RCXDownShot(player, cargaHandler));
 					return true;
 				}
 				if (bustercooldown == 0) {
-					bustercooldown = 120f;
+					bustercooldown = 90f; busterupcooldown = 90f; busterdowncooldown = 90f;
 					disparar();
 					return true;
 				}
 			}
-		}
-		else {
+		} else {
 			if (estadoCarga == EstadoCarga.CargaMaxima && !player.input.isHeld(Control.Shoot, player)) {
 
 				if (player.input.isHeld(Control.Up, player)) {
@@ -270,28 +294,36 @@ public class RagingChargeX : Character {
 				}
 			}
 		}
-			// Incrementar carga si se mantiene presionado Shoot
-			if (player.input.isHeld(Control.Shoot, player)) {
-				cargaHandler.IncrementarCarga(player, this);
-				return true;
-			}
+		// Incrementar carga si se mantiene presionado Shoot
+		if (player.input.isHeld(Control.Shoot, player)) {
+			cargaHandler.IncrementarCarga(player, this);
+			return true;
+		}
+		// Dash Grab Special 
+		if (charState is Dash or AirDash) {
+    	if (player.input.isPressed(Control.Special1, player)) {
+        ejecutarRCXGrabDash();
+        return true;
+    	}
+		}
 
-			// Especiales
+		// Especiales
 			if (player.input.isPressed(Control.Special1, player)) {
 				if (saberCooldown == 0 && player.input.isHeld(Control.Down, player)) {
-					saberCooldown = 180f;
+					saberCooldown = 60f;
 					changeState(new X6SaberState(grounded), true);
 					return true;
 				}
 				if (punchCooldown == 0) {
-					punchCooldown = 120f;
+					punchCooldown = 30f;
 					changeState(new XUPPunchState(grounded), true);
 					return true;
 				}
 			}
 
-			return base.attackCtrl();
-		}
+		return base.attackCtrl();
+	}
+
 
 	public void enterParry() {
 		if (absorbedProj != null) {
@@ -332,11 +364,11 @@ public class RagingChargeX : Character {
 			),
 			(int)MeleeIds.Punch => new GenericMeleeProj(
 				RCXPunch.netWeapon, projPos, ProjIds.UPPunch, player,
-				3, Global.defFlinch, 30, addToLevel: addToLevel
+				3, Global.halfFlinch, 30, addToLevel: addToLevel
 			),
 			(int)MeleeIds.ZSaber => new GenericMeleeProj(
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
-				3, Global.halfFlinch, 30, addToLevel: addToLevel
+				3, 0 , 30, addToLevel: addToLevel
 			),
 			_ => null
 		};

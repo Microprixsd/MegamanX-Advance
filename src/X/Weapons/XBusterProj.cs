@@ -459,10 +459,11 @@ public class XUnpoProjBase : Projectile {
 		CharState charState = (owner is Character character) ? character.charState : null;
 		weapon = XBuster.netWeapon;
 		damager.damage = damage;
-		damager.hitCooldown = 15;
-		maxTime = 2f;
+		damager.hitCooldown = 35;
+		damager.flinch = Global.defFlinch;
+		maxTime = 0.51f;
 		projId = (int)ProjIds.BusterUnpo;
-		destroyOnHit = false;
+		destroyOnHit = true;
 		netcodeOverride = NetcodeModel.FavorDefender;
 
 		// Aplicar correctamente la velocidad y dirección usando direccion
@@ -479,7 +480,7 @@ public class XUnpoProjBase : Projectile {
 	// Métodos de cálculo de velocidad
 	public class XUnpoProjFuerte : XUnpoProjBase {
 		public XUnpoProjFuerte(Actor owner, Point pos, int xDir, ushort netId, DireccionDisparo direccion, bool sendRpc = true)
-			: base(owner, pos, xDir, netId, direccion, 2, "buster3", sendRpc) { }
+			: base(owner, pos, xDir, netId, direccion, 3, "buster3", sendRpc) { }
 	}
 
 	public class XUnpoProjMaximo : XUnpoProjBase {
@@ -495,13 +496,13 @@ public class XUnpoProjBase : Projectile {
 			xDir *= -1;
 		}
 
-		return direccion == DireccionDisparo.Frente ? 200f * xDir : 0f;
+		return direccion == DireccionDisparo.Frente ? 350f * xDir : 0f;
 	}
 
 	public static float GetVelY(DireccionDisparo direccion) {
 		return direccion switch {
-			DireccionDisparo.Arriba => -200f,
-			DireccionDisparo.Abajo => 200f,
+			DireccionDisparo.Arriba => -350f,
+			DireccionDisparo.Abajo => 350f,
 			_ => 0f
 		};
 	}

@@ -19,6 +19,9 @@ public class RCXupshot : CharState {
 		this.shoot = false;
 		this.cargaHandler = cargaHandler;
 		this.elapsedTime = 0f; // Inicializar el temporizador
+		this.airMove = true;
+		this.normalCtrl = true;
+		this.useDashJumpSpeed = true;
 	}
 
 	public override void onEnter(CharState oldState) {
@@ -49,7 +52,7 @@ public class RCXupshot : CharState {
 			// Crea el proyectil correspondiente al estado de carga
 			switch (estadoCarga) {
 				case EstadoCarga.CargaAlta:
-					character.vel.y = 25f;
+					character.vel.y = 2f;
 					new XUnpoProjFuerte(
 						character,
 						character.getShootPos(DireccionDisparo.Arriba),
@@ -62,7 +65,7 @@ public class RCXupshot : CharState {
 					break;
 
 				case EstadoCarga.CargaMaxima:
-					character.vel.y = 50f;
+					character.vel.y = 20f;
 					new XUnpoProjMaximo(
 						character,
 						character.getShootPos(DireccionDisparo.Arriba),
@@ -104,6 +107,8 @@ public class RCXDownShot : CharState {
 		this.shoot = false;
 		this.cargaHandler = cargaHandler;
 		this.elapsedTime = 0f; // Inicializar el temporizador
+		this.airMove = true;
+		this.normalCtrl = true;
 	}
 
 	public override void onEnter(CharState oldState) {
@@ -144,7 +149,7 @@ public class RCXDownShot : CharState {
 			// Crea el proyectil correspondiente al estado de carga
 			switch (estadoCarga) {
 				case EstadoCarga.CargaAlta:
-					character.vel.y = -200f;
+					character.vel.y = -250f;
 					new XUnpoProjFuerte(
 						character,
 						character.getShootPos(DireccionDisparo.Abajo),
