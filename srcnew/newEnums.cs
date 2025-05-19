@@ -1,4 +1,4 @@
-﻿namespace MMXOnline;
+namespace MMXOnline;
 
 public enum ArmorId {
 	None = 0,
@@ -29,16 +29,4 @@ public static class ArmorParts {
 		"Helm",
 		"Arm"
 	};
-}
-public enum EstadoCarga { 
- // Carga ligera
-	CargaAlta = 0,        // Carga media
-	CargaMaxima = 1       // Carga completa
-}
-
-public enum DireccionDisparo {
-	Arriba,
-	Frente,
-	Abajo,
-
 }

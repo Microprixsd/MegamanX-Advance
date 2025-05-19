@@ -43,6 +43,7 @@ public partial class Actor : GameObject {
 			sprite.frameIndex = newFrameIndex;
 		}
 	}
+
 	public float speedMul { get; set; } = 1;
 	public bool useFrameProjs;
 	public Dictionary<string, List<Projectile>> spriteFrameToProjs = new Dictionary<string, List<Projectile>>();
@@ -1413,9 +1414,9 @@ public partial class Actor : GameObject {
 	public void shakeCamera(bool sendRpc = false) {
 		Point originPoint = Global.level.getSoundListenerOrigin();
 		var dist = originPoint.distanceTo(pos);
-		float distFactor = ownedByLocalPlayer ? Global.screenW : Global.screenW * 0.25f;
+		float distFactor = ownedByLocalPlayer ? Global.screenW : Global.screenW * 0.5f;
 		var percent = Helpers.clamp01(1 - (dist / (distFactor)));
-		Global.level.shakeY = percent * 0.2f;
+		Global.level.shakeY = percent * 24f;
 		if (sendRpc) {
 			RPC.actorToggle.sendRpc(netId, RPCActorToggleType.ShakeCamera);
 		}
@@ -1828,10 +1829,4 @@ public partial class Actor : GameObject {
 		}
 		return closeActors.ToArray();
 	}
-
-	List<ShaderWrapper> GameObject.getShaders(ShaderWrapper shader) {
-		throw new NotImplementedException();
-	}
 }
-
- 

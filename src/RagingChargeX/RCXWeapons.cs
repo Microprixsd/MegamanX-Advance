@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace MMXOnline;
 
@@ -18,6 +17,9 @@ public class RagingChargeBuster : Weapon {
 		drawAmmo = true;
 		drawCooldown = true;
 		allowSmallBar = false;
+		drawRoundedDown = true;
+		drawGrayOnLowAmmo = true;
+
 		ammoGainMultiplier = 2;
 		maxAmmo = 12;
 		ammo = maxAmmo;
@@ -25,41 +27,49 @@ public class RagingChargeBuster : Weapon {
 
 	public override float getAmmoUsage(int chargeLevel) { return 3; }
 
-	public override void shoot(Character character, int[] args) {
+	public void shoot(RagingChargeX character, float byteAngle) {
 		Point pos = character.getShootPos();
 		int xDir = character.getShootXDir();
 		Player player = character.player;
+		if (xDir == -1) {
+			byteAngle *= -1;
+			byteAngle += 128;
+		}
+		byteAngle %= 256;
 
-		new RagingBusterProj(this, pos, xDir, player, player.getNextActorNetId(), true);
-		new Anim(pos, "buster_unpo_muzzle", xDir, null, true);
+		character.playSound("plasmaShot", true);
+		new RagingBusterProj(character, pos, byteAngle, player.getNextActorNetId(), true);
+		new Anim(pos, "buster_unpo_muzzle", 1, null, true) {
+			byteAngle = byteAngle
+		};
 	}
 }
 
 
 public class RagingBusterProj : Projectile {
 	public RagingBusterProj(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId,
-		bool rpc = false	
+		Actor owner, Point pos, float byteAngle,  ushort netProjId,
+		bool sendRpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 350, 3,
-		 player, "buster_unpo", Global.defFlinch, 0.01f, 
-		 netProjId, player.ownedByLocalPlayer
+		pos, 1, owner, "buster_unpo", netProjId
 	) {
+		weapon = RagingChargeBuster.netWeapon;
 		fadeSprite = "buster3_fade";
+		fadeOnAutoDestroy = true;
 		reflectable = true;
 		maxTime = 0.5f;
 		projId = (int)ProjIds.BusterUnpo;
+		this.byteAngle = byteAngle;
+		vel = Point.createFromByteAngle(byteAngle) * 350;
 
-		if (rpc) {
-			rpcCreate(pos, player, netProjId, xDir);
+		if (sendRpc) {
+			rpcCreateByteAngle(pos, owner, ownerPlayer, netProjId, byteAngle);
 		}
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new RagingBusterProj(
-			RagingChargeBuster.netWeapon, arg.pos, arg.xDir, 
-			arg.player, arg.netId
+			arg.owner, arg.pos, arg.byteAngle, arg.netId, player: arg.player
 		);
 	}
 }

@@ -22,6 +22,5 @@ public interface GameObject {
 	void stateUpdate();
 	void statePostUpdate();
 	void registerCollision(CollideData collideData);
-	List<ShaderWrapper> getShaders(ShaderWrapper shader);
 }
 

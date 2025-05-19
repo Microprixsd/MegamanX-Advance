@@ -272,7 +272,7 @@ public class Sprite {
 		float flippedExtraW = 0;
 		float extraXOff = 0;
 
-		if (isUltX && armors != null) {
+		if (isUltX) {
 			extraYOff = 3;
 			extraY = 3;
 			armors[0] = 4;
@@ -328,11 +328,7 @@ public class Sprite {
 				isCompositeSprite = true;
 			}
 		}
-
-		if ((armors != null || drawXSaber) && animData.isXSprite) {
-			if (armors == null) {
-				armors = new int[5];
-			}
+		if (armors != null && drawXSaber && animData.isXSprite) {
 			bool isShootSprite = needsX3BusterCorrection();
 			/*
 			if (isShootSprite) {

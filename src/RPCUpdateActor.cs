@@ -15,6 +15,18 @@ public partial class Actor {
 		if (netId == null) {
 			return;
 		}
+		// Every 12 frames we send the full thing.
+		bool sendFullData = false;
+		if (Global.frameCount % 12 == 0) {
+			sendFullData = true;
+			lastPos = null;
+			lastSpriteIndex = null;
+			lastFrameIndex = null;
+			lastXDir = null;
+			lastYDir = null;
+			lastAngle = null;
+			lastVisible = null;
+		}
 		byte[] networkIdBytes = Helpers.convertToBytes(netId.Value);
 		if ((netId == 10 || netId == 11) && this is not Flag) {
 			string msg = string.Format(
@@ -74,9 +86,9 @@ public partial class Actor {
 			send = true;
 		}
 		// The rest are just contain actual bool data.
-		mask[5] = visible;                      // Visibility
-		mask[6] = (xDir > -1);  // xDir
-		mask[7] = (yDir > -1);  // yDir
+		mask[5] = visible; // Visibility
+		mask[6] = (xDir > -1); // xDir
+		mask[7] = (yDir > -1); // yDir
 
 		// Check if anything changed on these bools.
 		if (lastXDir != xDir || lastYDir != yDir || lastVisible != visible) {
@@ -95,7 +107,11 @@ public partial class Actor {
 		// Send if anything changed.
 		// Otherwise skip.
 		if (send) {
-			Global.serverClient?.rpc(RPC.updateActor, args.ToArray());
+			if (forceNetUpdateNextFrame || sendFullData) {
+				Global.serverClient?.rpc(RPC.updateActor, args.ToArray());
+			} else {
+				Global.serverClient?.rpc(RPC.updateActorUnreliable, args.ToArray());
+			}
 		}
 
 		lastPos = pos;
@@ -106,26 +122,9 @@ public partial class Actor {
 		lastAngle = byteAngle;
 		lastVisible = visible;
 	}
-
-	public virtual Point getShootPos(DireccionDisparo direccion) {
-		try {
-			switch (direccion) {
-				case DireccionDisparo.Arriba:
-					return new Point(pos.x, pos.y - 20);
-				case DireccionDisparo.Abajo:
-					return new Point(pos.x, pos.y + 10);
-				case DireccionDisparo.Frente:
-					return new Point(pos.x +( xDir * 10), pos.y - 15);
-				default:
-					throw new Exception("Dirección de disparo no válida.");
-			}
-		} catch (Exception ex) {
-			Console.WriteLine($"Error en getShootPos: {ex.Message}");
-			return pos; // Devuelve la posición actual como valor por defecto
-		}
-	}
 }
-	public class RPCUpdateActor : RPC {
+
+public class RPCUpdateActor : RPC {
 	public RPCUpdateActor() {
 		netDeliveryMethod = NetDeliveryMethod.ReliableOrdered;
 		isPreUpdate = true;

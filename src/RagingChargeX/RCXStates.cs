@@ -1,13 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 using SFML.Graphics;
-using static MMXOnline.XUnpoProjBase;
-using System.Diagnostics.CodeAnalysis;
+
 namespace MMXOnline;
-	public class RCXParryStartState : CharState {
+
+public class RcxState : CharState {
+	public RagingChargeX mmx = null!;
+
+	public RcxState(
+		string sprite, string shootSprite = "", string attackSprite = "",
+		string transitionSprite = "", string transShootSprite = ""
+	) : base(
+		sprite, shootSprite, attackSprite, transitionSprite, transShootSprite
+	) {
+	}
+
+	public override void onEnter(CharState oldState) {
+		mmx = character as RagingChargeX ?? throw new NullReferenceException();
+		base.onEnter(oldState);
+	}
+}
+
+public class RCXParryStartState : CharState {
 	public RCXParryStartState() : base("unpo_parry_start") {
 		superArmor = true;
 		stunResistant = true;
@@ -648,21 +663,24 @@ public class XRevive : CharState {
 			);
 			flash.grow = true;
 		}
-		if (character.isAnimOver()) {
-			character.changeToIdleOrFall();
-			return;
-		}
 		if (sprite == "revive_shake" && character.loopCount > 6) {
 			sprite = "revive_shake2";
 			character.changeSpriteFromName(sprite, true);
-		} else if (sprite == "revive_shake2" && character.loopCount > 6) {
+			character.sprite.doesLoop = true;
+		} else if (
+			sprite == "revive_shake2" && character.loopCount > 6) {
 			sprite = "revive";
 			character.changeSpriteFromName(sprite, true);
+		}
+		if (once && character.isAnimOver()) {
+			character.changeToIdleOrFall();
+			return;
 		}
 	}
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
+		character.sprite.doesLoop = true;
 		reviveAnim = new XReviveAnim(character.getCenterPos(), player.getNextActorNetId(), sendRpc: true);
 		rcx = character as RagingChargeX ?? throw new NullReferenceException();
 	}
@@ -695,5 +713,57 @@ public class XReviveAnim : Anim {
 			pos.x + x, pos.y + y, startRadius * (1 - (time / ttl.Value)),
 			false, Color.White, 5, zIndex + 1, true, Color.White
 		);
+	}
+}
+
+public class RcxUpShot : RcxState {
+	public bool shoot;
+	public bool grounded;
+
+	public RcxUpShot() : base("unpo_up_shot") {
+		landSprite = "unpo_up_shot";
+		airSprite = "unpo_up_air_shot";
+	}
+
+	public override void update() {
+		base.update();
+
+		// Ejecuta la lógica de disparo solo si el frame es suficiente.
+		if (character.frameIndex >= 0 && !shoot) {
+			// Marca que ya se disparó
+			shoot = true;
+			mmx.shootEx(-64);
+		}
+
+		// Si la animación terminó y han pasado al menos 0.3 segundos, cambia al estado idle o fall
+		if (character.isAnimOver() && stateTime >= 0.3f) {
+			character.changeToIdleOrFall();
+		}
+	}
+}
+
+public class RcxDownShoot : RcxState {
+	public bool shoot;
+	public bool grounded;
+
+	public RcxDownShoot() : base("unpo_down_shot") {
+		landSprite = "unpo_down_shot";
+		airSprite = "unpo_down_air_shot";
+	}
+
+	public override void update() {
+		base.update();
+
+		// Ejecuta la lógica de disparo solo si el frame es suficiente.
+		if (character.frameIndex >= 0 && !shoot) {
+			// Marca que ya se disparó
+			shoot = true;
+			mmx.shootEx(64);
+		}
+
+		// Si la animación terminó y han pasado al menos 0.3 segundos, cambia al estado idle o fall
+		if (character.isAnimOver() && stateTime >= 0.3f) {
+			character.changeToIdleOrFall();
+		}
 	}
 }
