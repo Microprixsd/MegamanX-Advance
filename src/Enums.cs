@@ -87,6 +87,8 @@ public enum WeaponIds {
 	NovaStrike,
 	X6Saber,
 	RagingChargeBuster,
+	KickCharge,
+	UnlimitedCrush,
 
 	// DO NOT CHANGE THE ORDER OF THESE SIGMA WEAPONS
 	Sigma,
@@ -391,6 +393,8 @@ public enum ProjIds {
 	UPParryBlock,
 	UPParryMelee,
 	UPParryProj,
+	KickCharge,
+	UnlimitedCrush,
 	NovaStrike,
 	X6Saber,
 

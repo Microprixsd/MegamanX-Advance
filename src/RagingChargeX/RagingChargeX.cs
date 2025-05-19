@@ -5,6 +5,8 @@ namespace MMXOnline;
 public class RagingChargeX : Character {
 	public int shotCount;
 	public float punchCooldown;
+	public float kickchargeCooldown;
+	public float unlimitedcrushCooldown;
 	public float saberCooldown;
 	public float parryCooldown;
 	public float maxParryCooldown = 30;
@@ -90,6 +92,10 @@ public class RagingChargeX : Character {
 			changeState(new X6SaberState(grounded), true);
 			return true;
 		}
+		if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player)) {
+			changeState(new KickChargeState(), true);
+			return true;
+		}
 		return base.attackCtrl();
 	}
 
@@ -163,6 +169,8 @@ public class RagingChargeX : Character {
 			"mmx_beam_saber2" or "mmx_beam_saber_air2" => MeleeIds.ZSaber,
 			"mmx_unpo_grab_dash" => MeleeIds.DashGrab,
 			"mmx_unpo_punch" or "mmx_unpo_air_punch" => MeleeIds.Punch,
+			"mmx_unpo_slide" => MeleeIds.KickCharge,
+			"mmx_unpo_gigga" => MeleeIds.UnlimitedCrush,
 			"mmx_unpo_parry_start" => MeleeIds.ParryBlock,
 			_ => MeleeIds.None
 		});
@@ -180,11 +188,19 @@ public class RagingChargeX : Character {
 			),
 			(int)MeleeIds.Punch => new GenericMeleeProj(
 				RCXPunch.netWeapon, projPos, ProjIds.UPPunch, player,
-				3, Global.defFlinch, 30, addToLevel: addToLevel
+				3, Global.halfFlinch, 30, addToLevel: addToLevel
+			),
+			(int)MeleeIds.KickCharge => new GenericMeleeProj(
+				RCXKickCharge.netWeapon, projPos, ProjIds.KickCharge, player,
+				3, Global.halfFlinch, 30, addToLevel: addToLevel
+			),
+			(int)MeleeIds.UnlimitedCrush => new GenericMeleeProj(
+				UnlimitedCrush.netWeapon, projPos, ProjIds.UnlimitedCrush, player,
+				1, Global.halfFlinch, 30, addToLevel: addToLevel
 			),
 			(int)MeleeIds.ZSaber => new GenericMeleeProj(
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
-				3, Global.halfFlinch, 30, addToLevel: addToLevel
+				3, 0 , 30, addToLevel: addToLevel
 			),
 			_ => null
 		};

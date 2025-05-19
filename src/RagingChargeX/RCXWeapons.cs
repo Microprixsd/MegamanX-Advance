@@ -95,10 +95,12 @@ public class RCXParry : Weapon {
 	}
 }
 
-public class RCXPunch : Weapon {
+public class RCXPunch : Weapon
+{
 	public static RCXPunch netWeapon = new();
 
-	public RCXPunch() : base() {
+	public RCXPunch() : base()
+	{
 		fireRate = 45;
 		index = (int)WeaponIds.UPPunch;
 		killFeedIndex = 167;
@@ -106,10 +108,36 @@ public class RCXPunch : Weapon {
 	}
 }
 
-public class RCXGrab : Weapon {
+public class RCXKickCharge : Weapon
+{
+	public static RCXKickCharge netWeapon = new();
+
+	public RCXKickCharge() : base()
+	{
+		fireRate = 45;
+		index = (int)WeaponIds.KickCharge;
+		killFeedIndex = 167;
+		//damager = new Damager(player, 3, Global.defFlinch, 0.5f);
+	}
+}
+
+public class UnlimitedCrush : Weapon {
+	public static UnlimitedCrush netWeapon = new();
+
+	public UnlimitedCrush() : base() {
+		fireRate = 45;
+		index = (int)WeaponIds.UnlimitedCrush;
+		killFeedIndex = 167;
+		//damager = new Damager(player, 3, Global.defFlinch, 0.5f);
+	}
+}
+
+public class RCXGrab : Weapon
+{
 	public static RCXGrab netWeapon = new();
 
-	public RCXGrab() : base() {
+	public RCXGrab() : base()
+	{
 		fireRate = 45;
 		//index = (int)WeaponIds.UPGrab;
 		killFeedIndex = 92;

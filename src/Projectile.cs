@@ -609,10 +609,10 @@ public class Projectile : Actor {
 				if (hitPos != null && destroyOnHit) changePos(hitPos.Value);
 
 				bool weakness = false;
-				if (character != null && character.player.isX) {
-					int wi = character.player.weapon.weaknessIndex;
-					if (wi > 0 && wi == weapon.index) weakness = true;
-				}
+                if (character != null && character.player != null && character.player.weapon != null) {
+                    int wi = character.player.weapon.weaknessIndex;
+                    if (wi > 0 && wi == weapon.index) weakness = true;
+                }
 
 				if (this is BlackArrowProj && destroyed) return;
 				if ((this is BlackArrowProj || this is SpiralMagnumProj) && character?.isAlwaysHeadshot() == true) {
