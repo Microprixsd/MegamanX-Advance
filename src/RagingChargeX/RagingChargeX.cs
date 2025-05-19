@@ -140,12 +140,14 @@ public class RagingChargeX : Character {
 	}
 
 	public override int getDisplayChargeLevel() {
-		return MathInt.Ceiling(ragingBuster.ammo / ragingBuster.getAmmoUsage(0));
+		return (int)Helpers.clampMin(MathF.Ceiling(ragingBuster.ammo / ragingBuster.getAmmoUsage(0)), 1);
 	}
 
 	public override void increaseCharge() {
-		chargeTime += Global.speedMul / 2f;
-		ragingBuster.addAmmo(ragingBuster.getAmmoUsage(0) * 0.625f * Global.spf, player);
+		chargeTime += Global.speedMul;
+		if (isCharging()) {
+			ragingBuster.addAmmo(ragingBuster.getAmmoUsage(0) * 0.625f * Global.spf, player);
+		}
 	}
 
 	public override bool chargeButtonHeld() {
