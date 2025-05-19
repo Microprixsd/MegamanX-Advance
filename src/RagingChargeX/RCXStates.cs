@@ -736,6 +736,7 @@ public class RcxUpShot : RcxState {
 	public bool grounded;
 
 	public RcxUpShot() : base("unpo_up_shot") {
+		landSprite = "unpo_up_shot";
 		airSprite = "unpo_up_air_shot";
 		airMove = true;
 		useDashJumpSpeed = true;
@@ -760,7 +761,10 @@ public class RcxUpShot : RcxState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		if (!grounded) {
+		if (grounded) {
+			sprite = landSprite;
+			character.changeSpriteFromName(landSprite, true);
+		} else  {
 			sprite = airSprite;
 			character.changeSpriteFromName(airSprite, true);
 		}

@@ -89,7 +89,7 @@ public enum WeaponIds {
 	RagingChargeBuster,
 	KickCharge,
 	UnlimitedCrush,
-
+	Chargedpunch,
 	// DO NOT CHANGE THE ORDER OF THESE SIGMA WEAPONS
 	Sigma,
 	ChillPenguin,
@@ -398,6 +398,7 @@ public enum ProjIds {
 	UnlimitedCrush,
 	NovaStrike,
 	X6Saber,
+	Chargedpunch,
 
 	ZBuster,
 	ZSaber,

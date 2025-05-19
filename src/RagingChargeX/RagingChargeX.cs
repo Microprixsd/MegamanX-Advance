@@ -116,15 +116,18 @@ public class RagingChargeX : Character {
 		// Disparo regular
 		if (player.input.isPressed(Control.Shoot, player) && punchCooldown <= 0) {
 			if (ragingBuster.ammo >= ragingBuster.getAmmoUsage(0) && ragingBuster.shootCooldown <= 0) {
-				ragingBuster.shootCooldown = 120;
+				ragingBuster.shootCooldown = 300;
 				shoot();
 				return true;
 			}
 		}
 
-		// Golpe especial con carga
+		if (charState is Dash or AirDash && player.input.isHeld(Control.Special1, player)) {
+			ejecutarRCXGrabDash();
+			return true;
+		}
 		if (player.input.isPressed(Control.Special1, player) && punchCooldown == 0) {
-			punchCooldown = 30;
+			punchCooldown = 120;
 			changeState(new XUPPunchState(grounded), true);
 			return true;
 		}
@@ -137,10 +140,7 @@ public class RagingChargeX : Character {
 		}
 
 		// Agarrar mientras está en Dash o AirDash y se mantiene el botón de carga
-		if (charState is Dash or AirDash && player.input.isHeld(Control.Special1, player)) {
-			ejecutarRCXGrabDash();
-			return true;
-		}
+
 
 		// Ataque especial con espada
 		if (player.input.isPressed(Control.Special2, player) && saberCooldown == 0) {
@@ -163,10 +163,12 @@ public class RagingChargeX : Character {
 	public void shoot() {
 		if (player.input.isHeld(Control.Up, player)) {
 			changeState(new RcxUpShot(), true);
+			vel.y = 100f;
 			return;
 		}
 		if (player.input.isHeld(Control.Down, player) && !grounded) {
 			changeState(new RcxDownShoot(), true);
+			vel.y = -400f;
 			return;
 		}
 		string shootSprite = getSprite(charState.shootSpriteEx);
@@ -247,6 +249,7 @@ public class RagingChargeX : Character {
 			"mmx_unpo_slide" => MeleeIds.KickCharge,
 			"mmx_unpo_gigga" => MeleeIds.UnlimitedCrush,
 			"mmx_unpo_parry_start" => MeleeIds.ParryBlock,
+			"mmx_unpo_punch2" => MeleeIds.Chargedpunch,
 			_ => MeleeIds.None
 		});
 	}
@@ -277,6 +280,10 @@ public class RagingChargeX : Character {
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
 				2, Global.defFlinch, 30, addToLevel: addToLevel
 			),
+			(int)MeleeIds.Chargedpunch => new GenericMeleeProj(
+	ZXSaber.netWeapon, projPos, ProjIds.Chargedpunch, player,
+	3, Global.defFlinch, 20, addToLevel: addToLevel
+),
 			_ => null
 		};
 		return proj;
@@ -295,5 +302,6 @@ public enum MeleeIds {
 	ZSaber,
 	KickCharge,
 	UnlimitedCrush,
+	Chargedpunch,
 }
 
