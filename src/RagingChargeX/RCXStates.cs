@@ -874,6 +874,7 @@ public class Chargedpunch : CharState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		character.isDashing = true;
+		character.useGravity = false;
 	}
 	public override void onExit(CharState newState) {
 		base.onExit(newState);

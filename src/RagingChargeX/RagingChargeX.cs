@@ -86,6 +86,20 @@ public class RagingChargeX : Character {
 		chargeLogic(null);
 	}
 
+	public override void postUpdate() {
+		base.postUpdate();
+
+		if (!isDecayImmune() && invulnTime == 0) {
+			if (selfDamageCooldown <= 0) {
+				applyDamage(1, player, this, null, (int)ProjIds.SelfDmg);
+				selfDamageCooldown = selfDamageMaxCooldown;
+				playSound("healX3");
+			} else {
+				Helpers.decrementFrames(ref selfDamageCooldown);
+			}
+		}
+	}
+
 	public override bool attackCtrl() {
 		// Parry con arma derecha
 		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
@@ -93,8 +107,6 @@ public class RagingChargeX : Character {
 			enterParry();
 			return true;
 		}
-
-		// Ataque especial con arma izquierda
 		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
 			unlimitedcrushCooldown = 60;
 			changeState(new UnlimitedCrushState(), true);
@@ -104,7 +116,7 @@ public class RagingChargeX : Character {
 		// Disparo regular
 		if (player.input.isPressed(Control.Shoot, player) && punchCooldown <= 0) {
 			if (ragingBuster.ammo >= ragingBuster.getAmmoUsage(0) && ragingBuster.shootCooldown <= 0) {
-				ragingBuster.shootCooldown = 30;
+				ragingBuster.shootCooldown = 120;
 				shoot();
 				return true;
 			}
