@@ -364,18 +364,21 @@ public class XUPPunchState : CharState {
 
 public class XUPGrabState : CharState {
 	public Character? victim;
-	float leechTime = 1;
+	float leechTime = 200;
 	public bool victimWasGrabbedSpriteOnce;
 	float timeWaiting;
+	float damageTime = 200;
+
 	public XUPGrabState(Character? victim) : base("unpo_grab") {
 		this.victim = victim;
-		grabTime = UPGrabbed.maxGrabTime;
+		grabTime = 70;
 	}
 
 	public override void update() {
 		base.update();
-		grabTime -= Global.spf;
-		leechTime += Global.spf;
+		grabTime -= Global.speedMul;
+		leechTime += Global.speedMul;
+		damageTime += Global.speedMul;
 
 		if (victimWasGrabbedSpriteOnce && !victim.sprite.name.EndsWith("_grabbed")) {
 			character.changeToIdleOrFall();
@@ -392,9 +395,10 @@ public class XUPGrabState : CharState {
 				victimWasGrabbedSpriteOnce = true;
 			}
 			if (character.isDefenderFavored()) {
-				if (leechTime > 0.33f) {
+				if (leechTime >= 20) {
 					leechTime = 0;
 					character.addHealth(1);
+					character.playSound("heal", true);
 				}
 				return;
 			}
@@ -413,11 +417,19 @@ public class XUPGrabState : CharState {
 			}
 		}
 
-		if (leechTime > 0.33f) {
+		if (leechTime >= 20) {
 			leechTime = 0;
 			character.addHealth(1);
-			var damager = new Damager(player, 1, 0, 0);
-			damager.applyDamage(victim, false, new RCXGrab(), character, (int)ProjIds.UPGrab);
+			Damager damager = new Damager(player, 1, 0, 0);
+			if (damageTime >= 40) {
+				damageTime = 0;
+				damager.applyDamage(
+					victim, false, new RCXGrab(), character, (int)ProjIds.UPGrabDamage
+				);
+				character.playSound("hit", true, true);
+			} else {
+				character.playSound("heal", true);
+			}
 		}
 
 		if (player.input.isPressed(Control.Special1, player)) {
@@ -440,8 +452,10 @@ public class XUPGrabState : CharState {
 		base.onExit(newState);
 		character.useGravity = true;
 		//character.grabCooldown = 1;
-		victim.grabInvulnTime = 2;
-		victim?.releaseGrab(character);
+		if (victim != null) {
+			victim.grabInvulnTime = 1;
+			victim?.releaseGrab(character);
+		}
 	}
 }
 
@@ -478,6 +492,7 @@ public class UPGrabbed : CharState {
 		grabTime -= player.mashValue();
 		if (grabTime <= 0) {
 			character.changeToIdleOrFall();
+			character.setHurt(-character.xDir, Global.defFlinch, false);
 		}
 	}
 }

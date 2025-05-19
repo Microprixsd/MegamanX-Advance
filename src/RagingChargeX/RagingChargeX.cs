@@ -12,7 +12,7 @@ public class RagingChargeX : Character {
 	public float maxParryCooldown = 30;
 	public bool doSelfDamage;
 	public float selfDamageCooldown;
-	public float selfDamageMaxCooldown = 120;
+	public float selfDamageMaxCooldown = 60;
 	public Projectile? absorbedProj;
 	public RagingChargeBuster ragingBuster;
 
@@ -63,10 +63,33 @@ public class RagingChargeX : Character {
 		chargeLogic(null);
 	}
 
+	public override void postUpdate() {
+		base.postUpdate();
+
+		if (!isDecayImmune() && invulnTime == 0) {
+			if (selfDamageCooldown <= 0) {
+				applyDamage(1, player, this, null, (int)ProjIds.SelfDmg);
+				selfDamageCooldown = selfDamageMaxCooldown;
+				playSound("healX3");
+			} else {
+				Helpers.decrementFrames(ref selfDamageCooldown);
+			}
+		}
+	}
+
 	public override bool attackCtrl() {
-		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
-			parryCooldown = 4;
+		if (player.input.isWeaponLeftOrRightPressed(player)) {
+			parryCooldown = maxParryCooldown;
 			enterParry();
+			return true;
+		}
+		// Grab.
+		if (player.input.isHeld(Control.Special1, player) &&
+			charState is Dash or AirDash && 
+			sprite.name != getSprite("unpo_grab_dash")
+		) {
+			charState.isGrabbing = true;
+			changeSpriteFromName("unpo_grab_dash", true);
 			return true;
 		}
 		// Regular shoot.
@@ -147,7 +170,7 @@ public class RagingChargeX : Character {
 	public override void increaseCharge() {
 		chargeTime += Global.speedMul;
 		if (isCharging()) {
-			ragingBuster.addAmmo(ragingBuster.getAmmoUsage(0) * 0.9f * Global.spf, player);
+			ragingBuster.addAmmo(ragingBuster.getAmmoUsage(0) * 1.25f * Global.spf, player);
 		}
 	}
 

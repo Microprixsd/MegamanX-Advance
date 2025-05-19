@@ -389,6 +389,7 @@ public enum ProjIds {
 	XSaberProj,
 	Headbutt,
 	UPGrab,
+	UPGrabDamage,
 	UPPunch,
 	UPParryBlock,
 	UPParryMelee,
