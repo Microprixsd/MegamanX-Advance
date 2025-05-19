@@ -723,6 +723,9 @@ public class RcxUpShot : RcxState {
 	public RcxUpShot() : base("unpo_up_shot") {
 		landSprite = "unpo_up_shot";
 		airSprite = "unpo_up_air_shot";
+		airMove = true;
+		useDashJumpSpeed = true;
+		attackCtrl = true;
 	}
 
 	public override void update() {
@@ -736,7 +739,7 @@ public class RcxUpShot : RcxState {
 		}
 
 		// Si la animación terminó y han pasado al menos 0.3 segundos, cambia al estado idle o fall
-		if (character.isAnimOver() && stateTime >= 0.3f) {
+		if (stateFrames >= Character.DefaultShootAnimTime) {
 			character.changeToIdleOrFall();
 		}
 	}
@@ -749,6 +752,9 @@ public class RcxDownShoot : RcxState {
 	public RcxDownShoot() : base("unpo_down_shot") {
 		landSprite = "unpo_down_shot";
 		airSprite = "unpo_down_air_shot";
+		airMove = true;
+		useDashJumpSpeed = true;
+		attackCtrl = true;
 	}
 
 	public override void update() {
@@ -762,7 +768,7 @@ public class RcxDownShoot : RcxState {
 		}
 
 		// Si la animación terminó y han pasado al menos 0.3 segundos, cambia al estado idle o fall
-		if (character.isAnimOver() && stateTime >= 0.3f) {
+		if (stateFrames >= Character.DefaultShootAnimTime) {
 			character.changeToIdleOrFall();
 		}
 	}

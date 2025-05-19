@@ -42,6 +42,8 @@ public class RagingChargeBuster : Weapon {
 		new Anim(pos, "buster_unpo_muzzle", 1, null, true) {
 			byteAngle = byteAngle
 		};
+
+		shootCooldown = fireRate;
 	}
 }
 
@@ -54,6 +56,8 @@ public class RagingBusterProj : Projectile {
 		pos, 1, owner, "buster_unpo", netProjId
 	) {
 		weapon = RagingChargeBuster.netWeapon;
+		damager.damage = 3;
+		damager.flinch = Global.halfFlinch;
 		fadeSprite = "buster3_fade";
 		fadeOnAutoDestroy = true;
 		reflectable = true;

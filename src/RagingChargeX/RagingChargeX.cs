@@ -70,7 +70,7 @@ public class RagingChargeX : Character {
 			return true;
 		}
 		// Regular shoot.
-		if (player.input.isPressed(Control.Shoot, player)) { 
+		if (player.input.isPressed(Control.Shoot, player) && punchCooldown <= 0) { 
 			// Shoot if has ammo,
 			if (ragingBuster.ammo >= ragingBuster.getAmmoUsage(0)) {
 				// Shoot happens here.
@@ -81,7 +81,7 @@ public class RagingChargeX : Character {
 			}
 			// Punch if no ammo.
 			else if (punchCooldown == 0) {
-				punchCooldown = ragingBuster.shootCooldown;
+				punchCooldown = ragingBuster.fireRate;
 				changeState(new XUPPunchState(grounded), true);
 				return true;
 			}
@@ -101,11 +101,11 @@ public class RagingChargeX : Character {
 
 	// Shoot and set animation if posible.
 	public void shoot() {
-		if (player.input.isHeld(Control.Up, player) && grounded) {
+		if (player.input.isHeld(Control.Up, player)) {
 			changeState(new RcxUpShot(), true);
 			return;
 		}
-		if (player.input.isHeld(Control.Down, player) && !grounded) {
+		if (player.input.isHeld(Control.Down, player)) {
 			changeState(new RcxDownShoot(), true);
 			return;
 		}
@@ -119,7 +119,7 @@ public class RagingChargeX : Character {
 			frameIndex = 0;
 			frameTime = 0;
 		}
-		shootAnimTime = 20;
+		shootAnimTime = DefaultShootAnimTime;
 
 		shootEx(0);
 	}
@@ -127,6 +127,7 @@ public class RagingChargeX : Character {
 	public void shootEx(int byteAngle) {
 		ragingBuster.shoot(this, byteAngle);
 		ragingBuster.addAmmo(-ragingBuster.getAmmoUsage(0), player);
+		punchCooldown = ragingBuster.fireRate;
 	}
 
 	public void enterParry() {
@@ -202,7 +203,7 @@ public class RagingChargeX : Character {
 			),
 			(int)MeleeIds.ZSaber => new GenericMeleeProj(
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
-				3, 0 , 30, addToLevel: addToLevel
+				2, Global.defFlinch, 30, addToLevel: addToLevel
 			),
 			_ => null
 		};
