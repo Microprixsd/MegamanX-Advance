@@ -4,9 +4,24 @@ using SFML.Graphics;
 
 namespace MMXOnline;
 
-public abstract class PZeroGenericMeleeState : CharState {
+public abstract class PZeroState : CharState {
 	public PunchyZero zero = null!;
 
+	protected PZeroState(
+		string sprite, string shootSprite = "", string attackSprite = "",
+		string transitionSprite = "", string transShootSprite = ""
+	) : base(
+		sprite, shootSprite, attackSprite, transitionSprite, transShootSprite
+	) {
+	}
+
+	public override void onEnter(CharState oldState) {
+		zero = character as PunchyZero ?? throw new NullReferenceException();
+		base.onEnter(oldState);
+	}
+}
+
+public abstract class PZeroGenericMeleeState : PZeroState {
 	public float projMaxTime;
 	public int projId;
 	public int comboFrame = Int32.MaxValue;
@@ -35,7 +50,6 @@ public abstract class PZeroGenericMeleeState : CharState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		character.turnToInput(player.input, player);
-		zero = character as PunchyZero ?? throw new NullReferenceException();
 	}
 
 	public virtual bool altCtrlUpdate(bool[] ctrls) {
@@ -52,6 +66,13 @@ public class PZeroPunch1 : PZeroGenericMeleeState {
 	}
 
 	public override bool altCtrlUpdate(bool[] ctrls) {
+		if (zero.specialPressTime > 0) {
+			return zero.groundSpcAttacks();
+		}
+		if (zero.shootPressTime > 0 && player.input.getYDir(player) == -1) {
+			zero.changeState(new PZeroShoryuken(), true);
+			return true;
+		}
 		if (zero.shootPressTime > 0 || player.isAI) {
 			zero.changeState(new PZeroPunch2(), true);
 			return true;
@@ -105,10 +126,10 @@ public class PZeroSpinKick : CharState {
 	public float soundTime = 0;
 
 	public PZeroSpinKick() : base("spinkick") {
-		exitOnAirborne = true;
-		airMove = true;
 		attackCtrl = false;
 		normalCtrl = true;
+		useDashJumpSpeed = true;
+		airMove = true;
 	}
 
 	public override void update() {
@@ -131,18 +152,18 @@ public class PZeroSpinKick : CharState {
 			character.changeToIdleOrFall();
 			return;
 		}
-		character.move(new Point(character.getDashSpeed() * character.xDir, 0));
 	}
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		character.isDashing = true;
-		character.sprite.tempOffY = 2;
+		character.vel.y = -character.getJumpPower();
+		if (oldState is Dash) {
+			character.isDashing = true;
+			character.dashedInAir++;
+		}
 	}
 
 	public override void onExit(CharState? newState) {
-		character.slideVel = character.xDir * character.getRunSpeed();
-		character.isDashing = false;
 		base.onExit(newState);
 		if (character is PunchyZero zero) {
 			zero.dashAttackCooldown = 30;

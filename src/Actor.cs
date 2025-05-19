@@ -60,6 +60,7 @@ public partial class Actor : GameObject {
 	public float xIceVel;
 	public float xSwingVel;
 	public float landingVelY;
+	public bool movedUpOnFrame;
 	public bool immuneToKnockback;
 	public bool isPlatform;
 	public bool cachedUndewater;
@@ -805,7 +806,7 @@ public partial class Actor : GameObject {
 			grounded = false;
 		} else if (physicsCollider != null && !isStatic && (canBeGrounded || useGravity)) {
 			float yDist = 1;
-			if (grounded && vel.y * yMod >= 0) {
+			if (grounded && vel.y * yMod >= 0 && !movedUpOnFrame) {
 				yDist = 4;
 			}
 			yDist *= yMod;
@@ -882,6 +883,8 @@ public partial class Actor : GameObject {
 				groundedIce = false;
 			}
 		}
+
+		movedUpOnFrame = false;
 	}
 
 	public float getTopY() {
@@ -1737,6 +1740,7 @@ public partial class Actor : GameObject {
 	public const int labelNameOffY = 10;
 
 	public float currentLabelY;
+
 	public void deductLabelY(float amount) {
 		currentLabelY -= amount;
 		// DrawWrappers.DrawLine(pos.x - 10, pos.y + currentLabelY, pos.x + 10, pos.y + currentLabelY, Color.Red, 1, ZIndex.HUD);
