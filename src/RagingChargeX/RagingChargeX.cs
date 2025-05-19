@@ -103,12 +103,12 @@ public class RagingChargeX : Character {
 	public override bool attackCtrl() {
 		// Parry con arma derecha
 		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
-			parryCooldown = 30;
+			parryCooldown = 200;
 			enterParry();
 			return true;
 		}
 		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
-			unlimitedcrushCooldown = 60;
+			unlimitedcrushCooldown = 500;
 			changeState(new UnlimitedCrushState(), true);
 			return true;
 		}
@@ -122,7 +122,7 @@ public class RagingChargeX : Character {
 			}
 		}
 
-		if (charState is Dash or AirDash && player.input.isHeld(Control.Special1, player)) {
+		if (charState is Dash or AirDash && player.input.isPressed(Control.Special1, player)) {
 			ejecutarRCXGrabDash();
 			return true;
 		}
@@ -130,30 +130,37 @@ public class RagingChargeX : Character {
 			punchCooldown = 120;
 			changeState(new XUPPunchState(grounded), true);
 			return true;
-		}
-
-		// Liberar el golpe cargado cuando el jugador suelta el botón
-		if (!player.input.isHeld(Control.Special1, player) && chargeLevel == 2) {
-			changeState(new Chargedpunch(), true);
+		}  if (chargeLevel == 0 && punchCooldown == 0 && player.input.isPressed(Control.Special1, player)) {
+			punchCooldown = 120;
+			changeState(new XUPPunchState(grounded), true);
 			resetCharge();
 			return true;
 		}
+		// Liberar el golpe cargado cuando el jugador suelta el botón
+		if (!player.input.isHeld(Control.Special1, player)) {
+			if (chargeLevel == 3) {
+				if (grounded) {
+					changeState(new KickChargeState(), true);
+					resetCharge();
+				}else {
+					changeState(new Chargedpunch(), true);
+					resetCharge();
+				}
 
-		// Agarrar mientras está en Dash o AirDash y se mantiene el botón de carga
+					return true;
 
-
-		// Ataque especial con espada
-		if (player.input.isPressed(Control.Special2, player) && saberCooldown == 0) {
-			saberCooldown = 60;
-			changeState(new X6SaberState(grounded), true);
-			return true;
-		}
-
-		// Patada cargada cuando se mantiene abajo y se presiona Dash en el suelo
-		if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player) && grounded) {
-			changeState(new KickChargeState(), true);
-			return true;
-		}
+			} else if (chargeLevel == 2 && saberCooldown == 0) {
+				saberCooldown = 120;
+				changeState(new X6SaberState(grounded), true);
+				resetCharge();
+				return true;
+			} else if (chargeLevel == 1 && saberCooldown == 0) {
+				saberCooldown = 120;
+				changeState(new X6SaberState(grounded), true);
+				resetCharge();
+				return true;
+			}
+		} 
 
 		return base.attackCtrl();
 	}
@@ -201,26 +208,49 @@ public class RagingChargeX : Character {
 		changeState(new XUPParryStartState(), true);
 		return;
 	}
-
-	public override int getDisplayChargeLevel() {
-		return (int)Helpers.clampMin(MathF.Ceiling(ragingBuster.ammo / ragingBuster.getAmmoUsage(0)), 1);
-	}
-
-	private int chargeLevel; // Variable para rastrear el nivel de carga
-
+	private int chargeLevel;
 	public override void increaseCharge() {
 		chargeTime += Global.speedMul;
 
 		if (isCharging()) {
-			if (chargeTime < 10) {
-				chargeLevel = 0; // Nivel de carga básico
-			} else if (chargeTime < 30) {
-				chargeLevel = 1; // Nivel de carga medio
-			} else {
-				chargeLevel = 2; // Nivel de carga máximo
+			if (chargeTime <= 30) {
+				chargeLevel = 1; // Nivel de carga básico
+			} else if (chargeTime > 30 && chargeTime < 105) {
+				chargeLevel = 2; // Nivel de carga medio
+			} else if (chargeTime >= 105 && chargeTime < 180) {
+				chargeLevel = 3; // Nivel de carga alto
 			}
 		}
 	}
+	public override int getDisplayChargeLevel() {
+		return chargeLevel; // Devuelve el nivel de carga actual para sincronizar la visualización
+	}
+
+	public override void chargeGfx() {
+		if (ownedByLocalPlayer) {
+			chargeEffect.stop();
+		}
+
+		if (isCharging()) {
+			chargeSound.play();
+
+			if (!sprite.name.Contains("ra_hide")) {
+				int level = getDisplayChargeLevel();
+				var renderGfx = level switch {
+					1 => RenderEffectType.ChargeBlue,
+					2 => RenderEffectType.ChargeYellow,
+					3 => RenderEffectType.ChargeOrange,
+					_ => RenderEffectType.ChargeGreen
+				};
+
+				addRenderEffect(renderGfx, 2, 6);
+			}
+			chargeEffect.update(getDisplayChargeLevel(), chargeLevel);
+		}
+	}
+
+
+
 	private void resetCharge() {
 		chargeLevel = 0;
 		chargeTime = 0;
