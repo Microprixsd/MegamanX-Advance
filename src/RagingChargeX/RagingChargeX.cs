@@ -218,5 +218,7 @@ public enum MeleeIds {
 	ParryBlock,
 	Punch,
 	ZSaber,
+	KickCharge,
+	UnlimitedCrush,
 }
 

@@ -767,3 +767,54 @@ public class RcxDownShoot : RcxState {
 		}
 	}
 }
+
+public class KickChargeState : CharState {
+	public float dashTime; //Tiempo del dash
+	public float dustTime; //Generador de Polvo con tiempo
+
+	public KickChargeState() : base("unpo_slide", "") {
+		enterSound = "fsplasher";
+	}
+
+	public override void update() {
+		base.update();
+		character.move(new Point(character.xDir * 250, 0f));
+		dashTime += Global.spf;
+		if ((double)dashTime > 0.6) {
+			character.changeState(new Idle());
+			return;
+		}
+		if ((double)dustTime > 0.1) {
+			dustTime = 0f;
+			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
+			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
+		}
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.isDashing = true;
+	}
+	public override void onExit(CharState newState) {
+		base.onExit(newState);
+		character.useGravity = true;
+	}
+}
+
+public class UnlimitedCrushState : CharState {
+	public float GigaTime;
+	public UnlimitedCrushState() : base("unpo_gigga") {
+		enterSound = "gigaCrushX2";
+		invincible = true;
+	}
+
+	public override void update() {
+		base.update();
+		if (base.player != null) {
+			GigaTime += Global.spf;
+			if ((double)GigaTime > 0.5) {
+				character.changeState(new Idle());
+			}
+		}
+	}
+}
