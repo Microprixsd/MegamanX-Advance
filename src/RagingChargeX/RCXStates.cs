@@ -721,7 +721,6 @@ public class RcxUpShot : RcxState {
 	public bool grounded;
 
 	public RcxUpShot() : base("unpo_up_shot") {
-		landSprite = "unpo_up_shot";
 		airSprite = "unpo_up_air_shot";
 		airMove = true;
 		useDashJumpSpeed = true;
@@ -746,6 +745,7 @@ public class RcxUpShot : RcxState {
 	}
 }
 
+
 public class RcxDownShoot : RcxState {
 	public bool shoot;
 	public bool grounded;
@@ -766,7 +766,7 @@ public class RcxDownShoot : RcxState {
 			// Marca que ya se disparó
 			shoot = true;
 			mmx.shootEx(64);
-			character.vel.y = -250f;
+			character.vel.y = -300f;
 		}
 
 		// Si la animación terminó y han pasado al menos 0.3 segundos, cambia al estado idle o fall
