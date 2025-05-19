@@ -25,7 +25,7 @@ public class RagingChargeBuster : Weapon {
 		ammo = maxAmmo;
 	}
 
-	public override float getAmmoUsage(int chargeLevel) { return 3; }
+	public override float getAmmoUsage(int chargeLevel) { return 0; }
 
 	public void shoot(RagingChargeX character, float byteAngle) {
 		Point pos = character.getShootPos();

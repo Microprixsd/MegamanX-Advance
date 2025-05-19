@@ -87,51 +87,65 @@ public class RagingChargeX : Character {
 	}
 
 	public override bool attackCtrl() {
+		// Parry con arma derecha
 		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
 			parryCooldown = 30;
 			enterParry();
 			return true;
 		}
+
+		// Ataque especial con arma izquierda
 		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
 			unlimitedcrushCooldown = 60;
 			changeState(new UnlimitedCrushState(), true);
 			return true;
 		}
-		// Regular shoot.
-		if (player.input.isPressed(Control.Shoot, player) && punchCooldown <= 0) { 
-			// Shoot if has ammo,
-			if (ragingBuster.ammo >= ragingBuster.getAmmoUsage(0)) {
-				// Shoot happens here.
-				if (ragingBuster.shootCooldown <= 0) {
-					shoot();
-					return true;
-				}
-			}
-			// Punch if no ammo.
-			else if (punchCooldown == 0) {
-				punchCooldown = ragingBuster.fireRate;
-				changeState(new XUPPunchState(grounded), true);
+
+		// Disparo regular
+		if (player.input.isPressed(Control.Shoot, player) && punchCooldown <= 0) {
+			if (ragingBuster.ammo >= ragingBuster.getAmmoUsage(0) && ragingBuster.shootCooldown <= 0) {
+				ragingBuster.shootCooldown = 30;
+				shoot();
 				return true;
 			}
 		}
-		if (charState is Dash or AirDash) {
-			if (player.input.isHeld(Control.Special1, player)) {
-				ejecutarRCXGrabDash();
-				return true;
-			}
+
+		// Golpe especial con carga
+		if (player.input.isPressed(Control.Special1, player) && punchCooldown == 0) {
+			punchCooldown = 30;
+			changeState(new XUPPunchState(grounded), true);
+			return true;
 		}
-		// Specials.
-		if (player.input.isPressed(Control.Special1, player) && saberCooldown == 0) {
+
+		// Liberar el golpe cargado cuando el jugador suelta el botón
+		if (!player.input.isHeld(Control.Special1, player) && chargeLevel == 2) {
+			changeState(new Chargedpunch(), true);
+			resetCharge();
+			return true;
+		}
+
+		// Agarrar mientras está en Dash o AirDash y se mantiene el botón de carga
+		if (charState is Dash or AirDash && player.input.isHeld(Control.Special1, player)) {
+			ejecutarRCXGrabDash();
+			return true;
+		}
+
+		// Ataque especial con espada
+		if (player.input.isPressed(Control.Special2, player) && saberCooldown == 0) {
 			saberCooldown = 60;
 			changeState(new X6SaberState(grounded), true);
 			return true;
 		}
+
+		// Patada cargada cuando se mantiene abajo y se presiona Dash en el suelo
 		if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player) && grounded) {
 			changeState(new KickChargeState(), true);
 			return true;
 		}
+
 		return base.attackCtrl();
 	}
+
 
 	// Shoot and set animation if posible.
 	public void shoot() {
@@ -178,15 +192,27 @@ public class RagingChargeX : Character {
 		return (int)Helpers.clampMin(MathF.Ceiling(ragingBuster.ammo / ragingBuster.getAmmoUsage(0)), 1);
 	}
 
+	private int chargeLevel; // Variable para rastrear el nivel de carga
+
 	public override void increaseCharge() {
 		chargeTime += Global.speedMul;
+
 		if (isCharging()) {
-			ragingBuster.addAmmo(ragingBuster.getAmmoUsage(0) * 0.9f * Global.spf, player);
+			if (chargeTime < 10) {
+				chargeLevel = 0; // Nivel de carga básico
+			} else if (chargeTime < 30) {
+				chargeLevel = 1; // Nivel de carga medio
+			} else {
+				chargeLevel = 2; // Nivel de carga máximo
+			}
 		}
 	}
-
+	private void resetCharge() {
+		chargeLevel = 0;
+		chargeTime = 0;
+	}
 	public override bool chargeButtonHeld() {
-		return player.input.isHeld(Control.Shoot, player);
+		return player.input.isHeld(Control.Special1, player);
 	}
 
 	public override bool isNonDamageStatusImmune() {

@@ -826,3 +826,35 @@ public class UnlimitedCrushState : CharState {
 		}
 	}
 }
+public class Chargedpunch : CharState {
+	public float dashTime; //Tiempo del dash
+	public float dustTime; //Generador de Polvo con tiempo
+
+	public Chargedpunch() : base("unpo_punch2", "") {
+		enterSound = "fsplasher";
+	}
+
+	public override void update() {
+		base.update();
+		character.move(new Point(character.xDir * 250, 0f));
+		dashTime += Global.spf;
+		if ((double)dashTime > 0.45) {
+			character.changeState(new Idle());
+			return;
+		}
+		if ((double)dustTime > 0.1) {
+			dustTime = 0f;
+			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
+			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
+		}
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.isDashing = true;
+	}
+	public override void onExit(CharState newState) {
+		base.onExit(newState);
+		character.useGravity = true;
+	}
+}
