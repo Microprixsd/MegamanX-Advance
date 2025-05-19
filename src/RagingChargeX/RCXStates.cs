@@ -751,12 +751,19 @@ public class RcxUpShot : RcxState {
 			// Marca que ya se disparó
 			shoot = true;
 			mmx.shootEx(-64);
-			character.vel.y = 50f;
 		}
 
 		// Si la animación terminó y han pasado al menos 0.3 segundos, cambia al estado idle o fall
 		if (stateFrames >= Character.DefaultShootAnimTime) {
 			character.changeToIdleOrFall();
+		}
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		if (!grounded) {
+			sprite = airSprite;
+			character.changeSpriteFromName(airSprite, true);
 		}
 	}
 }
