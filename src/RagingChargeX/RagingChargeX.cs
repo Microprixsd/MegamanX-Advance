@@ -40,7 +40,7 @@ public class RagingChargeX : Character {
 		Helpers.decrementFrames(ref punchCooldown);
 		Helpers.decrementFrames(ref saberCooldown);
 		Helpers.decrementFrames(ref parryCooldown);
-
+		Helpers.decrementFrames(ref unlimitedcrushCooldown);
 		// For the shooting animation.
 		if (shootAnimTime > 0) {
 			shootAnimTime -= Global.speedMul;
@@ -78,7 +78,12 @@ public class RagingChargeX : Character {
 	}
 
 	public override bool attackCtrl() {
-		if (player.input.isWeaponLeftOrRightPressed(player)) {
+		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
+			unlimitedcrushCooldown = 60;
+			changeState(new UnlimitedCrushState(), true);
+			return true;
+		}
+		if (player.input.isPressed(Control.WeaponRigth, player)) {
 			parryCooldown = maxParryCooldown;
 			enterParry();
 			return true;
@@ -115,7 +120,7 @@ public class RagingChargeX : Character {
 			changeState(new X6SaberState(grounded), true);
 			return true;
 		}
-		if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player)) {
+		if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player) && grounded) {
 			changeState(new KickChargeState(), true);
 			return true;
 		}
@@ -128,7 +133,7 @@ public class RagingChargeX : Character {
 			changeState(new RcxUpShot(), true);
 			return;
 		}
-		if (player.input.isHeld(Control.Down, player)) {
+		if (player.input.isHeld(Control.Down, player) && !grounded) {
 			changeState(new RcxDownShoot(), true);
 			return;
 		}
