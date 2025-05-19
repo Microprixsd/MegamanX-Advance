@@ -101,11 +101,11 @@ public class RagingChargeX : Character {
 
 	// Shoot and set animation if posible.
 	public void shoot() {
-		if (player.input.isHeld(Control.Up, player)) {
+		if (player.input.isHeld(Control.Up, player) && grounded) {
 			changeState(new RcxUpShot(), true);
 			return;
 		}
-		if (player.input.isHeld(Control.Up, player)) {
+		if (player.input.isHeld(Control.Down, player) && !grounded) {
 			changeState(new RcxDownShoot(), true);
 			return;
 		}
