@@ -83,7 +83,7 @@ public class RagingChargeX : Character {
 			changeState(new UnlimitedCrushState(), true);
 			return true;
 		}
-		if (player.input.isPressed(Control.WeaponRigth, player)) {
+		if (player.input.isPressed(Control.WeaponRight, player)) {
 			parryCooldown = maxParryCooldown;
 			enterParry();
 			return true;
