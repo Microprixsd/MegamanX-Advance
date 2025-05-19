@@ -28,11 +28,9 @@ public class Damager {
 		{ (int)ProjIds.PlasmaGunBeamProj, 60 },
 		{ (int)ProjIds.VoltTornado, 60 },
 		{ (int)ProjIds.TornadoCharged, 60 },
-		//{ (int)ProjIds.KKnuckle, 60 },
+		// Punchy Zero.
 		{ (int)ProjIds.PZeroPunch2, 60 },
-		{ (int)ProjIds.PZeroSenpuukyaku, 60 },
-		{ (int)ProjIds.PZeroAirKick, 60 },
-		{ (int)ProjIds.MechPunch, 60 },
+		// Ride armor.
 		{ (int)ProjIds.MechKangarooPunch, 60 },
 		{ (int)ProjIds.MechGoliathPunch, 60 },
 		{ (int)ProjIds.MechDevilBearPunch, 60 },

@@ -189,11 +189,11 @@ public class PunchyZero : Character {
 	}
 
 	public override bool canCharge() {
-		return (player.currency > 0 || freeBusterShots > 0) && donutsPending == 0 && !isInvulnerableAttack();
+		return (gigaAttack.ammo >= 5 || isAwakened) && donutsPending == 0 && !isInvulnerableAttack();
 	}
 
 	public override bool chargeButtonHeld() {
-		return player.input.isHeld(Control.Shoot, player);
+		return player.input.isHeld(Control.Shoot, player) || player.input.isHeld(Control.Special1, player);
 	}
 
 	public void setShootAnim() {
@@ -210,16 +210,15 @@ public class PunchyZero : Character {
 		}
 		if (charState is LadderClimb) {
 			if (player.input.isHeld(Control.Left, player)) {
-				this.xDir = -1;
+				xDir = -1;
 			} else if (player.input.isHeld(Control.Right, player)) {
-				this.xDir = 1;
+				xDir = 1;
 			}
 		}
 		shootAnimTime = DefaultShootAnimTime;
 	}
 
 	public void shoot(int chargeLevel) {
-		if (player.currency <= 0 && freeBusterShots <= 0) { return; }
 		if (chargeLevel == 0) { return; }
 		int currencyUse = 0;
 
@@ -231,40 +230,36 @@ public class PunchyZero : Character {
 		setShootAnim();
 		Point shootPos = getShootPos();
 		int xDir = getShootXDir();
+		float ammoLeft = gigaAttack.ammo;
 
 		// Shoot stuff.
-		if (chargeLevel == 1) {
-			currencyUse = 1;
-			playSound("buster2", sendRpc: true);
-			new ZBuster2Proj(
-				shootPos, xDir, this, player, player.getNextActorNetId(), rpc: true
-			);
-		} else if (chargeLevel == 2) {
-			currencyUse = 1;
-			playSound("buster2X3", sendRpc: true);
-			new ZBuster3Proj(
-				shootPos, xDir, this, player, player.getNextActorNetId(), rpc: true
-			);
-		} else if (chargeLevel == 3 || chargeLevel >= 4) {
-			currencyUse = 1;
+		if (chargeLevel >= 3 && ammoLeft >= 9) {
+			currencyUse = 9;
 			playSound("buster3X3", sendRpc: true);
 			new ZBuster4Proj(
 				shootPos, xDir, this, player, player.getNextActorNetId(), rpc: true
 			);
+		} else if (chargeLevel == 2 && ammoLeft >= 7) {
+			currencyUse = 7;
+			playSound("buster2X3", sendRpc: true);
+			new ZBuster3Proj(
+				shootPos, xDir, this, player, player.getNextActorNetId(), rpc: true
+			);
+		} else {
+			currencyUse = 5;
+			playSound("buster2", sendRpc: true);
+			new ZBuster2Proj(
+				shootPos, xDir, this, player, player.getNextActorNetId(), rpc: true
+			);
 		}
 		if (currencyUse > 0) {
-			if (freeBusterShots > 0) {
-				freeBusterShots--;
-			} else if (player.currency > 0) {
-				player.currency--;
-			}
+			gigaAttack.addAmmo(-currencyUse, player);
 		}
 	}
 
 	public void shootDonuts(int chargeLevel) {
 		if (player.currency <= 0 && freeBusterShots <= 0) { return; }
 		if (chargeLevel == 0) { return; }
-		int currencyUse = 0;
 
 		// Cancel non-invincible states.
 		if (!charState.attackCtrl && !charState.invincible) {
@@ -276,12 +271,6 @@ public class PunchyZero : Character {
 		if (chargeLevel >= 2) {
 			donutTimer = 9;
 			donutsPending = (chargeLevel - 1);
-		}
-		currencyUse = 1;
-		if (currencyUse > 0) {
-			if (player.currency > 0) {
-				player.currency--;
-			}
 		}
 	}
 
@@ -429,18 +418,12 @@ public class PunchyZero : Character {
 			return true;
 		}
 		int yDir = player.input.getYDir(player);
-		if (isDashing && dashAttackCooldown == 0 &&
-			player.input.getYDir(player) == 0 && shootPressTime > 0
-		) {
-			changeState(new PZeroSpinKick(), true);
-			return true;
-		}
 		if (shootPressTime > 0) {
 			if (yDir == -1) {
 				changeState(new PZeroShoryuken(), true);
 				return true;
 			}
-			if (grounded && isDashing) {
+			if (isDashing) {
 				slideVel = xDir * getDashSpeed() * 0.8f;
 			}
 			changeState(new PZeroPunch1(), true);
@@ -467,7 +450,7 @@ public class PunchyZero : Character {
 	public bool groundSpcAttacks() {
 		int yDir = player.input.getYDir(player);
 		if (yDir == -1) {
-			changeState(new PZeroShoryuken(), true);
+			changeState(new PZeroSpinKick(), true);
 			return true;
 		}
 		if (yDir == 1) {
@@ -582,27 +565,27 @@ public class PunchyZero : Character {
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Punch2 => new GenericMeleeProj(
-				meleeWeapon, projPos, ProjIds.PZeroPunch2, player, 2, Global.halfFlinch, 15,
+				meleeWeapon, projPos, ProjIds.PZeroPunch2, player, 2, Global.miniFlinch, 15,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Spin => new GenericMeleeProj(
-				meleeWeapon, projPos, ProjIds.PZeroSenpuukyaku, player, 2, Global.halfFlinch,
+				meleeWeapon, projPos, ProjIds.PZeroSenpuukyaku, player, 2, Global.miniFlinch,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.AirKick => new GenericMeleeProj(
-				meleeWeapon, projPos, ProjIds.PZeroAirKick, player, 3, 0, 15,
+				meleeWeapon, projPos, ProjIds.PZeroAirKick, player, 2, 0, 15,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Uppercut => new GenericMeleeProj(
-				ZeroShoryukenWeapon.staticWeapon, projPos, ProjIds.PZeroShoryuken, player, 4, Global.defFlinch,
+				ZeroShoryukenWeapon.staticWeapon, projPos, ProjIds.PZeroShoryuken, player, 3, Global.miniFlinch,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.StrongPunch => new GenericMeleeProj(
-				MegaPunchWeapon.staticWeapon, projPos, ProjIds.PZeroYoudantotsu, player, 6, Global.defFlinch,
+				MegaPunchWeapon.staticWeapon, projPos, ProjIds.PZeroYoudantotsu, player, 4, Global.defFlinch,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.DropKick => new GenericMeleeProj(
-				DropKickWeapon.staticWeapon, projPos, ProjIds.PZeroEnkoukyaku, player, 4, Global.halfFlinch,
+				DropKickWeapon.staticWeapon, projPos, ProjIds.PZeroEnkoukyaku, player, 3, Global.miniFlinch,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Parry => new GenericMeleeProj(
@@ -610,7 +593,7 @@ public class PunchyZero : Character {
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.ParryAttack => (new GenericMeleeProj(
-				parryWeapon, projPos, ProjIds.PZeroParryAttack, player, 4, Global.defFlinch,
+				parryWeapon, projPos, ProjIds.PZeroParryAttack, player, 1, Global.defFlinch, 60,
 				addToLevel: addToLevel
 			) {
 				netcodeOverride = NetcodeModel.FavorDefender

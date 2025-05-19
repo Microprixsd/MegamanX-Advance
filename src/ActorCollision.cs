@@ -342,6 +342,9 @@ public partial class Actor {
 		if (amount == Point.zero) {
 			return;
 		}
+		if (amount.y < 0) {
+			movedUpOnFrame = true;
+		}
 		var times = useDeltaTime ? Global.spf : 1;
 
 		if (grounded && groundedIce && useIce && (
