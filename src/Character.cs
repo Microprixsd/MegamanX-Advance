@@ -1486,7 +1486,7 @@ public partial class Character : Actor, IDamagable {
 					2 => RenderEffectType.ChargeYellow,
 					3 when (chargeType == 2) => RenderEffectType.ChargeOrange,
 					3 => RenderEffectType.ChargePink,
-					_ when (chargeType == 1) => RenderEffectType.ChargeGreen,
+					_ when (chargeType == 0) => RenderEffectType.ChargeGreen,
 					_ => RenderEffectType.ChargeOrange
 				};
 				addRenderEffect(renderGfx, 2, 6);
