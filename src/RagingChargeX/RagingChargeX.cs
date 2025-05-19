@@ -65,8 +65,13 @@ public class RagingChargeX : Character {
 
 	public override bool attackCtrl() {
 		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
-			parryCooldown = 4;
+			parryCooldown = 120;
 			enterParry();
+			return true;
+		}
+		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
+			unlimitedcrushCooldown = 500;
+			changeState(new UnlimitedCrushState(), true);
 			return true;
 		}
 		// Regular shoot.
@@ -92,7 +97,7 @@ public class RagingChargeX : Character {
 			changeState(new X6SaberState(grounded), true);
 			return true;
 		}
-		if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player)) {
+		if (player.input.isHeld(Control.Down, player) && player.input.isPressed(Control.Dash, player) && grounded) {
 			changeState(new KickChargeState(), true);
 			return true;
 		}
