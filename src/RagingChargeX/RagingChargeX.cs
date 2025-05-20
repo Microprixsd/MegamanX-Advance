@@ -116,7 +116,7 @@ public class RagingChargeX : Character {
 		// Disparo regular
 		if (player.input.isPressed(Control.Shoot, player) && punchCooldown <= 0) {
 			if (ragingBuster.ammo >= ragingBuster.getAmmoUsage(0) && ragingBuster.shootCooldown <= 0) {
-				ragingBuster.shootCooldown = 300;
+				ragingBuster.shootCooldown = 500;
 				shoot();
 				return true;
 			}
@@ -131,7 +131,7 @@ public class RagingChargeX : Character {
 			changeState(new XUPPunchState(grounded), true);
 			return true;
 		}  if (chargeLevel == 0 && punchCooldown == 0 && player.input.isPressed(Control.Special1, player)) {
-			punchCooldown = 120;
+			punchCooldown = 60;
 			changeState(new XUPPunchState(grounded), true);
 			resetCharge();
 			return true;
@@ -150,12 +150,12 @@ public class RagingChargeX : Character {
 					return true;
 
 			} else if (chargeLevel == 2 && saberCooldown == 0) {
-				saberCooldown = 120;
+				saberCooldown = 50;
 				changeState(new X6SaberState(grounded), true);
 				resetCharge();
 				return true;
 			} else if (chargeLevel == 1 && saberCooldown == 0) {
-				saberCooldown = 120;
+				saberCooldown = 50;
 				changeState(new X6SaberState(grounded), true);
 				resetCharge();
 				return true;
@@ -213,11 +213,11 @@ public class RagingChargeX : Character {
 		chargeTime += Global.speedMul;
 
 		if (isCharging()) {
-			if (chargeTime <= 30) {
+			if (chargeTime <= 60) {
 				chargeLevel = 1; // Nivel de carga básico
-			} else if (chargeTime > 30 && chargeTime < 105) {
+			} else if (chargeTime > 60 && chargeTime < 120) {
 				chargeLevel = 2; // Nivel de carga medio
-			} else if (chargeTime >= 105 && chargeTime < 180) {
+			} else if (chargeTime >= 120 && chargeTime < 180) {
 				chargeLevel = 3; // Nivel de carga alto
 			}
 		}
