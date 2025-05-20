@@ -56,6 +56,7 @@ public class RagingChargeX : Character {
 		}
 	}
 
+
 	public override void preUpdate() {
 		base.preUpdate();
 
@@ -75,6 +76,28 @@ public class RagingChargeX : Character {
 						frameIndex = sprite.totalFrameNum - 1;
 					}
 				}
+			}
+		}
+	}
+	public void ejecutarRCXGrabDash() {
+		if (charState is Dash || charState is AirDash) {
+			charState.isGrabbing = true;
+			charState.superArmor = true; //peakbalance
+
+			// Aplicar la animación `mmx_unpo_grab_dash` y dejar que se ejecute completamente
+			if (sprite != null && sprite.name != "mmx_unpo_grab_dash") {
+				changeSprite("mmx_unpo_grab_dash", false);
+			}
+
+			// Verificar si la hitbox del personaje ha tocado a `victim` mientras la animación está activa
+			if (victim != null && victim.sprite != null && sprite.name == "mmx_unpo_grab_dash" && victim.sprite.name.Contains("_grabbed")) {
+				changeState(new XUPGrabState(victim));
+			}
+
+			// Esperar hasta que la animación termine antes de restaurar los valores
+			if (sprite != null && sprite.isAnimOver()) {
+				charState.isGrabbing = false;
+				charState.superArmor = false;
 			}
 		}
 	}
@@ -106,6 +129,12 @@ public class RagingChargeX : Character {
 			parryCooldown = 200;
 			enterParry();
 			return true;
+		}
+		if (charState is Dash or AirDash) {
+			if (player.input.isHeld(Control.Special1, player)) {
+				ejecutarRCXGrabDash();
+				return true;
+			}
 		}
 		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
 			unlimitedcrushCooldown = 500;
