@@ -2614,10 +2614,13 @@ public partial class Character : Actor, IDamagable {
 					}
 				}
 				if (mmx.chestArmor == ArmorId.Light) {
-					damageSavings += (originalDamage * 0.125m);
+					damageSavings += originalDamage * 0.125m;
 				}
 				if (mmx.chestArmor == ArmorId.Giga) {
-					damageSavings += (originalDamage * 0.125m);
+					damageSavings += originalDamage * 0.125m;
+				}
+				if (mmx.chestArmor == ArmorId.Force) {
+					damageSavings += originalDamage * 0.125m;
 				}
 			}
 			if (vile != null && vile.hasFrozenCastle) {
@@ -3342,6 +3345,8 @@ public partial class Character : Actor, IDamagable {
 		}
 		return sound;
 	}
+
+	public virtual void onKills() { }
 
 	public virtual void aiUpdate() { }
 

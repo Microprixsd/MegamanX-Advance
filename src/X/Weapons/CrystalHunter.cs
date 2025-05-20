@@ -42,7 +42,14 @@ public class CrystalHunter : Weapon {
 		if (chargeLevel < 3) {
 			new CrystalHunterProj(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
 		} else {
-			new CrystalHunterCharged(pos, player, player.getNextActorNetId(), player.ownedByLocalPlayer, sendRpc: true);
+			var cHunter = new CrystalHunterCharged(
+				pos, player, player.getNextActorNetId(), player.ownedByLocalPlayer, sendRpc: true
+			);
+			if (mmx.armArmor == ArmorId.Force) {
+				cHunter.plasmaProj = new BusterForcePlasmaHit(
+					1, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
+				);
+			}
 		}
 	}
 }
@@ -85,8 +92,10 @@ public class CrystalHunterCharged : Actor {
 	public float drawRadius = 120;
 	public float drawAlpha = 64;
 	public bool isSnails;
-	float maxTime = 4;
+	float maxTime = 6;
 	float soundTime;
+	public Actor? plasmaProj;
+
 	public CrystalHunterCharged(
 		Point pos, Player owner, ushort? netId, bool ownedByLocalPlayer, 
 		float? overrideTime = null, bool sendRpc = false
@@ -143,6 +152,9 @@ public class CrystalHunterCharged : Actor {
 		time += Global.spf;
 		if (time > maxTime) {
 			destroySelf(disableRpc: true);
+		}
+		if (ownedByLocalPlayer && plasmaProj != null) {
+			changePos(plasmaProj.pos);
 		}
 	}
 

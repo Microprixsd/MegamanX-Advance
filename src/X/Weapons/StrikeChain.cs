@@ -36,7 +36,9 @@ public class StrikeChain : Weapon {
 
 		Projectile proj;
 		if (chargeLevel >= 3) {
-			proj = new StrikeChainProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true);
+			proj = new StrikeChainProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
 		} else {
 			proj = new StrikeChainProj(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true);
 		}

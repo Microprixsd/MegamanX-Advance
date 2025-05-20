@@ -220,7 +220,6 @@ public class PunchyZero : Character {
 
 	public void shoot(int chargeLevel) {
 		if (chargeLevel == 0) { return; }
-		int currencyUse = 0;
 
 		// Cancel non-invincible states.
 		if (!charState.attackCtrl && !charState.invincible) {
@@ -231,6 +230,7 @@ public class PunchyZero : Character {
 		Point shootPos = getShootPos();
 		int xDir = getShootXDir();
 		float ammoLeft = gigaAttack.ammo;
+		int currencyUse;
 
 		// Shoot stuff.
 		if (chargeLevel >= 3 && ammoLeft >= 9) {
@@ -437,7 +437,14 @@ public class PunchyZero : Character {
 
 	public bool airAttacks() {
 		int yDir = player.input.getYDir(player);
-		if (diveKickCooldown == 0 && (shootPressTime > 0 || specialPressTime > 0) && yDir == 1) {
+		if (yDir == 1 && specialPressTime > 0) {
+			if (gigaAttack.shootCooldown > 0 || gigaAttack.ammo < gigaAttack.getAmmoUsage(0)) {
+				return false;
+			}
+			changeState(new PZeroDiveGigaState(), true);
+			return true;
+		}
+		if (diveKickCooldown == 0 && shootPressTime > 0 && yDir == 1) {
 			changeState(new PZeroDiveKickState(), true);
 			return true;
 		}

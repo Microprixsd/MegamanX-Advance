@@ -41,7 +41,9 @@ public class StormTornado : Weapon {
 		if (chargeLevel < 3) {
 			new TornadoProj(pos, xDir, false, mmx, player, player.getNextActorNetId(), true);
 		} else {
-			new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
 		}
 	}
 }

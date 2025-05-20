@@ -574,7 +574,7 @@ public class Damager {
 				}
 			}
 			//Damage above 0
-			if (damage > 0) {
+			if (damage > 0 || flinch > 0) {
 				//bool if the character is frozen
 				bool isShotgunIceAndFrozen = (
 					character.sprite.name.Contains("frozen") == true && weaponKillFeedIndex == 8

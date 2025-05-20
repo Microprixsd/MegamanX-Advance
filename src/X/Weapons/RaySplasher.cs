@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using SFML.Graphics;
 using SFML.Graphics.Glsl;
 
@@ -25,13 +26,19 @@ public class RaySplasher : Weapon {
 
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
+		Point pos = character.getShootPos();
+		int xDir = character.getShootXDir();
+		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
 		if (chargeLevel < 3) {
 			mmx.shootingRaySplasher = this;
 		} else {
-			if (character.ownedByLocalPlayer) {
-				character.changeState(new RaySplasherChargedState(), true);
+			character.changeState(new RaySplasherChargedState(), true);
+			if (mmx.armArmor == ArmorId.Force) {
+				new BusterForcePlasmaHit(
+					4, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
+				);
 			}
 		}
 	}

@@ -9,6 +9,7 @@ public class MegamanX : Character {
 	public float shootCooldown;
 	public int lastShootPressed;
 	public bool bufferedShotPressed => lastShootPressed < 6 || player.input.isPressed(Control.Shoot, player);
+	public int lastChargeHeld;
 	public float specialSaberCooldown;
 	public XBuster specialBuster;
 	public int specialButtonMode;
@@ -327,9 +328,10 @@ public class MegamanX : Character {
 				changeState(new GigaAirDash(dashControlG), true);
 				return true;
 			}
-			if (!player.isAI && hasUltimateArmor &&
+			if (!player.isAI &&
 				player.input.isPressed(Control.Jump, player) &&
-				canJump() && !isDashing && canAirDash() && flag == null
+				canJump() && !isDashing && canAirDash() && flag == null &&
+				(hasUltimateArmor || legArmor == ArmorId.Force)
 			) {
 				dashedInAir++;
 				changeState(new XHover(), true);
@@ -351,10 +353,16 @@ public class MegamanX : Character {
 				changeState(new X6SaberState(grounded), true);
 				specialSaberCooldown = 60;
 				return true;
-			} else if (specialButtonMode == 0 && specialBuster.shootCooldown <= 0) {
+			} else if (specialButtonMode == 0 && specialBuster.shootCooldown <= 0 && !isCharging()) {
 				shoot(0, specialBuster, false);
 				return true;
 			}
+		}
+		if (player.input.isPressed(Control.Special1, player) && !isCharging() &&
+			fullArmor == ArmorId.Force && specialBuster.shootCooldown <= 0
+		) {
+			shoot(0, specialBuster, false);
+			return true;
 		}
 		if (player.input.isPressed(Control.Special1, player) && helmetArmor == ArmorId.Giga &&
 			itemTracer.shootCooldown == 0
@@ -451,7 +459,11 @@ public class MegamanX : Character {
 
 	// Shoots stuff.
 	public void shoot(int chargeLevel) {
-		shoot(chargeLevel, currentWeapon ?? specialBuster, false);
+		Weapon shootingWeapon = currentWeapon ?? specialBuster;
+		if (lastChargeHeld == 1) {
+			shootingWeapon = specialBuster;
+		}
+		shoot(chargeLevel, shootingWeapon, false);
 	}
 
 	public void shoot(int chargeLevel, Weapon weapon, bool busterStock) {
@@ -707,10 +719,17 @@ public class MegamanX : Character {
 	}
 
 	public override bool chargeButtonHeld() {
-		if (specialButtonMode == 0 && player.input.isHeld(Control.Special1, player)) {
+		if ((specialButtonMode == 0 || fullArmor == ArmorId.Force) &&
+			player.input.isHeld(Control.Special1, player)
+		) {
+			lastChargeHeld = 1;
 			return true;
 		}
-		return player.input.isHeld(Control.Shoot, player);
+		if (player.input.isHeld(Control.Shoot, player)) {
+			lastChargeHeld = 0;
+			return true;
+		}
+		return false;
 	}
 
 	public override void onWeaponChange(Weapon oldWeapon, Weapon newWeapon) {
@@ -764,6 +783,20 @@ public class MegamanX : Character {
 			}
 		}
 		return targetWeapon;
+	}
+
+	public override void onKills() {
+		if (helmetArmor == ArmorId.Force) {
+			float ammoReload = 18;
+			if (hyperHelmetActive) {
+				ammoReload = 25;
+			}
+			foreach (Weapon weapon in weapons) {
+				if (weapon is not GigaCrush and not HyperCharge and not HyperNovaStrike) {
+					weapon.addAmmoPercentHeal(ammoReload);
+				}
+			}
+		}
 	}
 
 	public void activateMaxBarrier(bool isFlinchOrStun) {
@@ -1091,6 +1124,7 @@ public class MegamanX : Character {
 			1 => "x1",
 			2 => "x2",
 			3 => "x3",
+			4 => "x4",
 			_ => ""
 		};
 		if (apendix != "" && Global.soundBuffers.ContainsKey(sound.ToLower() + apendix)) {

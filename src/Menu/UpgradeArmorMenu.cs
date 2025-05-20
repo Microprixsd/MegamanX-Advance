@@ -43,8 +43,8 @@ public class UpgradeArmorMenu : IMainMenu {
 			}
 		} else if (Global.input.isPressedMenu(Control.MenuRight)) {
 			xGame++;
-			if (xGame > 3) {
-				xGame = 3;
+			if (xGame > 4) {
+				xGame = 4;
 				if (!Global.level.server.disableHtSt) {
 					UpgradeMenu.onUpgradeMenu = true;
 					Menu.change(new UpgradeMenu(prevMenu));
@@ -282,6 +282,7 @@ public class UpgradeArmorMenu : IMainMenu {
 			1 => "Light Armor",
 			2 => "Giga Armor",
 			3 => "Max Armor",
+			4 => "Force Armor",
 			_ => "ERROR"
 		};
 		Fonts.drawText(
@@ -296,11 +297,13 @@ public class UpgradeArmorMenu : IMainMenu {
 				1 when stEnabled => "Items",
 				2 => "Light",
 				3 => "Giga",
+				4 => "Max",
 				_ => ""
 			};
 			string rightText = xGame switch {
 				1 => "Giga",
 				2 => "Max",
+				4 => "Force",
 				3 when stEnabled => "Items",
 				_ => ""
 			};
@@ -335,28 +338,31 @@ public class UpgradeArmorMenu : IMainMenu {
 		Global.sprites["cursor"].drawToHUD(0, optionPos1.x - 8, optionPos.y + 4 + yOff);
 		bool showChips = mainPlayer.hasAllX3Armor() && xGame == 3;
 
-		switch (xGame) {
-			case 1: case 2: case 3: Global.sprites["menu_xdefault"].drawToHUD(0, 300, 110); break;
-		} 
+		Global.sprites["menu_xdefault"].drawToHUD(0, 300, 110);
+
 		switch (mainPlayer.helmetArmorNum) {
 			case 1: Global.sprites["menu_xhelmet"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xhelmet2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xhelmet3"].drawToHUD(0, 300, 110); break;
+			//case 4: Global.sprites["menu_xhelmet4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.bodyArmorNum) {
 			case 1: Global.sprites["menu_xbody"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xbody2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xbody3"].drawToHUD(0, 300, 110); break;
+			//case 4: Global.sprites["menu_xbody4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.armArmorNum) {
 			case 1: Global.sprites["menu_xarm"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xarm2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xarm3"].drawToHUD(0, 300, 110); break;
+			//case 4: Global.sprites["menu_xarm4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.legArmorNum) {
 			case 1: Global.sprites["menu_xboots"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xboots2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xboots3"].drawToHUD(0, 300, 110); break;
+			//case 4: Global.sprites["menu_xboots4"].drawToHUD(0, 300, 110); break;
 		}
 		Fonts.drawText(FontType.Yellow, "Head Parts", optionPos1.x, optionPos1.y, selected: selectArrowPosY == 0 && !showChips);
 		Fonts.drawText(FontType.Green, getHeadArmorMessage(), optionPos1.x + 60, optionPos1.y);
@@ -413,6 +419,13 @@ public class UpgradeArmorMenu : IMainMenu {
 					if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, 262, optionPos3.y-8);
 					if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, 278, optionPos4.y+6);
 				}
+				break;
+			case 4: // Force
+				Fonts.drawText(FontType.Blue, "Reloads ammo on kills.", optionPos1.x + 5, optionPos1.y + 10);
+				Fonts.drawText(FontType.Blue, "Reduces Damage by 12.5%", optionPos2.x + 5, optionPos2.y + 10);
+				Fonts.drawText(FontType.Blue, "Grants Nova Strike", optionPos2.x + 5, optionPos2.y + 20);
+				Fonts.drawText(FontType.Blue, "Charge shots release plasma on hit", optionPos3.x + 5, optionPos3.y + 10);
+				Fonts.drawText(FontType.Blue, "Grants hover.", optionPos4.x + 5, optionPos4.y + 10);
 				break;
 		} 
 		//drawHyperArmorUpgrades(mainPlayer, 0);

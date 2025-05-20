@@ -14,10 +14,10 @@ public class Sprite {
 	public Collider[] hitboxes;
 	public Collider[][] frameHitboxes;
 
-	public static Texture[] xArmorBootsBitmap = new Texture[4];
-	public static Texture[] xArmorBodyBitmap = new Texture[4];
-	public static Texture[] xArmorHelmetBitmap = new Texture[4];
-	public static Texture[] xArmorArmBitmap = new Texture[4];
+	public static Texture[] xArmorBootsBitmap = new Texture[17];
+	public static Texture[] xArmorBodyBitmap = new Texture[17];
+	public static Texture[] xArmorHelmetBitmap = new Texture[17];
+	public static Texture[] xArmorArmBitmap = new Texture[17];
 	public static Texture[] xSaberBitmap = new Texture[2];
 	public static Texture axlArmBitmap = null!;
 
@@ -272,13 +272,13 @@ public class Sprite {
 		float flippedExtraW = 0;
 		float extraXOff = 0;
 
-		if (isUltX) {
+		if (isUltX && armors != null) {
 			extraYOff = 3;
 			extraY = 3;
-			armors[0] = 4;
-			armors[1] = 4;
-			armors[2] = 4;
-			armors[3] = 4;
+			armors[0] = 17;
+			armors[1] = 17;
+			armors[2] = 17;
+			armors[3] = 17;
 		}
 
 		if (isUPX) {

@@ -101,7 +101,9 @@ public class BubbleSplash : Weapon {
 					var bubble = new BubbleSplashProjCharged(
 						pos, xDir, mmx, player, i, 
 						player.getNextActorNetId(true), true);
-
+					if (i == 0 && mmx.armArmor == ArmorId.Force) {
+						bubble.createPlasma = true;
+					}
 					mmx.chargedBubbles?.Add(bubble);	
 				}
 			}

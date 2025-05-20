@@ -501,10 +501,10 @@ public partial class Player {
 	public bool suicided;
 
 	ushort savedArmorFlag;
-	public bool[] headArmorsPurchased = new bool[] { false, false, false };
-	public bool[] bodyArmorsPurchased = new bool[] { false, false, false };
-	public bool[] armArmorsPurchased = new bool[] { false, false, false };
-	public bool[] bootsArmorsPurchased = new bool[] { false, false, false };
+	public bool[] headArmorsPurchased = new bool[16];
+	public bool[] bodyArmorsPurchased = new bool[16];
+	public bool[] armArmorsPurchased = new bool[16];
+	public bool[] bootsArmorsPurchased = new bool[16];
 
 	public float lastMashAmount;
 	public int lastMashAmountSetFrame;
@@ -1841,7 +1841,7 @@ public partial class Player {
 	}
 
 	public bool hasAllX3Armor() {
-		return bodyArmorNum >= 3 && legArmorNum >= 3 && armArmorNum >= 3 && helmetArmorNum >= 3;
+		return bodyArmorNum == 3 && legArmorNum == 3 && armArmorNum == 3 && helmetArmorNum == 3;
 	}
 
 	public void destroy() {
@@ -1976,10 +1976,12 @@ public partial class Player {
 		if (character is MegamanX mmx && mmx.hasUltimateArmor) {
 			return;
 		}
-		
+
 		if (Global.level?.server?.customMatchSettings != null) {
 			currency += Global.level.server.customMatchSettings.currencyGain;
-		} else currency++;
+		} else {
+			currency++;
+		}
 	}
 
 	public int getStartCurrency() {
@@ -2368,22 +2370,10 @@ public partial class Player {
 		armorFlag = Convert.ToUInt16(string.Join("", bits), 2);
 	}
 
-	public int legArmorNum {
-		get { return getArmorNum(armorFlag, 0, false); }
-		set { setArmorNum(0, value); }
-	}
-	public int bodyArmorNum {
-		get { return getArmorNum(armorFlag, 1, false); }
-		set { setArmorNum(1, value); }
-	}
-	public int helmetArmorNum {
-		get { return getArmorNum(armorFlag, 2, false); }
-		set { setArmorNum(2, value); }
-	}
-	public int armArmorNum {
-		get { return getArmorNum(armorFlag, 3, false); }
-		set { setArmorNum(3, value); }
-	}
+	public int legArmorNum;
+	public int bodyArmorNum;
+	public int helmetArmorNum;
+	public int armArmorNum;
 
 	public bool hasHelmetArmor(ArmorId armorId) { return helmetArmorNum == (int)armorId; }
 	public bool hasArmArmor(ArmorId armorId) { return armArmorNum == (int)armorId; }
@@ -2403,7 +2393,7 @@ public partial class Player {
 	public void setBootsArmorPurchased(int xGame) { bootsArmorsPurchased[xGame - 1] = true; }
 
 	public bool hasAllArmorsPurchased() {
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			if (!headArmorsPurchased[i]) return false;
 			if (!bodyArmorsPurchased[i]) return false;
 			if (!armArmorsPurchased[i]) return false;
@@ -2518,6 +2508,9 @@ public partial class Player {
 			}
 			charNumToKills[realCharNum]++;
 			RPC.updatePlayer.sendRpc(id, kills, deaths);
+		}
+		if (character != null && ownedByLocalPlayer) {
+			character.onKills();
 		}
 	}
 

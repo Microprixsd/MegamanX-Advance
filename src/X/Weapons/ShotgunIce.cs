@@ -40,6 +40,11 @@ public class ShotgunIce : Weapon {
 			//mmx.shotgunIceChargeTime = 1.5f;
 			character.changeState(new ShotgunIceChargedShot(), true);
 			new ShotgunIceProjSled(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			if (mmx.armArmor == ArmorId.Force) {
+				new BusterForcePlasmaHit(
+					0, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
+				);
+			}
 		}
 	}
 }

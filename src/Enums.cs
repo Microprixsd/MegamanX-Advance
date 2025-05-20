@@ -730,6 +730,10 @@ public enum ProjIds {
 	DZMelee,
 	DZHadangeki,
 
+	// Advance stuff.
+	BusterForcePlasmaProj,
+	BusterForcePlasmaHit,
+
 	// Special damage types.
 	SelfDmg = 30000,
 

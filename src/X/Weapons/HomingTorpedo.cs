@@ -42,7 +42,9 @@ public class HomingTorpedo : Weapon {
 			player.getNextActorNetId(true);
 			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 30, true);
 			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 15, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 0, true);
+			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 0, true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
 			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), -15, true);
 			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), -30, true);
 		}

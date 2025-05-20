@@ -44,7 +44,9 @@ public class SpinningBlade : Weapon {
 			new SpinningBladeProj(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true);
 			new SpinningBladeProj(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
 		} else {
-			var csb = new SpinningBladeProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			var csb = new SpinningBladeProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
 			if (mmx.ownedByLocalPlayer) {
 				mmx.chargedSpinningBlade = csb;
 			}

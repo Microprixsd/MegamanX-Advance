@@ -4,10 +4,28 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MMXOnline;
 
-public class XHover : CharState {
+public class XState : CharState {
+	public MegamanX mmx = null!;
+
+	public XState(
+		string sprite, string shootSprite = "", string attackSprite = "",
+		string transitionSprite = "", string transShootSprite = ""
+	) : base(
+		sprite, shootSprite, attackSprite, transitionSprite, transShootSprite
+	) {
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		mmx = character as MegamanX ?? throw new NullReferenceException();
+	}
+}
+
+public class XHover : XState {
 	public SoundWrapper? sound;
 	float hoverTime;
 	int startXDir;
+
 	public XHover() : base("hover", "hover_shoot") {
 		airMove = true;
 		attackCtrl = true;
@@ -61,7 +79,7 @@ public class XHover : CharState {
 		}
 
 		hoverTime += Global.spf;
-		if (hoverTime > 2 || player.input.checkDoubleTap(Control.Dash) ||
+		if (hoverTime > 2 && !mmx.hasUltimateArmor || player.input.checkDoubleTap(Control.Dash) ||
 			stateFrames > 12 && player.input.isPressed(Control.Jump, player)
 		) {
 			character.changeState(character.getFallState(), true);

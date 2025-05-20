@@ -56,7 +56,9 @@ public class TornadoFang : Weapon {
 				}
 			}
 		} else {
-			var ct = new TornadoFangProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			var ct = new TornadoFangProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
 			if (character.ownedByLocalPlayer) {
 				mmx.chargedTornadoFang = ct;
 			}

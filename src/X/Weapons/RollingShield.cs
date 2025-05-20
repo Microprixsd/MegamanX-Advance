@@ -49,7 +49,9 @@ public class RollingShield : Weapon {
 			} else {
 				mmx.chargedRollingShieldProj = new RollingShieldProjCharged(
 					pos, xDir, mmx, player, player.getNextActorNetId(), true
-				);
+				) {
+					createPlasma = mmx.armArmor == ArmorId.Force
+				};
 			}
 		}
 	}

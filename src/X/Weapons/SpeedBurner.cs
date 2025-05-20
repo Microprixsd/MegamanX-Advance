@@ -44,6 +44,11 @@ public class SpeedBurner : Weapon {
 			if (character.ownedByLocalPlayer) {
 				character.changeState(new SpeedBurnerCharState(), true);
 			}
+			if (mmx.armArmor == ArmorId.Force) {
+				new BusterForcePlasmaHit(
+					6, mmx, mmx.getCenterPos(), xDir, player.getNextActorNetId(), sendRpc: true
+				);
+			}
 		}
 	}
 }

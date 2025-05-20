@@ -41,6 +41,11 @@ public class SpinWheel : Weapon {
 			new SpinWheelProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
 			new SpinWheelProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			if (mmx.armArmor == ArmorId.Force) {
+				new BusterForcePlasmaHit(
+					2, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
+				);
+			}
 		}
 	}
 }

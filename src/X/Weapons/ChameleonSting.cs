@@ -51,6 +51,11 @@ public class ChameleonSting : Weapon {
 				return;
 			}
 			mmx.stingActiveTime = 480;
+			if (mmx.armArmor == ArmorId.Force) {
+				new BusterForcePlasmaHit(
+					2, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
+				);
+			}
 		}
 	}
 }

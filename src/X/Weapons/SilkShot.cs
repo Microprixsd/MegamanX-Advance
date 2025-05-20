@@ -29,10 +29,12 @@ public class SilkShot : Weapon {
 		Player player = character.player;
 
 		if (chargeLevel >= 3) {
-			new SilkShotProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-		// } else if (chargeLevel >= 2) {
-		//		new SilkShotProjLv2(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-		} else if (chargeLevel < 3) {
+			new SilkShotProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
+		} else if (chargeLevel >= 2) {
+			new SilkShotProjLv2(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+		} else {
 			new SilkShotProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
 	}

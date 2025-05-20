@@ -46,7 +46,9 @@ public class FireWave : Weapon {
 				var proj = new FireWaveProj( pos, xDir, mmx, player, player.getNextActorNetId(), true);
 				proj.vel.inc(character.vel.times(-0.5f));
 			} else {
-				new FireWaveProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				new FireWaveProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
+					createPlasma = mmx.armArmor == ArmorId.Force
+				};
 			}
 		}
 	}
@@ -118,7 +120,9 @@ public class FireWaveProjChargedStart : Projectile {
 				new FireWaveProjCharged(
 					pos, xDir, this, damager.owner, 0,
 					Global.level.mainPlayer.getNextActorNetId(), 0, rpc: true
-				);
+				) {
+					createPlasma = createPlasma && !hasReleasedPlasma
+				};
 				playSound("fireWave");
 			}
 		}
@@ -223,7 +227,9 @@ public class FireWaveProjCharged : Projectile {
 					pos.addxy(16 * xDir, 0), xDir * sign, this,
 					damager.owner, time + parentTime, Global.level.mainPlayer.getNextActorNetId(),
 					timesReversed, rpc: true
-				);
+				) {
+					createPlasma = createPlasma && !hasReleasedPlasma
+				};
 			}
 		}
 	}

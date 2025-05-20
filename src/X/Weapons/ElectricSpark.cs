@@ -33,7 +33,9 @@ public class ElectricSpark : Weapon {
 		if (chargeLevel < 3) {
 			new ElectricSparkProj(pos, xDir, mmx, player, 0, player.getNextActorNetId(), rpc: true);
 		} else {
-			new ElectricSparkProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			new ElectricSparkProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
 		}
 	}
 }
@@ -156,13 +158,15 @@ public class ElectricSparkProjChargedStart : Projectile {
 			destroySelf();
 			if (ownedByLocalPlayer) {
 				new ElectricSparkProjCharged(
-					pos.addxy(-1, 0), -1, this, damager.owner,
+					pos.addxy(-1 * xDir, 0), -1 * xDir, this, damager.owner,
 					damager.owner.getNextActorNetId(true), rpc: true
 				);
 				new ElectricSparkProjCharged(
-					pos.addxy(1, 0), 1, this, damager.owner,
+					pos.addxy(1 * xDir, 0), 1 * xDir, this, damager.owner,
 					damager.owner.getNextActorNetId(true), rpc: true
-				);
+				) {
+					createPlasma = createPlasma
+				};
 			}
 		}
 	}

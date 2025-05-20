@@ -141,6 +141,11 @@ public class XBuster : Weapon {
 			if (isStock) {
 				new Buster4Giga2Proj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
+			else if (mmx.armArmor == ArmorId.Force) {
+				new BusterForcePlasmaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				new Anim(pos.clone(), "buster_plasma_muzzle", xDir, null, destroyOnEnd: true);
+				shootSound = "plasmaShot";
+			}
 			else if (mmx.armArmor == ArmorId.Max) {
 				if (!mmx.charState.attackCtrl || !mmx.charState.normalCtrl || mmx.charState is WallSlide) {
 					new Anim(pos, "buster4_x3_muzzle", xDir, player.getNextActorNetId(), true, sendRpc: true);
@@ -150,8 +155,7 @@ public class XBuster : Weapon {
 					mmx.changeState(new X3ChargeShot(null));
 					return;
 				}
-			}
-			else if (mmx.armArmor == ArmorId.Giga) {
+			} else if (mmx.armArmor == ArmorId.Giga) {
 				new Buster4GigaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			} else {
 				shootLightBuster4(player, pos, xDir);

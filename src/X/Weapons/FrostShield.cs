@@ -46,7 +46,9 @@ public class FrostShield : Weapon {
 				}
 				mmx.chargedFrostShield = new FrostShieldProjCharged(
 					pos, xDir, mmx, player, player.getNextActorNetId(), true
-				);
+				) {
+					createPlasma = mmx.armArmor == ArmorId.Force
+				};
 			}
 		}
 	}
@@ -300,7 +302,9 @@ public class FrostShieldProjCharged : Projectile {
 		if (owner.character is MegamanX mmx && mmx.chargedFrostShield == this) {
 			mmx.chargedFrostShield = null;
 		}
-		new FrostShieldProjChargedGround(pos, character?.xDir ?? 1, this, owner, owner.getNextActorNetId(), rpc: true);
+		new FrostShieldProjChargedGround(pos, character?.xDir ?? 1, this, owner, owner.getNextActorNetId(), rpc: true) {
+			createPlasma = createPlasma && !hasReleasedPlasma
+		};
 	}
 }
 

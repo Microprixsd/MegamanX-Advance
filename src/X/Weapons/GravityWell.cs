@@ -43,6 +43,11 @@ public class GravityWell : Weapon {
 		} else {
 			if (!character.ownedByLocalPlayer) return;
 			character.changeState(new GravityWellChargedState(), true);
+			if (mmx.armArmor == ArmorId.Force) {
+				new BusterForcePlasmaHit(
+					5, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
+				);
+			}
 		}
 	}
 

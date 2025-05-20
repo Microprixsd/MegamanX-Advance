@@ -39,7 +39,9 @@ public class MagnetMine : Weapon {
 				mmx.magnetMines.RemoveAt(0);
 			}
 		} else {
-			new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
+				createPlasma = mmx.armArmor == ArmorId.Force
+			};
 		}
 	}
 }
