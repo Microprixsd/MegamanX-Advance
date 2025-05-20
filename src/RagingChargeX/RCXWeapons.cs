@@ -25,7 +25,7 @@ public class RagingChargeBuster : Weapon {
 		ammo = maxAmmo;
 	}
 
-	public override float getAmmoUsage(int chargeLevel) { return 3; }
+	public override float getAmmoUsage(int chargeLevel) { return 0; }
 
 	public void shoot(RagingChargeX character, float byteAngle) {
 		Point pos = character.getShootPos();
@@ -136,14 +136,21 @@ public class UnlimitedCrush : Weapon {
 	}
 }
 
-public class RCXGrab : Weapon
-{
+public class RCXGrab : Weapon {
 	public static RCXGrab netWeapon = new();
 
-	public RCXGrab() : base()
-	{
+	public RCXGrab() : base() {
 		fireRate = 45;
 		//index = (int)WeaponIds.UPGrab;
 		killFeedIndex = 92;
+	}
+
+	public class Chargedpunch : Weapon {
+		public static Chargedpunch netWeapon = new();
+		public Chargedpunch() : base() {
+			fireRate = 45;
+			index = (int)WeaponIds.Chargedpunch;
+			killFeedIndex = 167;
+		}
 	}
 }
