@@ -143,15 +143,10 @@ public class RagingChargeX : Character {
 		// Liberar el golpe cargado cuando el jugador suelta el botón
 		if (!player.input.isHeld(Control.Special1, player)) {
 			if (chargeLevel == 3) {
-				if (grounded) {
-					changeState(new KickChargeState(), true);
-					resetCharge();
-				}else {
+				 {
 					changeState(new Chargedpunch(), true);
 					resetCharge();
 				}
-
-					return true;
 
 			} else if (chargeLevel == 2 && saberCooldown == 0) {
 				saberCooldown = 50;
@@ -164,7 +159,12 @@ public class RagingChargeX : Character {
 				resetCharge();
 				return true;
 			}
-		} 
+		}
+		if (player.input.isHeld(Control.Down, player) && kickchargeCooldown == 0 && player.input.isPressed(Control.Dash, player)) {
+			kickchargeCooldown = 120;
+			changeState(new KickChargeState(), true);
+			return true;
+		}
 
 		return base.attackCtrl();
 	}
