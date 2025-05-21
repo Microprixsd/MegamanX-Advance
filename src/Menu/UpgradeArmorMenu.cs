@@ -298,6 +298,7 @@ public class UpgradeArmorMenu : IMainMenu {
 				2 => "Light",
 				3 => "Giga",
 				4 => "Max",
+				5 => "Force",
 				_ => ""
 			};
 			string rightText = xGame switch {
@@ -344,25 +345,29 @@ public class UpgradeArmorMenu : IMainMenu {
 			case 1: Global.sprites["menu_xhelmet"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xhelmet2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xhelmet3"].drawToHUD(0, 300, 110); break;
-			//case 4: Global.sprites["menu_xhelmet4"].drawToHUD(0, 300, 110); break;
+			case 4: Global.sprites["menu_xhelmet4"].drawToHUD(0, 300, 110); break;
+				//case 4: Global.sprites["menu_xhelmet4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.bodyArmorNum) {
 			case 1: Global.sprites["menu_xbody"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xbody2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xbody3"].drawToHUD(0, 300, 110); break;
-			//case 4: Global.sprites["menu_xbody4"].drawToHUD(0, 300, 110); break;
+			case 4: Global.sprites["menu_xbody4"].drawToHUD(0, 300, 110); break;
+				//case 4: Global.sprites["menu_xbody4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.armArmorNum) {
 			case 1: Global.sprites["menu_xarm"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xarm2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xarm3"].drawToHUD(0, 300, 110); break;
-			//case 4: Global.sprites["menu_xarm4"].drawToHUD(0, 300, 110); break;
+			case 4: Global.sprites["menu_xarm4"].drawToHUD(0, 300, 110); break;
+				//case 4: Global.sprites["menu_xarm4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.legArmorNum) {
 			case 1: Global.sprites["menu_xboots"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xboots2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xboots3"].drawToHUD(0, 300, 110); break;
-			//case 4: Global.sprites["menu_xboots4"].drawToHUD(0, 300, 110); break;
+			case 4: Global.sprites["menu_xboots4"].drawToHUD(0, 300, 110); break;
+				//case 4: Global.sprites["menu_xboots4"].drawToHUD(0, 300, 110); break;
 		}
 		Fonts.drawText(FontType.Yellow, "Head Parts", optionPos1.x, optionPos1.y, selected: selectArrowPosY == 0 && !showChips);
 		Fonts.drawText(FontType.Green, getHeadArmorMessage(), optionPos1.x + 60, optionPos1.y);
