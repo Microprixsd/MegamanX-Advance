@@ -436,6 +436,10 @@ public class XUPGrabState : CharState {
 			character.changeToIdleOrFall();
 			return;
 		}
+		if (player.input.isPressed(Control.WeaponRight, player)) {
+			character.changeState(new XUPParryStartState(), true);
+			return;
+		}
 
 		if (grabTime <= 0) {
 			character.changeToIdleOrFall();
@@ -822,6 +826,10 @@ public class KickChargeState : CharState {
 			dustTime = 0f;
 			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
 			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
+		}
+		if (player.input.isPressed(Control.Jump, player)) {
+			character.changeToIdleOrFall();
+			return;
 		}
 	}
 
