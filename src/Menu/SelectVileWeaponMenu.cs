@@ -176,7 +176,7 @@ public class SelectVileWeaponMenu : IMainMenu {
 		);
 		Fonts.drawText(
 			getWeightSum() > VileLoadout.maxWeight ? FontType.RedishOrange : FontType.DarkPurple,
-			getWeightSum() + "/" + 28,
+			getWeightSum() + "/" + VileLoadout.maxWeight,
 			Global.screenW - 60, 20,
 			Alignment.Left
 		);

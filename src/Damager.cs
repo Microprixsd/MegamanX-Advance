@@ -737,10 +737,12 @@ public class Damager {
 					}
 					// Large mavericks
 					if (maverick.armorClass == Maverick.ArmorClass.Heavy) {
-						if (flinch <= Global.miniFlinch) {
+						if (flinch <= Global.halfFlinch) {
 							flinch = 0;
-						} else {
+						} else if (flinch <= Global.defFlinch) {
 							flinch = Global.miniFlinch;
+						} else {
+							flinch = Global.halfFlinch;
 						}
 					}
 					// Medium mavericks
@@ -749,8 +751,10 @@ public class Damager {
 							flinch = 0;
 						} else if (flinch <= Global.halfFlinch) {
 							flinch = Global.miniFlinch;
-						} else {
+						} else if (flinch <= Global.defFlinch) {
 							flinch = Global.halfFlinch;
+						} else {
+							flinch = Global.defFlinch;
 						}
 					}
 				}

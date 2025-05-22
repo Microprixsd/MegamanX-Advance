@@ -133,6 +133,7 @@ public class UpgradeArmorMenu : IMainMenu {
 					mmx.hyperArmActive = true;
 					mmx.hyperLegActive = false;
 					mmx.hyperHelmetActive = false;
+					mmx.addHyperCharge();
 					Global.playSound("ching");
 				}
 			}
@@ -242,9 +243,7 @@ public class UpgradeArmorMenu : IMainMenu {
 
 	public static void upgradeArmArmor(Player player, int type) {
 		player.armArmorNum = type;
-		if (type == 3) {
-			player.addHyperCharge();
-		} else {
+		if (type != 3) {
 			player.removeHyperCharge();
 		}
 		if (player.character is MegamanX mmx) {

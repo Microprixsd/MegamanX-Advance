@@ -15,7 +15,6 @@ public class RagingChargeX : Character {
 	public float selfDamageMaxCooldown = 120;
 	public Projectile? absorbedProj;
 	public RagingChargeBuster ragingBuster;
-	private Character? victim;
 
 	public RagingChargeX(Player player, float x, float y, int xDir,
 		bool isVisible, ushort? netId, bool ownedByLocalPlayer,
@@ -54,28 +53,6 @@ public class RagingChargeX : Character {
 			}
 		}
 	}
-	public void ejecutarRCXGrabDash() {
-		if (charState is Dash || charState is AirDash) {
-			charState.isGrabbing = true;
-			charState.superArmor = true; //peakbalance
-
-			// Aplicar la animación `mmx_unpo_grab_dash` y dejar que se ejecute completamente
-			if (sprite != null && sprite.name != "mmx_unpo_grab_dash") {
-				changeSprite("mmx_unpo_grab_dash", false);
-			}
-
-			// Verificar si la hitbox del personaje ha tocado a `victim` mientras la animación está activa
-			if (victim != null && victim.sprite != null && sprite.name == "mmx_unpo_grab_dash" && victim.sprite.name.Contains("_grabbed")) {
-				changeState(new XUPGrabState(victim));
-			}
-
-			// Esperar hasta que la animación termine antes de restaurar los valores
-			if (sprite != null && sprite.isAnimOver()) {
-				charState.isGrabbing = false;
-				charState.superArmor = false;
-			}
-		}
-	}
 
 	public override void update() {
 		base.update();
@@ -105,12 +82,16 @@ public class RagingChargeX : Character {
 			enterParry();
 			return true;
 		}
-		if (charState is Dash or AirDash) {
-			if (player.input.isHeld(Control.Special1, player)) {
-				ejecutarRCXGrabDash();
-				return true;
-			}
+		// Grab.
+		if (player.input.isHeld(Control.Special1, player) &&
+			charState is Dash or AirDash && 
+			sprite.name != getSprite("unpo_grab_dash")
+		) {
+			charState.isGrabbing = true;
+			changeSpriteFromName("unpo_grab_dash", true);
+			return true;
 		}
+		// Not-giga crush.
 		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
 			unlimitedcrushCooldown = 150;
 			changeState(new UnlimitedCrushState(), true);
@@ -124,11 +105,6 @@ public class RagingChargeX : Character {
 				shoot();
 				return true;
 			}
-		}
-
-		if (charState is Dash or AirDash && player.input.isPressed(Control.Special1, player)) {
-			ejecutarRCXGrabDash();
-			return true;
 		}
 		if (player.input.isPressed(Control.Special1, player) && punchCooldown == 0) {
 			punchCooldown = 20;

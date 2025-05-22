@@ -77,6 +77,7 @@ public class MegamanX : Character {
 	// Giga-attacks and armor weapons.
 	public Weapon? gigaWeapon;
 	public HyperNovaStrike? hyperNovaStrike;
+	public HyperCharge hyperCharge = new HyperCharge();
 	public ItemTracer itemTracer = new();
 	public float barrierCooldown;
 	public float barrierActiveTime;
@@ -231,14 +232,6 @@ public class MegamanX : Character {
 				playSound("stockedSaber");
 			}
 		}
-		if (stingActiveTime > 0 && currentWeapon is ChameleonSting) {
-			currentWeapon.ammo -= Global.spf * 3 * (hyperArmArmor == ArmorId.Max ? 0.5f : 1);
-			if (currentWeapon.ammo < 0) {
-				currentWeapon.ammo = 0;
-				stingActiveTime = 0;
-			}
-			player.delaySubtank();
-		}
 
 		if (hyperHelmetArmor == ArmorId.Max && health > 0) {
 			if (health >= lastChipBaseHP) {
@@ -386,7 +379,7 @@ public class MegamanX : Character {
 		}
 		if (currentWeapon != null && canShoot() && (
 				player.input.isPressed(Control.Shoot, player) && !isCharging() ||
-				currentWeapon.isStream && getChargeLevel() < 2 &&
+				currentWeapon.isStream && getChargeLevel() < 3 &&
 				player.input.isHeld(Control.Shoot, player)
 			)
 		) {
@@ -1278,6 +1271,20 @@ public class MegamanX : Character {
 		];
 	}
 
+	public void addHyperCharge() {
+		if (!weapons.Any(w => w is HyperCharge)) {
+			weapons.Add(hyperCharge);
+		}
+	}
+
+	public void removeHyperCharge() {
+		if (currentWeapon is HyperCharge) {
+			weaponSlot -= 0;
+		}
+		weapons.RemoveAll(w => w is HyperCharge);
+	}
+
+
 	public override List<byte> getCustomActorNetData() {
 		List<byte> customData = base.getCustomActorNetData();
 
@@ -1327,7 +1334,7 @@ public class MegamanX : Character {
 
 		// Stocked charge and weapon flags.
 		bool[] boolData = Helpers.byteToBoolArray(data[4]);
-		stingActiveTime = boolData[0] ? 20 : 0;
+		stingActiveTime = boolData[0] ? 60 : 0;
 		stockedBuster = boolData[1];
 		stockedMaxBuster = boolData[2];
 		stockedSaber = boolData[3];

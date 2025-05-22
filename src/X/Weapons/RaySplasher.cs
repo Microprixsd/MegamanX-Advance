@@ -102,8 +102,8 @@ public class RaySplasherTurret : Actor, IDamagable {
 	MegamanX? mmx;
 	int state = 0;
 	Actor? target;
-	float health = 4;
-	float maxHealth = 4;
+	float health = 5;
+	float maxHealth = 5;
 	const float range = 130;
 	float drainTime;
 	float raySplasherShootTime;

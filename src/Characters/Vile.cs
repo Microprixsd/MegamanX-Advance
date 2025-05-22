@@ -13,7 +13,8 @@ public class Vile : Character {
 	float mechBusterCooldown;
 	public bool usedAmmoLastFrame;
 	public int buckshotDanceNum;
-	public float vileAmmoRechargeCooldown;
+	public float ammoRechargeCooldown;
+	public float ammoRechargeMaxCooldown = 9;
 	public bool isShootingLongshotGizmo;
 	public int longshotGizmoCount;
 	public float gizmoCooldown;
@@ -135,28 +136,16 @@ public class Vile : Character {
 		return poiPos.addxy(cannonSpritePOI.x * getShootXDir(), cannonSpritePOI.y);
 	}
 
-	public override void update() {
+	public override void preUpdate() {
 		base.update();
-		if (isVileMK1) {
-			altSoundId = AltSoundIds.X1;
-		} else if (isVileMK2 || isVileMK5) {
-			altSoundId = AltSoundIds.X3;
-		}
-		if (!ownedByLocalPlayer) {
-			return;
-		} 
-		if ((grounded || charState is LadderClimb || charState is LadderEnd || charState is WallSlide) && vileHoverTime > 0) {
-			vileHoverTime -= Global.spf * 6;
-			if (vileHoverTime < 0) vileHoverTime = 0;
-		}
 
 		bool isShootingVulcan = vulcanLingerTime <= 0.1;
 		if (isShootingVulcan) {
-			vileAmmoRechargeCooldown = 0.15f;
+			ammoRechargeCooldown = ammoRechargeMaxCooldown;
 		}
 
-		if (vileAmmoRechargeCooldown > 0) {
-			Helpers.decrementTime(ref vileAmmoRechargeCooldown);
+		if (ammoRechargeCooldown > 0) {
+			Helpers.decrementFrames(ref ammoRechargeCooldown);
 		} else if (usedAmmoLastFrame) {
 			usedAmmoLastFrame = false;
 		} else if (!isShootingLongshotGizmo && !isShootingVulcan) {
@@ -190,6 +179,23 @@ public class Vile : Character {
 				changeSpriteFromName(charState.sprite, resetFrame: false);
 			}
 		}
+	}
+
+	public override void update() {
+		base.update();
+		if (isVileMK1) {
+			altSoundId = AltSoundIds.X1;
+		} else if (isVileMK2 || isVileMK5) {
+			altSoundId = AltSoundIds.X3;
+		}
+		if (!ownedByLocalPlayer) {
+			return;
+		} 
+		if ((grounded || charState is LadderClimb || charState is LadderEnd || charState is WallSlide) && vileHoverTime > 0) {
+			vileHoverTime -= Global.spf * 6;
+			if (vileHoverTime < 0) vileHoverTime = 0;
+		}
+
 		cannonWeapon.update();
 		vulcanWeapon.update();
 		missileWeapon.update();
@@ -370,7 +376,8 @@ public class Vile : Character {
 		if (!player.canControl) return false;
 		return base.canShoot();
 	}
-	public override void chargeLogic(Action<int> shootFunct) {
+
+	public override void chargeLogic(Action<int>? shootFunct) {
 		if (flag == null && chargeButtonHeld() &&
 			(player.vileAmmo >= laserWeapon.getAmmoUsage(0) || 
 			currentWeapon is AssassinBulletChar)
@@ -382,7 +389,7 @@ public class Vile : Character {
 		else if (canShoot()) {
 			int chargeLevel = getChargeLevel();
 			if (isCharging()) {
-				if (chargeLevel >= 1) {
+				if (chargeLevel >= 1 && shootFunct != null) {
 					shootFunct(chargeLevel);
 				}
 			}
@@ -543,11 +550,12 @@ public class Vile : Character {
 		if (isVulcan) {
 			usedAmmoLastFrame = true;
 		}
-		if (player.vileAmmo > ammo - 0.1f) {
+		if (player.vileAmmo >= ammo) {
 			usedAmmoLastFrame = true;
-			if (weaponHealAmount == 0) {
+			ammoRechargeCooldown = ammoRechargeMaxCooldown;
+			if (weaponHealAmount <= 0) {
 				player.vileAmmo -= ammo;
-				if (player.vileAmmo < 0) player.vileAmmo = 0;
+				if (player.vileAmmo < 0) { player.vileAmmo = 0; }
 			}
 			return true;
 		}
@@ -675,13 +683,6 @@ public class Vile : Character {
 			return true;
 		}
 		return base.isSoftLocked();
-	}
-
-	public override bool canChangeWeapons() {
-		if (isShootingLongshotGizmo) {
-			return false;
-		}
-		return base.canChangeWeapons();
 	}
 
 	public override bool canEnterRideArmor() {

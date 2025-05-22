@@ -321,7 +321,9 @@ public class Weapon {
 	}
 
 	public void addAmmo(float amount, Player player) {
-		if (player.character is MegamanX mmx && mmx.hyperArmArmor == ArmorId.Max && amount < 0) amount *= 0.5f;
+		if (player.character is MegamanX mmx && mmx.armArmor == ArmorId.Max && amount < 0) {
+			amount *= 0.25f;
+		}
 		ammo += amount;
 		ammo = Helpers.clamp(ammo, 0, maxAmmo);
 	}

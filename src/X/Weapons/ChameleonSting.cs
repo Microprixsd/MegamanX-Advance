@@ -14,11 +14,13 @@ public class ChameleonSting : Weapon {
 		weaponBarIndex = weaponBarBaseIndex;
 		weaponSlotIndex = 2;
 		weaknessIndex = (int)WeaponIds.BoomerangCutter;
-		shootSounds = new string[] { "csting", "csting", "csting", "stingCharge" };
+		shootSounds = ["csting", "csting", "csting", "stingCharge"];
 		fireRate = 45;
 		damage = "2";
 		effect = "Splits. \nFull Charge grants invulnerability.";
 		hitcooldown = "0";
+		maxAmmo = 45;
+		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsageEX(int chargeLevel, Character character) {
@@ -50,7 +52,7 @@ public class ChameleonSting : Weapon {
 				freeAmmoNextCharge = true;
 				return;
 			}
-			mmx.stingActiveTime = 480;
+			mmx.stingActiveTime = 30;
 			if (mmx.armArmor == ArmorId.Force) {
 				new BusterForcePlasmaHit(
 					2, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true

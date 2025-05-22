@@ -500,7 +500,6 @@ public partial class Player {
 	public ExplodeDieEffect? explodeDieEffect;
 	public bool suicided;
 
-	ushort savedArmorFlag;
 	public bool[] headArmorsPurchased = new bool[16];
 	public bool[] bodyArmorsPurchased = new bool[16];
 	public bool[] armArmorsPurchased = new bool[16];

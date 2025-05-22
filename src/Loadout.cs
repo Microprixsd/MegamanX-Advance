@@ -125,7 +125,7 @@ public class VileLoadout {
 	[ProtoMember(8)] public int cutter;
 	[ProtoMember(9)] public int flamethrower;
 
-	public const int maxWeight = 1000;
+	public static int maxWeight = 16;
 
 	public List<Weapon> getWeaponsFromLoadout(bool includeMech) {
 		var weapons = new List<Weapon>();

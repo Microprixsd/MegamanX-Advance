@@ -151,7 +151,7 @@ public class RisingSpecterProj : Projectile {
 		poi, xDir, owner, "empty", netId, player
 	) {
 		weapon = VileLaser.netWeaponRS;
-		damager.damage = 6;
+		damager.damage = 4;
 		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 30;
 		maxTime = 0.5f;

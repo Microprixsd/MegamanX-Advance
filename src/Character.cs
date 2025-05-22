@@ -2701,7 +2701,7 @@ public partial class Character : Actor, IDamagable {
 					);
 				}
 			}
-			if (this is MegamanX) {
+			if (this is MegamanX && mmx != null) {
 				var gigaCrush = weapons.FirstOrDefault(w => w is GigaCrush);
 				if (gigaCrush != null) {
 					float currentAmmo = gigaCrush.ammo;
@@ -2713,14 +2713,13 @@ public partial class Character : Actor, IDamagable {
 						);
 					}
 				}
-				var hyperBuster = weapons.FirstOrDefault(w => w is HyperCharge);
-				if (hyperBuster != null) {
-					float currentAmmo = hyperBuster.ammo;
-					hyperBuster.addAmmo(gigaAmmoToAdd, player);
-					if (player.isMainPlayer) {
+				if (mmx.armArmor == ArmorId.Max) {
+					float currentAmmo = mmx.hyperCharge.ammo;
+					mmx.hyperCharge.addAmmo(gigaAmmoToAdd, player);
+					if (player.isMainPlayer && mmx.hyperArmArmor == ArmorId.Max) {
 						Weapon.gigaAttackSoundLogic(
-							this, currentAmmo, hyperBuster.ammo,
-							hyperBuster.getAmmoUsage(0), hyperBuster.maxAmmo,
+							this, currentAmmo, mmx.hyperCharge.ammo,
+							mmx.hyperCharge.getAmmoUsage(0), mmx.hyperCharge.maxAmmo,
 							"hyperchargeRecharge", "hyperchargeFull"
 						);
 					}
@@ -2936,7 +2935,15 @@ public partial class Character : Actor, IDamagable {
 		}
 		// Tough Guy.
 		if (player.isSigma || isToughGuyHyperMode()) {
-			flinchFrames = 6;
+			if (flinchFrames <= Global.miniFlinch) {
+				flinchFrames = 0;
+			} else if (flinchFrames <= Global.halfFlinch) {
+				flinchFrames = Global.miniFlinch;
+			} else if (flinchFrames <= Global.defFlinch) {
+				flinchFrames = Global.halfFlinch;
+			} else {
+				flinchFrames = Global.defFlinch;
+			}
 		}
 		if (charState is GenericStun genericStunState) {
 			genericStunState.activateFlinch(flinchFrames, dir);
