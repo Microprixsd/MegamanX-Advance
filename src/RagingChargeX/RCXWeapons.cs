@@ -12,7 +12,7 @@ public class RagingChargeBuster : Weapon {
 		weaponBarIndex = 59;
 		weaponSlotIndex = 121;
 		shootSounds = new string[] { "buster2", "buster2", "buster2", "buster2" };
-		fireRate = 45;
+		fireRate = 90;
 		canHealAmmo = true;
 		drawAmmo = true;
 		drawCooldown = true;
@@ -105,7 +105,7 @@ public class RCXPunch : Weapon
 
 	public RCXPunch() : base()
 	{
-		fireRate = 45;
+		fireRate = 20;
 		index = (int)WeaponIds.UPPunch;
 		killFeedIndex = 167;
 		//damager = new Damager(player, 3, Global.defFlinch, 0.5f);
