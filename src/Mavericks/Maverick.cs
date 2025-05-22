@@ -75,7 +75,8 @@ public class Maverick : Actor, IDamagable {
 	public enum GameMavs {
 		X1,
 		X2,
-		X3
+		X3,
+		X4,
 	}
 
 	// Other vars.

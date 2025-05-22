@@ -956,16 +956,20 @@ class Program {
 		Sprite.xArmorBodyBitmap[1] = Global.textures["XBody2"];
 		Sprite.xArmorHelmetBitmap[1] = Global.textures["XHelmet2"];
 		Sprite.xArmorArmBitmap[1] = Global.textures["XArm2"];
+		Sprite.xArmorBootsBitmap[1] = Global.textures["XBoots2"];
+		Sprite.xArmorBodyBitmap[1] = Global.textures["XBody2"];
+		Sprite.xArmorHelmetBitmap[1] = Global.textures["XHelmet2"];
+		Sprite.xArmorArmBitmap[1] = Global.textures["XArm2"];
 
 		Sprite.xArmorBootsBitmap[2] = Global.textures["XBoots3"];
 		Sprite.xArmorBodyBitmap[2] = Global.textures["XBody3"];
 		Sprite.xArmorHelmetBitmap[2] = Global.textures["XHelmet3"];
 		Sprite.xArmorArmBitmap[2] = Global.textures["XArm3"];
 
-		Sprite.xArmorBootsBitmap[3] = Global.textures["XBoots2"];
-		Sprite.xArmorBodyBitmap[3] = Global.textures["XBody2"];
-		Sprite.xArmorHelmetBitmap[3] = Global.textures["XHelmet2"];
-		Sprite.xArmorArmBitmap[3] = Global.textures["XArm2"];
+		Sprite.xArmorBootsBitmap[3] = Global.textures["XBoots4"];
+		Sprite.xArmorBodyBitmap[3] = Global.textures["XBody4"];
+		Sprite.xArmorHelmetBitmap[3] = Global.textures["XHelmet4"];
+		Sprite.xArmorArmBitmap[3] = Global.textures["XArm4"];
 
 		Sprite.xArmorBootsBitmap[16] = Global.textures["UAXBoots"];
 		Sprite.xArmorBodyBitmap[16] = Global.textures["UAXChest"];

@@ -78,7 +78,7 @@ public class RagingChargeX : Character {
 	public override bool attackCtrl() {
 		// Parry con arma derecha
 		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
-			parryCooldown = 30;
+			parryCooldown = 200;
 			enterParry();
 			return true;
 		}
@@ -93,7 +93,7 @@ public class RagingChargeX : Character {
 		}
 		// Not-giga crush.
 		if (player.input.isPressed(Control.WeaponLeft, player) && unlimitedcrushCooldown == 0) {
-			unlimitedcrushCooldown = 150;
+			unlimitedcrushCooldown = 500;
 			changeState(new UnlimitedCrushState(), true);
 			return true;
 		}
@@ -107,11 +107,11 @@ public class RagingChargeX : Character {
 			}
 		}
 		if (player.input.isPressed(Control.Special1, player) && punchCooldown == 0) {
-			punchCooldown = 20;
+			punchCooldown = 120;
 			changeState(new XUPPunchState(grounded), true);
 			return true;
 		}  if (chargeLevel == 0 && punchCooldown == 0 && player.input.isPressed(Control.Special1, player)) {
-			punchCooldown = 20;
+			punchCooldown = 60;
 			changeState(new XUPPunchState(grounded), true);
 			resetCharge();
 			return true;
@@ -125,19 +125,19 @@ public class RagingChargeX : Character {
 				}
 
 			} else if (chargeLevel == 2 && saberCooldown == 0) {
-				saberCooldown = 60;
+				saberCooldown = 50;
 				changeState(new X6SaberState(grounded), true);
 				resetCharge();
 				return true;
 			} else if (chargeLevel == 1 && saberCooldown == 0) {
-				saberCooldown = 60;
+				saberCooldown = 50;
 				changeState(new X6SaberState(grounded), true);
 				resetCharge();
 				return true;
 			}
 		}
 		if (player.input.isHeld(Control.Down, player) && kickchargeCooldown == 0 && player.input.isPressed(Control.Dash, player)) {
-			kickchargeCooldown = 0;
+			kickchargeCooldown = 120;
 			changeState(new KickChargeState(), true);
 			return true;
 		}
@@ -276,11 +276,11 @@ public class RagingChargeX : Character {
 			),
 			(int)MeleeIds.Punch => new GenericMeleeProj(
 				RCXPunch.netWeapon, projPos, ProjIds.UPPunch, player,
-				3, Global.halfFlinch, 20, addToLevel: addToLevel
+				3, Global.halfFlinch, 30, addToLevel: addToLevel
 			),
 			(int)MeleeIds.KickCharge => new GenericMeleeProj(
 				RCXKickCharge.netWeapon, projPos, ProjIds.KickCharge, player,
-				3, Global.defFlinch, 45,isDeflectShield: true, addToLevel: addToLevel
+				3, Global.halfFlinch, 30, addToLevel: addToLevel
 			),
 			(int)MeleeIds.UnlimitedCrush => new GenericMeleeProj(
 				UnlimitedCrush.netWeapon, projPos, ProjIds.UnlimitedCrush, player,
@@ -288,7 +288,7 @@ public class RagingChargeX : Character {
 			),
 			(int)MeleeIds.ZSaber => new GenericMeleeProj(
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
-				3, Global.halfFlinch, 30, addToLevel: addToLevel
+				2, Global.defFlinch, 30, addToLevel: addToLevel
 			),
 			(int)MeleeIds.Chargedpunch => new GenericMeleeProj(
 	ZXSaber.netWeapon, projPos, ProjIds.Chargedpunch, player,
