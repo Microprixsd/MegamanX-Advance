@@ -212,6 +212,7 @@ public class XUPParryMeleeState : CharState {
 		if (character.isAnimOver()) {
 			character.changeToIdleOrFall();
 		}
+
 	}
 
 	public override void onEnter(CharState oldState) {
@@ -222,6 +223,9 @@ public class XUPParryMeleeState : CharState {
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
+		if (character is RagingChargeX rcx) {
+			rcx.parryCooldown = 0;
+		}
 	}
 }
 
@@ -329,6 +333,9 @@ public class XUPParryProjState : CharState {
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
+		if (character is RagingChargeX rcx) {
+			rcx.parryCooldown = 0;
+		}
 		absorbAnim?.destroySelf();
 	}
 }
@@ -371,7 +378,7 @@ public class XUPGrabState : CharState {
 
 	public XUPGrabState(Character? victim) : base("unpo_grab") {
 		this.victim = victim;
-		grabTime = 70;
+		grabTime = 150;
 	}
 
 	public override void update() {
@@ -434,6 +441,10 @@ public class XUPGrabState : CharState {
 
 		if (player.input.isPressed(Control.Special1, player)) {
 			character.changeToIdleOrFall();
+			return;
+		}
+		if (player.input.isPressed(Control.WeaponRight, player)) {
+			character.changeState(new XUPParryStartState(), true);
 			return;
 		}
 
@@ -739,7 +750,7 @@ public class RcxUpShot : RcxState {
 		landSprite = "unpo_up_shot";
 		airSprite = "unpo_up_air_shot";
 		airMove = true;
-		useDashJumpSpeed = true;
+		useDashJumpSpeed = false;
 		attackCtrl = true;
 	}
 
@@ -779,7 +790,7 @@ public class RcxDownShoot : RcxState {
 	public RcxDownShoot() : base("unpo_down_shot") {
 		landSprite = "unpo_down_shot";
 		airMove = true;
-		useDashJumpSpeed = true;
+		useDashJumpSpeed = false;
 		attackCtrl = true;
 
 	}
@@ -823,6 +834,10 @@ public class KickChargeState : CharState {
 			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
 			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
 		}
+		if (player.input.isPressed(Control.Jump, player)) {
+			character.changeToIdleOrFall();
+			return;
+		}
 	}
 
 	public override void onEnter(CharState oldState) {
@@ -838,7 +853,7 @@ public class KickChargeState : CharState {
 public class UnlimitedCrushState : CharState {
 	public float GigaTime;
 	public UnlimitedCrushState() : base("unpo_gigga") {
-		enterSound = "gigaCrushX2";
+		enterSound = "gigaCrushLate";
 		invincible = true;
 	}
 
