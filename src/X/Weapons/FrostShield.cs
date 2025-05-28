@@ -277,12 +277,13 @@ public class FrostShieldProjCharged : Projectile {
 			destroySelf();
 			return;
 		}
-
-		if (frameTime > 2 && character.player.input.isPressed(Control.Shoot, character.player)) {
+		if (frameTime > 2 && character.player.input.isPressed(Control.Special1, character.player)) {
 			destroySelf();
+			if (frameTime > 2 && character.player.input.isPressed(Control.Shoot, character.player)) {
+				destroySelf();
+			}
 		}
 	}
-
 	public override void postUpdate() {
 		base.postUpdate();
 		if (!ownedByLocalPlayer) return;
