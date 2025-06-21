@@ -74,6 +74,8 @@ public enum WeaponIds {
 	GravityWell,
 	FrostShield,
 	TornadoFang,
+	CrescentShot,
+	// You can change these.
 	GigaCrush,
 	ItemTracer,
 	XSaber,

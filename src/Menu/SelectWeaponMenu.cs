@@ -50,8 +50,7 @@ public class SelectWeaponMenu : IMainMenu {
 	public string error = "";
 	public int maxRows = 1;
 	public int maxCols = 9;
-	public static List<string> weaponNames = new List<string>()
-	{
+	public static List<string> weaponNames = new List<string>() {
 			"X-Buster",
 			"Homing Torpedo",
 			"Chameleon Sting",
@@ -77,6 +76,7 @@ public class SelectWeaponMenu : IMainMenu {
 			"Gravity Well",
 			"Frost Shield",
 			"Tornado Fang",
+			"Crescent Shot",
 		};
 
 	public List<int> selectedWeaponIndices;
@@ -123,17 +123,18 @@ public class SelectWeaponMenu : IMainMenu {
 		}
 
 		if (selCursorIndex < 3) {
+			int maxCursorIndex = weaponNames.Count - 1;
 			if (Global.input.isPressedMenu(Control.MenuLeft)) {
 				cursors[selCursorIndex].index--;
-				if (cursors[selCursorIndex].index == -1) cursors[selCursorIndex].index = 24; //8;
-				else if (cursors[selCursorIndex].index == 8) cursors[selCursorIndex].index = 8; //16;
-				else if (cursors[selCursorIndex].index == 16) cursors[selCursorIndex].index = 16; //24;
+				if (cursors[selCursorIndex].index == -1) {
+					cursors[selCursorIndex].index = maxCursorIndex;
+				}
 				Global.playSound("menuX2");
 			} else if (Global.input.isPressedMenu(Control.MenuRight)) {
 				cursors[selCursorIndex].index++;
-				if (cursors[selCursorIndex].index == 9) cursors[selCursorIndex].index = 9; //0;
-				else if (cursors[selCursorIndex].index == 17) cursors[selCursorIndex].index = 17; //9;
-				else if (cursors[selCursorIndex].index == 25) cursors[selCursorIndex].index = 0; //17;
+				if (cursors[selCursorIndex].index == maxCursorIndex + 1) {
+					cursors[selCursorIndex].index = 0;
+				}
 				Global.playSound("menuX2");
 			}
 			if (Global.input.isPressedMenu(Control.WeaponLeft)) {

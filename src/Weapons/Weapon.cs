@@ -144,8 +144,7 @@ public class Weapon {
 	}
 
 	public static List<Weapon> getAllXWeapons() {
-		return new List<Weapon>()
-		{
+		return new List<Weapon>() {
 				new XBuster(),
 				new HomingTorpedo(),
 				new ChameleonSting(),
@@ -171,6 +170,7 @@ public class Weapon {
 				new GravityWell(),
 				new FrostShield(),
 				new TornadoFang(),
+				new CrescentShot(),
 			};
 	}
 
