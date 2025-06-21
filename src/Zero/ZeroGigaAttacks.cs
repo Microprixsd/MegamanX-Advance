@@ -19,7 +19,7 @@ public class RakuhouhaWeapon : Weapon {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
 		maxAmmo = 28;
-		fireRate = 60;
+		fireRate = 120;
 		index = (int)WeaponIds.Rakuhouha;
 		weaponBarBaseIndex = 27;
 		weaponBarIndex = 33;

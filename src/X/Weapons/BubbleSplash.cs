@@ -13,7 +13,7 @@ public class BubbleSplash : Weapon {
 
 	public BubbleSplash() : base() {
 		shootSounds = new string[] { "bubbleSplash", "bubbleSplash", "bubbleSplash", "bubbleSplashCharged" };
-		fireRate = 6;
+		fireRate = 9;
 		isStream = true;
 		index = (int)WeaponIds.BubbleSplash;
 		weaponBarBaseIndex = 10;

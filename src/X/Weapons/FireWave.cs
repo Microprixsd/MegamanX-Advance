@@ -62,7 +62,7 @@ public class FireWaveProj : Projectile {
 	) {
 		weapon = FireWave.netWeapon;
 		damager.damage = 1;
-		damager.hitCooldown = 12;
+		damager.hitCooldown = 18;
 		vel = new Point(400 * xDir, 0);
 		projId = (int)ProjIds.FireWave;
 		fadeSprite = "fire_wave_fade";

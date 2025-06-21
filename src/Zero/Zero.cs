@@ -782,7 +782,7 @@ public class Zero : Character {
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.CrouchSlash => new GenericMeleeProj(
-				meleeWeapon, projPos, ProjIds.ZSaberCrouch, player, 2, Global.miniFlinch, 15,
+				meleeWeapon, projPos, ProjIds.ZSaberCrouch, player, 3, 0, 15,
 				isZSaberEffect: true, isZSaberClang: true,
 				addToLevel: addToLevel
 			),
@@ -805,7 +805,7 @@ public class Zero : Character {
 			),
 			(int)MeleeIds.RollingSlash =>  new GenericMeleeProj(
 				KuuenzanWeapon.staticWeapon, projPos, ProjIds.ZSaberRollingSlash, player,
-				1, 0, 1, isZSaberEffect2: true, isZSaberClang: true,
+				1, 0, 8, isZSaberEffect2: true, isZSaberClang: true,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Hyoroga => new GenericMeleeProj(
@@ -814,11 +814,11 @@ public class Zero : Character {
 			),
 			// Ground Specials
 			(int)MeleeIds.Raijingeki => new GenericMeleeProj(
-				RaijingekiWeapon.staticWeapon, projPos, ProjIds.Raijingeki, player, 2, Global.defFlinch, 4,
+				RaijingekiWeapon.staticWeapon, projPos, ProjIds.Raijingeki, player, 2, Global.defFlinch, 5,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.RaijingekiWeak => new GenericMeleeProj(
-				Raijingeki2Weapon.staticWeapon, projPos, ProjIds.Raijingeki2, player, 2, Global.defFlinch, 4,
+				Raijingeki2Weapon.staticWeapon, projPos, ProjIds.Raijingeki2, player, 2, Global.defFlinch, 5,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Dairettsui => new GenericMeleeProj(
@@ -831,7 +831,7 @@ public class Zero : Character {
 			),
 			// Up Specials
 			(int)MeleeIds.Ryuenjin => new GenericMeleeProj(
-				RyuenjinWeapon.staticWeapon, projPos, ProjIds.Ryuenjin, player, 2, 0, 15,
+				RyuenjinWeapon.staticWeapon, projPos, ProjIds.Ryuenjin, player, 4, 0, 45,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Denjin => new GenericMeleeProj(
@@ -839,13 +839,13 @@ public class Zero : Character {
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.RisingFang => new GenericMeleeProj(
-				RisingFangWeapon.staticWeapon, projPos, ProjIds.RisingFang, player, 2, Global.miniFlinch, 30,
+				RisingFangWeapon.staticWeapon, projPos, ProjIds.RisingFang, player, 2, 0, 15,
 				isZSaberEffect: true,
 				addToLevel: addToLevel
 			),
 			// Down specials
 			(int)MeleeIds.Hyouretsuzan => new GenericMeleeProj(
-				HyouretsuzanWeapon.staticWeapon, projPos, ProjIds.Hyouretsuzan2, player, 2, Global.halfFlinch, 30,
+				HyouretsuzanWeapon.staticWeapon, projPos, ProjIds.Hyouretsuzan2, player, 3, Global.halfFlinch, 30,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Danchien => new GenericMeleeProj(
