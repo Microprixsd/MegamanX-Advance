@@ -7,6 +7,7 @@ public class BoomerangCutter : Weapon {
 	public static BoomerangCutter netWeapon = new BoomerangCutter();
 
 	public BoomerangCutter() : base() {
+		displayName = "Boomerang Cutter";
 		index = (int)WeaponIds.BoomerangCutter;
 		killFeedIndex = 7;
 		weaponBarBaseIndex = 7;

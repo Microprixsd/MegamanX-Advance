@@ -7,6 +7,7 @@ public class HomingTorpedo : Weapon {
 	public static HomingTorpedo netWeapon = new();
 
 	public HomingTorpedo() : base() {
+		displayName = "Homing Torpedo";
 		index = (int)WeaponIds.HomingTorpedo;
 		killFeedIndex = 1;
 		weaponBarBaseIndex = 1;

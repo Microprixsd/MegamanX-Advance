@@ -14,8 +14,8 @@ public class Weapon {
 	public float switchCooldown = float.MaxValue;
 	public float soundTime = 0;
 	public bool isStream = false;
-	public string displayName = "";
-	public string[] description = {""};
+	public string displayName = "Placeholder";
+	public string[] description = [""];
 	public Damager? damager;
 	public int type; // For "swappable category" weapons, like techniques, vile weapon sections, etc.
 
@@ -145,7 +145,9 @@ public class Weapon {
 
 	public static List<Weapon> getAllXWeapons() {
 		return new List<Weapon>() {
+				// Base weapon.
 				new XBuster(),
+				// X1 stuff.
 				new HomingTorpedo(),
 				new ChameleonSting(),
 				new RollingShield(),
@@ -154,6 +156,7 @@ public class Weapon {
 				new ElectricSpark(),
 				new BoomerangCutter(),
 				new ShotgunIce(),
+				// X2 Stuff.
 				new CrystalHunter(),
 				new BubbleSplash(),
 				new SilkShot(),
@@ -162,6 +165,7 @@ public class Weapon {
 				new StrikeChain(),
 				new MagnetMine(),
 				new SpeedBurner(),
+				// X3 Stuff.
 				new AcidBurst(),
 				new ParasiticBomb(),
 				new TriadThunder(),
@@ -170,6 +174,7 @@ public class Weapon {
 				new GravityWell(),
 				new FrostShield(),
 				new TornadoFang(),
+				// X5 Stuff.
 				new CrescentShot(),
 			};
 	}

@@ -10,6 +10,7 @@ public class RaySplasher : Weapon {
 	public static RaySplasher netWeapon = new RaySplasher();
 
 	public RaySplasher() : base() {
+		displayName = "Ray Splasher";
 		shootSounds = new string[] { "raySplasher", "raySplasher", "raySplasher", "warpIn" };
 		fireRate = 60;
 		index = (int)WeaponIds.RaySplasher;
@@ -20,7 +21,7 @@ public class RaySplasher : Weapon {
 		weaknessIndex = (int)WeaponIds.SpinningBlade;
 		damage = "1/1";
 		effect = "Charged: Grants Super Armor.";
-		hitcooldown = "0.075";
+		hitcooldown = "5";
 		hasCustomChargeAnim = true;
 	}
 

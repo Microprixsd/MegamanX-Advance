@@ -12,6 +12,7 @@ public class BubbleSplash : Weapon {
 	public bool freeAmmoNextCharge;
 
 	public BubbleSplash() : base() {
+		displayName = "Bubble Splash";
 		shootSounds = new string[] { "bubbleSplash", "bubbleSplash", "bubbleSplash", "bubbleSplashCharged" };
 		fireRate = 9;
 		isStream = true;

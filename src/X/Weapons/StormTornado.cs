@@ -7,6 +7,7 @@ public class StormTornado : Weapon {
 
 	public static StormTornado netWeapon = new();
 	public StormTornado() : base() {
+		displayName = "StormTornado";
 		index = (int)WeaponIds.StormTornado;
 		killFeedIndex = 5;
 		weaponBarBaseIndex = 5;
@@ -18,7 +19,7 @@ public class StormTornado : Weapon {
 		switchCooldown = 30;
 		damage = "1/4";
 		effect = "Weak push. Extinguishes Fire. Ignores Shields.\nUncharged won't give assists.";
-		hitcooldown = "0.25/0.33";
+		hitcooldown = "15/20";
 		Flinch = "0/26";
 		FlinchCD = "0/1";
 		maxAmmo = 16;

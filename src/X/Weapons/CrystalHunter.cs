@@ -9,6 +9,7 @@ public class CrystalHunter : Weapon {
 	public static CrystalHunter netWeapon = new();
 
 	public CrystalHunter() : base() {
+		displayName = "Crystal Hunter";
 		shootSounds = new string[] { "crystalHunter", "crystalHunter", "crystalHunter", "crystalHunterCharged" };
 		fireRate = 75;
 		switchCooldown = 45;

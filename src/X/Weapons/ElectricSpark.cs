@@ -7,6 +7,7 @@ public class ElectricSpark : Weapon {
 	public static ElectricSpark netWeapon = new();
 
 	public ElectricSpark() : base() {
+		displayName = "Electric Spark";
 		index = (int)WeaponIds.ElectricSpark;
 		killFeedIndex = 6;
 		weaponBarBaseIndex = 6;

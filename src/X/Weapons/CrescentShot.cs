@@ -8,8 +8,9 @@ public class CrescentShot : Weapon {
 
 	public CrescentShot() : base() {
 		// Icons and ID.
-		weaponBarBaseIndex = 4;
-		weaponSlotIndex = 4;
+		displayName = "Crescent Shot";
+		weaponBarBaseIndex = 51;
+		weaponSlotIndex = 51;
 		weaponBarIndex = weaponBarBaseIndex;
 		index = (int)WeaponIds.CrescentShot;
 		//weaknessIndex = 0;

@@ -8,6 +8,7 @@ public class TornadoFang : Weapon {
 	public static TornadoFang netWeapon = new();
 
 	public TornadoFang() : base() {
+		displayName = "Tornado Fang";
 		shootSounds = new string[] { "busterX3", "busterX3", "busterX3", "tunnelFang" };
 		fireRate = 60;
 		switchCooldown = 45;
@@ -19,7 +20,7 @@ public class TornadoFang : Weapon {
 		weaknessIndex = (int)WeaponIds.AcidBurst;
 		damage = "1/1";
 		effect = "Inflicts Slowdown. Doesn't destroy on hit.\nUncharged won't give assists.";
-		hitcooldown = "0.25/0.125";
+		hitcooldown = "15/8";
 		Flinch = "0/26";
 		FlinchCD = "0/1";
 	}

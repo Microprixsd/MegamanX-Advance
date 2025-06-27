@@ -7,6 +7,7 @@ public class SonicSlicer : Weapon {
 	public static SonicSlicer netWeapon = new();
 
 	public SonicSlicer() : base() {
+		displayName = "Sonic Slicer";
 		shootSounds = new string[] { "sonicSlicer", "sonicSlicer", "sonicSlicer", "sonicSlicerCharged" };
 		fireRate = 60;
 		switchCooldown = 45;
@@ -18,7 +19,7 @@ public class SonicSlicer : Weapon {
 		weaknessIndex = (int)WeaponIds.CrystalHunter;
 		damage = "2/4";
 		effect = "U: Bounces on Wall. Breaks W.Sponge Shield.\nC: Decreases vertical speed drastically.";
-		hitcooldown = "0/0.25";
+		hitcooldown = "0/15";
 		Flinch = "0/26";
 	}
 

@@ -6,9 +6,10 @@ using SFML.Graphics;
 namespace MMXOnline;
 
 public class StrikeChain : Weapon {
-
 	public static StrikeChain netWeapon = new();
+
 	public StrikeChain() : base() {
+		displayName = "Strike Chain";
 		shootSounds = new string[] { "strikeChain", "strikeChain", "strikeChain", "strikeChainCharged" };
 		fireRate = 45;
 		index = (int)WeaponIds.StrikeChain;
@@ -20,7 +21,7 @@ public class StrikeChain : Weapon {
 		switchCooldown = 20;
 		damage = "2/4";
 		effect = "Hooks enemies and items. Be Spider-Man.";
-		hitcooldown = "0.5";
+		hitcooldown = "30";
 		Flinch = "Hooked Time";
 		FlinchCD = "0";
 	}

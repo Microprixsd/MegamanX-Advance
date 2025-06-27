@@ -8,6 +8,7 @@ public class ShotgunIce : Weapon {
 	public static ShotgunIce netWeapon = new ShotgunIce();
 
 	public ShotgunIce() : base() {
+		displayName = "Shotgun Ice";
 		index = (int)WeaponIds.ShotgunIce;
 		killFeedIndex = 8;
 		weaponBarBaseIndex = 8;
@@ -18,7 +19,7 @@ public class ShotgunIce : Weapon {
 		fireRate = 30;
 		damage = "2/1-2";
 		effect = "U:Can Split.\nC: Insta Freeze enemies. Ice sled up to 12 DMG.";
-		hitcooldown = "0.01/0.5";
+		hitcooldown = "0/30";
 		Flinch = "0";
 		hasCustomChargeAnim = true;
 	}
