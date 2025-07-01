@@ -60,6 +60,7 @@ public class Weapon {
 	public string Flinch = "";
 	public string FlinchCD = "";
 	public bool hasCustomChargeAnim;
+	public bool hasCustomAnim;
 
 	public Weapon() {
 		ammo = 32;
@@ -71,6 +72,7 @@ public class Weapon {
 		Flinch = "0";
 		FlinchCD = "0";
 		ammousage = getAmmoUsage(0);
+		hasCustomAnim = false;
 	}
 
 	public Weapon(WeaponIds index, int killFeedIndex, Damager? damager = null) {
@@ -174,6 +176,15 @@ public class Weapon {
 				new GravityWell(),
 				new FrostShield(),
 				new TornadoFang(),
+				//X4 Stuff.
+				new LightningWeb(),
+				new SoulBody(),
+				new GroundHunter(),
+				new DoubleCyclone(),
+				new FrostTower(),
+				new RisingFire(),
+				new AimingLaser(),
+				new TwinSlasher(),
 				// X5 Stuff.
 				new CrescentShot(),
 			};

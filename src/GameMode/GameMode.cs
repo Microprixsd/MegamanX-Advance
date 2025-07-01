@@ -2088,6 +2088,9 @@ public class GameMode {
 			if (weapon is MagnetMine && mmx.magnetMines.Count > 0) {
 				drawWeaponText(x, y, mmx.magnetMines.Count.ToString());
 			}
+			if (weapon is AimingLaser && mmx.aLaserTargets.Count >= 1) {
+				drawWeaponText(x, y, mmx.aLaserTargets.Count.ToString());
+			}
 			if (weapon is HyperCharge hc) {
 				if (level.mainPlayer.hyperChargeSlot >= 0 &&
 					mainPlayer.weapons[level.mainPlayer.hyperChargeSlot].ammo == 0
@@ -2096,8 +2099,7 @@ public class GameMode {
 				} else {
 					drawWeaponSlotCooldown(x, y, hc.shootCooldown / hc.fireRate);
 				}
-			}
-			else if (weapon is HyperNovaStrike ns) {
+			} else if (weapon is HyperNovaStrike ns) {
 				drawWeaponSlotCooldown(x, y, ns.shootCooldown / ns.fireRate);
 			}
 		}

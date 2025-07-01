@@ -352,6 +352,11 @@ public class Damager {
 				case (int)ProjIds.SpeedBurner:
 					character.addBurnTime(owner, SpeedBurner.netWeapon, 1);
 					break;
+				case (int)ProjIds.RisingFire:
+				case (int)ProjIds.RisingFireChargedStart:
+				case (int)ProjIds.RisingFireCharged:
+					character.addBurnTime(owner, new RisingFire(), 1);
+					break;	
 				case (int)ProjIds.FlameRoundWallProj:
 				case (int)ProjIds.FlameRoundProj:
 					character.addBurnTime(owner, new Napalm(NapalmType.FireGrenade), 1); ;
@@ -1141,6 +1146,9 @@ public class Damager {
 			(int)ProjIds.FireWaveCharged => true,
 			(int)ProjIds.SpeedBurner => true,
 			(int)ProjIds.SpeedBurnerCharged => true,
+			(int)ProjIds.RisingFire => true,
+			(int)ProjIds.RisingFireChargedStart => true,
+			(int)ProjIds.RisingFireCharged => true,
 			(int)ProjIds.FlameRoundProj => true,
 			(int)ProjIds.FlameRoundFlameProj => true,
 			(int)ProjIds.Ryuenjin => true,

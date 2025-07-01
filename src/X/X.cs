@@ -32,6 +32,16 @@ public class MegamanX : Character {
 		? chestArmor
 		: 0
 	);
+	//X4 Weapons variables
+	public SoulBodyHologram? sBodyHologram;
+	public SoulBodyClone? sBodyClone;
+	public List<Character> aLaserTargets = new();
+	public AimingLaserCursor? aLaserCursor;
+	public AimingLaserHud? aLaserHud;
+	public AimingLaserProj? aLaserProj;
+	public List<AimingLaserProj?> aLasers = new();
+	public AimingLaserChargedProj? aLaserChargedProj;
+	public DoubleCycloneChargedSpawn? dCycloneSpawn;
 
 	public bool hyperChestActive;
 	public bool hyperArmActive;
@@ -127,6 +137,8 @@ public class MegamanX : Character {
 	public Sprite hyperChargePartSprite = new Sprite("hypercharge_part_1");
 	public Sprite hyperChargePart2Sprite = new Sprite("hypercharge_part_1");
 
+	//
+
 	// Creation code.
 	public MegamanX(
 		Player player, float x, float y, int xDir,
@@ -173,8 +185,7 @@ public class MegamanX : Character {
 		if (barrierActiveTime > 0) {
 			if (!barrierAnim.isAnimOver()) {
 				barrierAnim.update();
-			}
-			else {
+			} else {
 				barrierAnimRed.update();
 				barrierAnimBlue.update();
 			}
@@ -245,6 +256,25 @@ public class MegamanX : Character {
 					headChipHealthCooldown = 45;
 				} else {
 					headChipHealthCooldown -= speedMul;
+				}
+			}
+		}
+		
+		//Aiming Laser
+		if (player.weapon is AimingLaser al && (sprite.name == getSprite(charState.shootSpriteEx)) && ownedByLocalPlayer) {
+			if (aLaserCursor == null) {
+				new AimingLaserCursor(
+					al, getShootPos(), getShootXDir(),
+					player, player.getNextActorNetId()
+				);
+			}
+
+			if (aLaserHud == null) {
+				for (int i = 0; i < 11; i++) {
+					new AimingLaserHud(
+						getShootPos(), getShootXDir(),
+						player.getNextActorNetId(), player, i
+					);
 				}
 			}
 		}
@@ -510,6 +540,8 @@ public class MegamanX : Character {
 		}
 		// Add ammo.
 		weapon.addAmmo(-weapon.getAmmoUsageEX(chargeLevel, this), player);
+		//Change to shoot sprite
+		if (!player.weapon.hasCustomAnim) setShootAnim();
 		// Play sound if any.
 		if (shootSound != "") {
 			playSound(shootSound, sendRpc: true);

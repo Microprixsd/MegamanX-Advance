@@ -496,6 +496,7 @@ public partial class Player {
 	public List<ChillPIceStatueProj> iceStatues = new List<ChillPIceStatueProj>();
 	public List<WSpongeSpike> seeds = new List<WSpongeSpike>();
 	public List<Actor> mechaniloids = new List<Actor>();
+	public SoulBodyClone? sClone;
 
 	public ExplodeDieEffect? explodeDieEffect;
 	public bool suicided;
@@ -1082,6 +1083,11 @@ public partial class Player {
 				(byte)loadout.sigmaLoadout.sigmaForm,
 				(byte)loadout.sigmaLoadout.maverick1,
 				(byte)loadout.sigmaLoadout.maverick2
+			];
+		}
+		if (charNum == (int)CharIds.SoulBodyClone) {
+			return [
+				(byte)WeaponIds.Buster
 			];
 		}
 		return [];

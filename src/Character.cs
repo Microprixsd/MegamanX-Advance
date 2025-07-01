@@ -160,6 +160,11 @@ public partial class Character : Actor, IDamagable {
 	public float crystalizedTime;
 	public float crystalizedMaxTime;
 	
+	//Aiming Laser stuff
+	public bool isTargetByALaser;
+	public List<Character> aLaserAttackers = new();
+	public Anim? aLaserTargetAnim;
+	
 	// Buffs.
 	public float vaccineTime;
 	public float vaccineHurtCooldown;
@@ -2531,6 +2536,7 @@ public partial class Character : Actor, IDamagable {
 		Axl? axl = this as Axl;
 		MegamanX? mmx = this as MegamanX;
 		Vile? vile = this as Vile;
+		bool isSBody = this is SoulBodyClone;
 
 		// For Dark Hold break.
 		if (damage > 0 && charState is DarkHoldState dhs && dhs.stateFrames > 10 && !Damager.isDot(projId)) {
