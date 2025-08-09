@@ -54,7 +54,10 @@ public class Zero : Character {
 	public float dashAttackCooldown;
 	public float hadangekiCooldown;
 	public float genmureiCooldown;
+	public float airSpecialCooldown;
+	public float airAttackCooldown;
 	public int airRisingUses;
+	public int quakeBlazerBounces;
 
 	// Hypermode stuff.
 	public float donutTimer;
@@ -105,7 +108,10 @@ public class Zero : Character {
 
 	public override void preUpdate() {
 		base.preUpdate();
-		if (grounded && charState is not ZeroUppercut) {
+		if (grounded) {
+        quakeBlazerBounces = 0;
+    }
+		if (grounded || charState is WallSlide && charState is not ZeroUppercut) {
 			airRisingUses = 0;
 		}
 	}
@@ -145,6 +151,8 @@ public class Zero : Character {
 		Helpers.decrementFrames(ref genmureiCooldown);
 		Helpers.decrementFrames(ref dashAttackCooldown);
 		Helpers.decrementFrames(ref aiAttackCooldown);
+		Helpers.decrementFrames(ref airSpecialCooldown);
+		Helpers.decrementFrames(ref airAttackCooldown);
 		airSpecial.update();
 		gigaAttack.update();
 		gigaAttack.charLinkedUpdate(this, true);
@@ -557,7 +565,7 @@ public class Zero : Character {
 		}
 		// Air attack.
 		if (specialPressed) {
-			if (airSpecial.type == 0 && charState is not ZeroRollingSlashtate) {
+			if (airSpecial.type == 0 && airSpecialCooldown <=0 && charState is not ZeroRollingSlashtate) {
 				if (Options.main.swapAirAttacks == false) {
 					changeState(new ZeroRollingSlashtate(), true);					
 				} else {
@@ -574,10 +582,12 @@ public class Zero : Character {
 			if (charState is WallSlide wallSlide) {
 				changeState(new ZeroMeleeWall(wallSlide.wallDir, wallSlide.wallCollider), true);
 			} else {
-				if (Options.main.swapAirAttacks == false) {
-					changeState(new ZeroAirSlashState(), true);					
-				} else {
-					changeState(new ZeroRollingSlashtate(), true);
+				if (charState is not ZeroAirSlashState && airAttackCooldown <= 0) {
+					if (Options.main.swapAirAttacks == false) {
+						changeState(new ZeroAirSlashState(), true);
+					} else {
+						changeState(new ZeroRollingSlashtate(), true);
+					}
 				}
 			}
 			return true;
@@ -657,7 +667,7 @@ public class Zero : Character {
 	}
 
 	// Melee projectiles.
-	/*
+	
 	public override Projectile? getProjFromHitbox(Collider hitbox, Point centerPoint) {
 		int meleeId = getHitboxMeleeId(hitbox);
 		if (meleeId == -1) {
@@ -674,23 +684,23 @@ public class Zero : Character {
 		// Damage based on tripleSlash time.
 		if (meleeId == (int)MeleeIds.HuhSlash) {
 			float timeSinceStart = zeroTripleSlashEndTime - zeroTripleStartTime;
-			float overrideDamage = 4;
+			float overrideDamage = 3;
 			int overrideFlinch = Global.defFlinch;
-			if (timeSinceStart < 0.5f) {
-				overrideDamage = 3;
+			if (timeSinceStart < 0.4f) {
+				overrideDamage = 2;
 			}
 			proj.damager.damage = overrideDamage;
 			proj.damager.flinch = overrideFlinch;
 		}
 		// Damage based on fall speed.
 		else if (meleeId == (int)MeleeIds.Rakukojin) {
-			float damage = 3 + Helpers.clamp(MathF.Floor(deltaPos.y * 0.8f), 0, 10);
+			float damage = 3 + Helpers.clamp(MathF.Floor(deltaPos.y * 0.7f), 0, 10);
 			proj.damager.damage = damage;
 		}
 		updateProjFromHitbox(proj);
 		return proj;
 	}
-	*/
+	
 
 	public enum MeleeIds {
 		None = -1,
@@ -772,13 +782,13 @@ public class Zero : Character {
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.HaSlash => new GenericMeleeProj(
-				meleeWeapon, projPos, ProjIds.ZSaber2, player, 2, Global.miniFlinch, 15,
+				meleeWeapon, projPos, ProjIds.ZSaber2, player, 2, 0, 15,
 				isZSaberEffect2B: true, isZSaberClang: true,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.HuhSlash => new GenericMeleeProj(
-				meleeWeapon, projPos, ProjIds.ZSaber3, player,
-				3, Global.defFlinch, 15, isZSaberEffect: true, isZSaberClang: true,
+				meleeWeapon, projPos, ProjIds.ZSaber3, player, 2, Global.defFlinch, 15, isReflectShield: true,
+				isZSaberEffect: true, isZSaberClang: true,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.CrouchSlash => new GenericMeleeProj(
@@ -814,11 +824,11 @@ public class Zero : Character {
 			),
 			// Ground Specials
 			(int)MeleeIds.Raijingeki => new GenericMeleeProj(
-				RaijingekiWeapon.staticWeapon, projPos, ProjIds.Raijingeki, player, 2, Global.defFlinch, 5,
+				RaijingekiWeapon.staticWeapon, projPos, ProjIds.Raijingeki, player, 2, Global.halfFlinch, 6,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.RaijingekiWeak => new GenericMeleeProj(
-				Raijingeki2Weapon.staticWeapon, projPos, ProjIds.Raijingeki2, player, 2, Global.defFlinch, 5,
+				Raijingeki2Weapon.staticWeapon, projPos, ProjIds.Raijingeki2, player, 2, Global.halfFlinch, 5,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Dairettsui => new GenericMeleeProj(
@@ -839,7 +849,7 @@ public class Zero : Character {
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.RisingFang => new GenericMeleeProj(
-				RisingFangWeapon.staticWeapon, projPos, ProjIds.RisingFang, player, 2, 0, 15,
+				RisingFangWeapon.staticWeapon, projPos, ProjIds.RisingFang, player, 1, 0, 12,
 				isZSaberEffect: true,
 				addToLevel: addToLevel
 			),
@@ -849,7 +859,7 @@ public class Zero : Character {
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Danchien => new GenericMeleeProj(
-				DanchienWeapon.staticWeapon, projPos, ProjIds.QuakeBlazer, player, 2, 0, 30,
+				DanchienWeapon.staticWeapon, projPos, ProjIds.QuakeBlazer, player, 2, 0, 25,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Rakukojin => new GenericMeleeProj(

@@ -19,7 +19,10 @@ public class AcidBurst : Weapon {
 		damage = "1/1";
 		effect = "DOT: 2+1/3+1. Reduces Enemy Defense. Acid DMG \nstops when cured or immersed in water. Doesn't Assists.";
 	}
-
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3) { return 4; }
+		return 1;
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();

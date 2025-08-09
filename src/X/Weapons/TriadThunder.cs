@@ -10,7 +10,7 @@ public class TriadThunder : Weapon {
 		displayName = "Triad Thunder";
 		shootSounds = new string[] { "triadThunder", "triadThunder", "triadThunder", "" };
 		fireRate = 135;
-		switchCooldown = 60;
+		switchCooldown = 45;
 		index = (int)WeaponIds.TriadThunder;
 		weaponBarBaseIndex = 19;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -22,13 +22,13 @@ public class TriadThunder : Weapon {
 		hitcooldown = "30";
 		Flinch = "6/26";
 		FlinchCD = "2.25/0";
-		maxAmmo = 10;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 		hasCustomChargeAnim = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 2.5f; }
+		if (chargeLevel >= 3) { return 4; }
 		return 1;
 	}
 

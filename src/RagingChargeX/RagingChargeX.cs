@@ -56,6 +56,10 @@ public class RagingChargeX : Character {
 
 	public override void update() {
 		base.update();
+		//musiquiña
+	if (musicSource == null) {
+			addMusicSource("introStageBreisX4_JX", getCenterPos(), true);
+		}
 
 		// Charge.
 		chargeLogic(null);
@@ -70,7 +74,7 @@ public class RagingChargeX : Character {
 	public override void postUpdate() {
 		base.postUpdate();
 
-		if (!isDecayImmune() && invulnTime == 0) {
+		if (!isDecayImmune() && invulnTime == 0 && charState is not XReviveStart) {
 			if (selfDamageCooldown <= 0) {
 				applyDamage(1, player, this, null, (int)ProjIds.SelfDmg);
 				selfDamageCooldown = selfDamageMaxCooldown;
@@ -298,7 +302,7 @@ public class RagingChargeX : Character {
 			),
 			(int)MeleeIds.Chargedpunch => new GenericMeleeProj(
 	ZXSaber.netWeapon, projPos, ProjIds.Chargedpunch, player,
-	3, Global.defFlinch, 20, addToLevel: addToLevel
+	4, Global.defFlinch, 20, addToLevel: addToLevel
 ),
 			_ => null
 		};

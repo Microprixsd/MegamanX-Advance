@@ -21,8 +21,12 @@ public class SonicSlicer : Weapon {
 		effect = "U: Bounces on Wall. Breaks W.Sponge Shield.\nC: Decreases vertical speed drastically.";
 		hitcooldown = "0/15";
 		Flinch = "0/26";
+		maxAmmo = 32;
 	}
-
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3) { return 4; }
+		return 1;
+	}
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 

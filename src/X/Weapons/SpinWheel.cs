@@ -21,7 +21,7 @@ public class SpinWheel : Weapon {
 		effect = "Inflicts Slowdown. Doesn't destroy on hit.\nUncharged won't give assists.";
 		hitcooldown = "12/0";
 		Flinch = "0/26";
-		maxAmmo = 16;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 

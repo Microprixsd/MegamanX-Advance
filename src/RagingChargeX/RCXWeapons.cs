@@ -14,8 +14,8 @@ public class RagingChargeBuster : Weapon {
 		shootSounds = new string[] { "buster2", "buster2", "buster2", "buster2" };
 		fireRate = 90;
 		canHealAmmo = true;
-		drawAmmo = true;
-		drawCooldown = true;
+		drawAmmo = false;
+		drawCooldown = false;
 		allowSmallBar = false;
 		drawRoundedDown = true;
 		drawGrayOnLowAmmo = true;

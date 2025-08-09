@@ -646,6 +646,7 @@ public class XReviveStart : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
+		invincible = true;
 		drLightAnim = new Anim(
 			character.pos.addxy(30 * character.xDir, -15),
 			"drlight", -character.xDir, player.getNextActorNetId(), false, sendRpc: true
@@ -664,7 +665,7 @@ public class XReviveStart : CharState {
 	}
 }
 
-public class XRevive : CharState {
+	public class XRevive : CharState {
 	public float radius = 200;
 	XReviveAnim reviveAnim = null!;
 	RagingChargeX rcx = null!;
@@ -714,7 +715,7 @@ public class XRevive : CharState {
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
-		rcx.invulnTime = 2;
+		rcx.invulnTime = 1;
 	}
 }
 
@@ -877,7 +878,7 @@ public class Chargedpunch : CharState {
 
 	public override void update() {
 		base.update();
-		character.move(new Point(character.xDir * 250, 0f));
+		character.move(new Point(character.xDir * 400, 0f));
 		dashTime += Global.spf;
 		if ((double)dashTime > 0.45) {
 			character.changeState(new Idle());

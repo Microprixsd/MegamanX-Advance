@@ -99,7 +99,7 @@ public class ZeroUppercut : CharState {
 		jumpFrame = type switch {
 			RisingType.Ryuenjin => 5,
 			RisingType.Denjin => 4,
-			RisingType.RisingFang => 5,
+			RisingType.RisingFang => 3,
 			_ => 4
 		};
 	}
@@ -120,6 +120,9 @@ public class ZeroUppercut : CharState {
 			jumpedYet = true;
 			character.dashedInAir++;
 			float ySpeedMod = 1.2f;
+			if (type == RisingType.RisingFang && !isHeld) {
+				ySpeedMod = 1f;
+			}
 			character.vel.y = -character.getJumpPower() * ySpeedMod;
 			if (!isUnderwater) {
 				string saberSound = type switch {
@@ -134,19 +137,18 @@ public class ZeroUppercut : CharState {
 		if (!player.input.isHeld(Control.Special1, player) && !player.input.isHeld(Control.Shoot, player)) {
 			isHeld = false;
 		}
-
-		if (character.sprite.frameIndex == 8 && type == RisingType.RisingFang) {
-			if (isHeld && holdTime < 0.2f) {
+		if (character.sprite.frameIndex == 6 && type == RisingType.RisingFang) {
+			if (isHeld && holdTime < 0.4f) {
 				holdTime += Global.spf;
 				character.frameSpeed = 0;
-				character.frameIndex = 8;
+				character.frameIndex = 6;
 			} else {
 				character.frameSpeed = 1;
-				character.frameIndex = 8;
+				character.frameIndex = 6;
 			}
 		}
 
-		if (character.sprite.frameIndex >= 4 && character.sprite.frameIndex < 7) {
+		if (character.sprite.frameIndex >= 3 && character.sprite.frameIndex < 6) {
 			float speed = 100;
 			if (type == RisingType.Denjin) {
 				speed = 120;
@@ -178,7 +180,7 @@ public class ZeroUppercut : CharState {
 		}
 
 		if (character.isAnimOver()) {
-			character.changeState(character.getFallState());
+			character.changeState(character.getFallState(), true);
 		}
 	}
 

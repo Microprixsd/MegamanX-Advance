@@ -24,10 +24,10 @@ public class BubbleSplash : Weapon {
 		weaknessIndex = (int)WeaponIds.SpinWheel;
 		switchCooldown = 15;
 		damage = "1/1*6";
-		ammousage = 0.5;
+		ammousage = 0.4;
 		//effect = "Shoot a Stream up to 7 bubbles. C:Jump Boost.";
 		effect = "Charged: Grants Jump Boost.";
-		maxAmmo = 28;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 
@@ -37,9 +37,9 @@ public class BubbleSplash : Weapon {
 				freeAmmoNextCharge = false;
 				return 0;
 			}
-			return 7;
+			return 4;
 		}
-		return 0.45f;
+		return 0.4f;
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {

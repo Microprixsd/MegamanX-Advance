@@ -24,8 +24,12 @@ public class SpeedBurner : Weapon {
 		Flinch = "0/26";
 		FlinchCD = "0/0.5";
 		hasCustomChargeAnim = true;
+		maxAmmo = 32;
 	}
-
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3) { return 4; }
+		return 1;
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -126,7 +130,7 @@ public class SpeedBurnerProjWater : Projectile {
 		pos, xDir, owner, "speedburner_underwater", netId, player	
 	) {
 		weapon = SpeedBurner.netWeapon;
-		damager.damage = 1;
+		damager.damage = 2;
 		vel = new Point(275 * xDir, 0);
 		maxTime = 0.6f;
 		projId = (int)ProjIds.SpeedBurnerWater;
@@ -191,6 +195,7 @@ public class SpeedBurnerCharState : CharState {
 	public SpeedBurnerCharState() : base("speedburner") {
 		superArmor = true;
 		immuneToWind = true;
+		useDashJumpSpeed = true;
 	}
 
 	public override void update() {
@@ -205,8 +210,8 @@ public class SpeedBurnerCharState : CharState {
 
 		CollideData? collideData = Global.level.checkTerrainCollisionOnce(character, character.xDir, 0);
 		if (collideData != null && collideData.isSideWallHit() && character.ownedByLocalPlayer) {
-			character.applyDamage(2, player, character, (int)WeaponIds.SpeedBurner, (int)ProjIds.SpeedBurnerRecoil);
-			//character.changeState(new Hurt(-character.xDir, Global.defFlinch, 0), true);
+			//character.applyDamage(2, player, character, (int)WeaponIds.SpeedBurner, (int)ProjIds.SpeedBurnerRecoil);
+			//character.changeState(new Hurt(-character.xDir, Global.defFlinch), true);
 			character.changeToIdleOrFall();
 			character.playSound("hurt", sendRpc: true);
 			return;
@@ -233,6 +238,10 @@ public class SpeedBurnerCharState : CharState {
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
+		if (character.dashedInAir >= 1) {
+			character.dashedInAir--;
+		}
 		if (proj != null && !proj.destroyed) proj.destroySelf();
+		character.shootAnimTime = 0;
 	}
 }

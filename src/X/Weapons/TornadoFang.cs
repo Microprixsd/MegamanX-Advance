@@ -27,10 +27,10 @@ public class TornadoFang : Weapon {
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel < 3) {
-			if (doubleShootCooldown > 0) { return 2; }
-			else { return 1; }
+			if (doubleShootCooldown > 0) { return 1; }
+			else  return 2; 
 		}
-		return 0;
+		return 4;
 	}
 
 	public override void update() {

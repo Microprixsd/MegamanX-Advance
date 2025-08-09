@@ -10,7 +10,7 @@ public class ZBuster2Proj : Projectile {
 	) {
 		weapon = ZeroBuster.netWeapon;
 		damager.damage = 2;
-		damager.flinch = Global.defFlinch;
+		damager.flinch = Global.halfFlinch;
 		vel = new Point(350 * xDir, 0);
 		fadeOnAutoDestroy = true;
 		fadeSprite = "buster2_fade";
@@ -47,7 +47,7 @@ public class ZBuster3Proj : Projectile {
 		pos, xDir, owner, "zbuster2", netId, player	
 	) {
 		weapon = ZeroBuster.netWeapon;
-		damager.damage = 4;
+		damager.damage = 3;
 		damager.flinch = Global.defFlinch;
 		vel = new Point(350 * xDir, 0);
 		fadeOnAutoDestroy = true;
@@ -75,7 +75,7 @@ public class ZBuster4Proj : Projectile {
 		pos, xDir, owner, "zbuster4", netId, player	
 	) {
 		weapon = ZeroBuster.netWeapon;
-		damager.damage = 6;
+		damager.damage = 4;
 		damager.flinch = Global.defFlinch;
 		vel = new Point(350 * xDir, 0);
 		fadeOnAutoDestroy = true;
@@ -157,7 +157,7 @@ public class ShingetsurinProj : Projectile {
 		weapon = Shingetsurin.netWeapon;
 		damager.damage = 2;
 		damager.hitCooldown = 30;
-		damager.flinch = Global.defFlinch;
+		damager.flinch = Global.halfFlinch;
 		vel = new Point(150 * xDir, 0);
 		maxTime = 3f;
 		destroyOnHit = false;
@@ -205,7 +205,7 @@ public class GenmuProj : Projectile {
 		pos, xDir, owner, "genmu_proj", netId, player
 	) {
 		weapon = Genmu.netWeapon;
-		damager.damage = 12;
+		damager.damage = 8;
 		damager.hitCooldown = 30;
 		damager.flinch = Global.defFlinch;
 		vel = new Point(300 * xDir, 0);

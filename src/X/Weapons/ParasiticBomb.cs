@@ -24,12 +24,12 @@ public class ParasiticBomb : Weapon {
 		hitcooldown = "0";
 		Flinch = "26/26";
 		FlinchCD = "0";
-		maxAmmo = 16;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 	
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 0.5f; }
+		if (chargeLevel >= 3) { return 2; }
 		return 1;
 	}
 

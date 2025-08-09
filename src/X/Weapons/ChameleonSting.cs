@@ -20,7 +20,7 @@ public class ChameleonSting : Weapon {
 		damage = "2";
 		effect = "Splits. \nFull Charge grants invulnerability.";
 		hitcooldown = "0";
-		maxAmmo = 45;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 
@@ -28,6 +28,9 @@ public class ChameleonSting : Weapon {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
 		if (chargeLevel < 3 && mmx.stingActiveTime > 0) {
+			return 2;
+		}
+		if (chargeLevel >= 3) {
 			return 4;
 		}
 		if (chargeLevel >= 3 && freeAmmoNextCharge) {
@@ -53,7 +56,7 @@ public class ChameleonSting : Weapon {
 				freeAmmoNextCharge = true;
 				return;
 			}
-			mmx.stingActiveTime = 30;
+			mmx.stingActiveTime = 240;
 			if (mmx.armArmor == ArmorId.Force) {
 				new BusterForcePlasmaHit(
 					2, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true

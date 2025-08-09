@@ -19,6 +19,7 @@ public class SilkShot : Weapon {
 		damage = "2+1/4+1";
 		effect = "Able to heal allies.\nRewards one metal by healing 16 HP.";
 		Flinch = "0/26";
+		maxAmmo = 32;
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -33,16 +34,13 @@ public class SilkShot : Weapon {
 			new SilkShotProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
 				createPlasma = mmx.armArmor == ArmorId.Force
 			};
-		} else if (chargeLevel >= 2) {
-			new SilkShotProjLv2(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
 			new SilkShotProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) return 8;
-		if (chargeLevel >= 2) return 4;
+		if (chargeLevel >= 3) return 4;
 		else return 1;
 	}
 }

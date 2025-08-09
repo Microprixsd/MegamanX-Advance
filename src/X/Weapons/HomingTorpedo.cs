@@ -15,18 +15,17 @@ public class HomingTorpedo : Weapon {
 		weaponSlotIndex = 1;
 		weaknessIndex = (int)WeaponIds.RollingShield;
 		shootSounds = new string[] { "torpedo", "torpedo", "torpedo", "buster3" };
-		fireRate = 40;
+		fireRate = 45;
 		damage = "2/1*6";
 		effect = "Destroys on contact with projectiles or enemies.\nBesides of it's homing capabilities.";
 		hitcooldown = "0";
 		Flinch = "0/13";
-		maxAmmo = 20;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 3; }
-		if (chargeLevel == 2) { return 2; }
+		if (chargeLevel >= 3) { return 4; }
 		return 1;
 	}
 
@@ -46,9 +45,6 @@ public class HomingTorpedo : Weapon {
 			};
 			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), -15, true);
 			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), -30, true);
-		} else if (chargeLevel >= 2) {
-			new TorpedoProjX(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
-			new TorpedoProjX(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
 		} else {
 			new TorpedoProjX(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
 		}

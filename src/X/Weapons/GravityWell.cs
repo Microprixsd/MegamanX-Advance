@@ -19,7 +19,7 @@ public class GravityWell : Weapon {
 		effect = "Disables Gravity to the enemy. C: Super Armor.\nUncharged won't give assists.";
 		hitcooldown = "30";
 		Flinch = "0/26";
-		maxAmmo = 16;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 		hasCustomChargeAnim = true;
 	}

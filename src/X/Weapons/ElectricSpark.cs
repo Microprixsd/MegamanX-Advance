@@ -22,7 +22,10 @@ public class ElectricSpark : Weapon {
 		Flinch = "6/26";
 		FlinchCD = "1/0";
 	}
-
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3) { return 4; }
+		return 1;
+	}
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
@@ -177,7 +180,7 @@ public class ElectricSparkProjCharged : Projectile {
 	public ElectricSparkProjCharged(
 		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
 	) : base(
-		pos, xDir, owner, "electric_spark_charge_start", netId, player	
+		pos, xDir, owner, "electric_spark_charge", netId, player	
 	) {
 		weapon = ElectricSpark.netWeapon;
 		damager.damage = 4;

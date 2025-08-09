@@ -76,7 +76,6 @@ public class DanchienWeapon : Weapon {
 
 public class ZeroDownthrust : CharState {
 	public ZeroDownthrustType type;
-	public int quakeBlazerBounces;
 	public Zero zero = null!;
 
 	public ZeroDownthrust(
@@ -145,9 +144,9 @@ public class ZeroDownthrust : CharState {
 		);
 
 		if (!hitGround) {
-			if (player.input.isHeld(Control.Jump, player) && quakeBlazerBounces < 1) {
-				character.vel.y = Physics.JumpSpeed;
-				quakeBlazerBounces++;
+			if (zero.quakeBlazerBounces < 3) {
+				character.vel.y = Physics.JumpSpeed - 550;
+				zero.quakeBlazerBounces++;
 			}
 			character.changeState(character.getFallState(), true);
 		}

@@ -19,7 +19,7 @@ public class RakuhouhaWeapon : Weapon {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
 		maxAmmo = 28;
-		fireRate = 120;
+		fireRate = 105;
 		index = (int)WeaponIds.Rakuhouha;
 		weaponBarBaseIndex = 27;
 		weaponBarIndex = 33;
@@ -277,7 +277,7 @@ public class RekkohaProj : Projectile {
 		pos, xDir, owner, "rekkoha_proj", netId, player
 	) {
 		weapon = RekkohaWeapon.netWeapon;
-		damager.damage = 3;
+		damager.damage = 4;
 		damager.hitCooldown = 30;
 		damager.flinch = Global.defFlinch;
 		projId = (int)ProjIds.Rekkoha;
@@ -816,6 +816,7 @@ public class DarkHoldShootState : CharState {
 		}
 
 		if (character.isAnimOver()) {
+			character.changeToIdleOrFall();
 			return;
 		}
 	}

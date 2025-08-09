@@ -20,7 +20,7 @@ public class FrostShield : Weapon {
 		damage = "2+2/3+3";
 		hitcooldown = "0/60";
 		Flinch = "0/26-26";
-		maxAmmo = 16;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 

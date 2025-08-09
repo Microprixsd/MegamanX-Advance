@@ -22,7 +22,7 @@ public class StormTornado : Weapon {
 		hitcooldown = "15/20";
 		Flinch = "0/26";
 		FlinchCD = "0/1";
-		maxAmmo = 16;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 

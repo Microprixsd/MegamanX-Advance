@@ -23,8 +23,13 @@ public class MagnetMine : Weapon {
 		damage = "2,4/1,2,4";
 		Flinch = "0/26";
 		FlinchCD = "0/1";
+		maxAmmo = 32;
+		ammo = maxAmmo;
 	}
-
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3) { return 4; }
+		return 1;
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();

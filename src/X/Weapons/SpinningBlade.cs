@@ -11,8 +11,8 @@ public class SpinningBlade : Weapon {
 	public SpinningBlade() : base() {
 		displayName = "Spinning Blade";
 		shootSounds = new string[] { "", "", "", "spinningBladeCharged" };
-		fireRate = 75;
-		switchCooldown = 45;
+		fireRate = 60;
+		switchCooldown = 30;
 		index = (int)WeaponIds.SpinningBlade;
 		weaponBarBaseIndex = 20;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -24,7 +24,7 @@ public class SpinningBlade : Weapon {
 		hitcooldown = "0/30";
 		Flinch = "0/26";
 		FlinchCD = "0/1";
-		maxAmmo = 16;
+		maxAmmo = 32;
 		ammo = maxAmmo;
 	}
 

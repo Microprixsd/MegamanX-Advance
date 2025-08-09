@@ -82,7 +82,7 @@ public class SuiretsusenProj : Projectile {
 		pos, xDir, owner, "spear_proj", netId, player
 	) {
 		weapon = SuiretsusenWeapon.staticWeapon;
-		damager.damage = 6;
+		damager.damage = 5;
 		damager.hitCooldown = 45;
 		damager.flinch = Global.defFlinch;
 		vel = new Point(200 * xDir, 0);

@@ -24,8 +24,12 @@ public class StrikeChain : Weapon {
 		hitcooldown = "30";
 		Flinch = "Hooked Time";
 		FlinchCD = "0";
+		maxAmmo = 32;
 	}
-
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3) { return 4; }
+		return 1;
+	}
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 		int chargeLevel = args[0];

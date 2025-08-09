@@ -2204,7 +2204,7 @@ public partial class Player {
 		);
 		// Set the inital state.
 		character.health = 0;
-		character.changeState(new XRevive(), true);
+		character.changeState(new XReviveStart(), true);
 	}
 
 	public void explodeDieStart() {

@@ -19,7 +19,8 @@ public class RollingShield : Weapon {
 		fireRate = 45;
 		damage = "2/1";
 		effect = "Mobile Shield That Deletes Projectiles.";
-		hitcooldown = "0/20";	
+		hitcooldown = "0/20";
+		maxAmmo = 32;	
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
@@ -28,7 +29,7 @@ public class RollingShield : Weapon {
 				freeAmmoNextCharge = false;
 				return 0;
 			}
-			return 8;
+			return 4;
 		}
 		return 1;
 	}
@@ -195,7 +196,7 @@ public class RollingShieldProjCharged : Projectile {
 	public void decAmmo(float amount = 1) {
 		if (mmx?.currentWeapon is RollingShield && ammoDecCooldown == 0) {
 			ammoDecCooldown = damager.hitCooldown;
-			mmx?.currentWeapon?.addAmmo(-amount, damager.owner);
+			mmx?.currentWeapon?.addAmmo(-amount/2, damager.owner);
 		}
 	}
 

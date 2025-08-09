@@ -38,8 +38,7 @@ public class SoulBody : Weapon {
 
 		if (chargeLevel >= 3) {
 			character.changeState(new ControlClone(), true);
-		} 
-		else new SoulBodyHologram(this, pos, xDir, player, player.getNextActorNetId(), true);
+		} else new SoulBodyHologram(this, pos, xDir, player, player.getNextActorNetId(), true);
 	}
 }
 
@@ -150,6 +149,8 @@ public class ControlClone : CharState {
 	public override void onExit(CharState newState) {
 		base.onExit(newState);
 		character.shootAnimTime = 0;
+		mmx.useGravity = true;
+		return;
 	}
 
 	public override void update() {
@@ -173,9 +174,10 @@ public class ControlClone : CharState {
 	void x5Update() {
 		Helpers.decrementFrames(ref cloneCooldown);
 
-		if (cloneCount >= 5 && cloneCooldown <= 10) character.changeToIdleOrFall();
-
-		else if (character.isAnimOver() && cloneCooldown <= 0) {
+		if (cloneCount >= 5 && (cloneCooldown <= 10 || character.isAnimOver())) {
+			character.changeToIdleOrFall();
+			return;
+		} else if (character.isAnimOver() && cloneCooldown <= 0) {
 			float ang = altAngles[cloneCount];
 			ang = character.xDir == 1 ? ang : -ang + 128;
 			Actor? target = Global.level.getClosestTarget(character.getCenterPos(), player.alliance, false, 160);
@@ -191,6 +193,7 @@ public class ControlClone : CharState {
 
 			cloneCount++;
 			cloneCooldown = 20;
+
 		}
 	}
 }
@@ -203,8 +206,8 @@ public class SoulBodyX5 : Projectile {
 	public SoulBodyX5(
 		Weapon weapon, Point pos, int xDir, Player player,
 		ushort? netId, int color, float ang, bool rpc = false
-	) : base (
-		weapon, pos, 1, 360, 2, 
+	) : base(
+		weapon, pos, 1, 360, 2,
 		player, "soul_body_x5", Global.halfFlinch, 0.5f,
 		netId, player.ownedByLocalPlayer
 	) {
@@ -216,13 +219,13 @@ public class SoulBodyX5 : Projectile {
 		byteAngle = ang;
 
 		if (rpc) {
-			rpcCreate(pos, player, netId, xDir, new byte[] {(byte)color, (byte)ang});
-		} 
+			rpcCreate(pos, player, netId, xDir, new byte[] { (byte)color, (byte)ang });
+		}
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new SoulBodyX5(
-			SoulBody.netWeapon, arg.pos, arg.xDir, arg.player, 
+			SoulBody.netWeapon, arg.pos, arg.xDir, arg.player,
 			arg.netId, arg.extraData[0], arg.extraData[1]
 		);
 	}
@@ -235,11 +238,11 @@ public class SoulBodyX5 : Projectile {
 		cloneShader.SetUniform("palette", color);
 		cloneShader.SetUniform("paletteTexture", Global.textures["soul_body_palette"]);
 		shaders.Add(cloneShader);
-	
+
 		if (shaders.Count > 0) {
 			return shaders;
 		} else {
 			return base.getShaders();
 		}
-	}	
+	}
 }
