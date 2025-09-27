@@ -412,7 +412,6 @@ public class WSpongeSideChainProj : Projectile {
 			var chr = actor as Character;
 			var pickup = actor as Pickup;
 			if (chr == null && pickup == null) return;
-			if (chr?.isGrabImmune() == true || chr?.isPushImmune() == true) return;
 			if (chr != null && (!chr.canBeDamaged(player.alliance, player.id, projId) || isDefenderFavored())) return;
 			changePos(new Point(chr?.pos.x ?? 0, pos.y));
 			distMoved = pos.distanceTo(WireHetimarl.getFirstPOIOrDefault());
@@ -441,12 +440,13 @@ public class WSpongeSideChainProj : Projectile {
 	}
 
 	public override DamagerMessage? onDamage(IDamagable damagable, Player attacker) {
-		if (isDefenderFavored() && damagable is Character chr &&
-			Global.serverClient != null &&
-			!chr.isGrabImmune() && !chr.isPushImmune()
-		) {
-			RPC.commandGrabPlayer.sendRpc(netId, chr.netId, CommandGrabScenario.StrikeChain, true);
-			chr.hook(this);
+		if (isDefenderFavored()) {
+			if (damagable is Character chr) {
+				if (Global.serverClient != null) {
+					RPC.commandGrabPlayer.sendRpc(netId, chr.netId, CommandGrabScenario.StrikeChain, true);
+				}
+				chr.hook(this);
+			}
 		}
 
 		return null;

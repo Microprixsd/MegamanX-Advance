@@ -20,10 +20,10 @@ public class CrystalHunter : Weapon {
 		killFeedIndex = 20;
 		weaknessIndex = (int)WeaponIds.MagnetMine;
 		damage = "0-3/0";
-		effect = "U:Crystalize enemies on contact.\nC:Slows down the area by 25%.";
+		effect = "Crystalizes enemies on contact.\nC: Slows down the area by 25%.";
 		hitcooldown = "0-1/0";
-		Flinch = "0-26/0";
-		maxAmmo = 32;
+		flinch = "0-26/0";
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
@@ -43,14 +43,9 @@ public class CrystalHunter : Weapon {
 		if (chargeLevel < 3) {
 			new CrystalHunterProj(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
 		} else {
-			var cHunter = new CrystalHunterCharged(
+			new CrystalHunterCharged(
 				pos, player, player.getNextActorNetId(), player.ownedByLocalPlayer, sendRpc: true
 			);
-			if (mmx.armArmor == ArmorId.Force) {
-				cHunter.plasmaProj = new BusterForcePlasmaHit(
-					1, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
 		}
 	}
 }
@@ -93,9 +88,9 @@ public class CrystalHunterCharged : Actor {
 	public float drawRadius = 120;
 	public float drawAlpha = 64;
 	public bool isSnails;
-	float maxTime = 6;
-	float soundTime;
-	public Actor? plasmaProj;
+	public float maxTime = 4;
+	public float soundTime;
+	public Actor? rootProj;
 
 	public CrystalHunterCharged(
 		Point pos, Player owner, ushort? netId, bool ownedByLocalPlayer, 
@@ -154,8 +149,8 @@ public class CrystalHunterCharged : Actor {
 		if (time > maxTime) {
 			destroySelf(disableRpc: true);
 		}
-		if (ownedByLocalPlayer && plasmaProj != null) {
-			changePos(plasmaProj.pos);
+		if (ownedByLocalPlayer && rootProj != null) {
+			changePos(rootProj.pos);
 		}
 	}
 

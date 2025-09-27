@@ -102,10 +102,6 @@ public class LevelData {
 	public string parallaxShaderImage;
 	public string backgroundShader;
 	public string backgroundShaderImage;
-	public string backwallShader;
-	public string backwallShaderImage;
-	public string foregroundShader;
-	public string foregroundShaderImage;
 	public bool supportsVehicles;
 	public bool raceOnly;
 	public int customSize = -1;
@@ -304,7 +300,6 @@ public class LevelData {
 		}
 		correctMapNames();
 		validate();
-		mapShadersStuff();
 	}
 
 	public string loadCustomMapSprites() {
@@ -727,7 +722,7 @@ public class LevelData {
 			{ "doppler's lab", "Doppler A" },
 			{ "safari park", "Safari Park" },
 			{ "quarry", "Quarry" },
-			{ "power control center", "Power Control Center" },
+			{ "power control center", "Hydroelectric Power Plant" },
 			{ "shipyard", "Shipyard" },
 			{ "airborne aircraft carrier", "Airborne Aircraft Carrier" },
 			{ "weapons factory", "Weapons Factory" },
@@ -741,58 +736,58 @@ public class LevelData {
 			{ "x-hunter stage 1", "Counter Hunter 1"},
 			{ "central computer", "Central Computer"},
 			{ "energen crystal", "Energen Crystal"},
-			{ "desert base", "Desert Base"},
+			{ "desert base", "Missile Launch Base"},
 			{ "desert base 2", "Credits Scenario X2"},
 			{ "weather control", "Weather Control Center"},
-			{ "robot junkyard", "Robot Scrap"},
+			{ "robot junkyard", "Scrap Processing Plant"},
 			{ "volcanic zone", "Volcanic Zone"},
 			{ "deep-sea base", "Deep-Sea Base"},
 			{ "maverick factory", "Maverick Factory"},
-			{ "highway", "Highway"},
+			{ "highway", "Central Highway"},
 			{ "highway 2", "Credits Scenario X1"},
-			{ "powerplant", "Power Plant"},
-			{ "powerplant2", "Power Plant 2"},
-			{ "factory", "Factory"},
-			{ "Missile Base", "Snow Mountain"},
-			{ "ocean", "Ocean"},
-			{ "tower", "Tower"},
-			{ "forest", "Forest"},
-			{ "forest 2", "Forest 2"},
-			{ "airport", "Sky"},
-			{ "gallery", "Gallery"},
-			{ "sigma stage 1", "Sigma 1"},
-			{ "sigma stage 2", "Sigma 2"},
-			{ "sigma stage 3", "Sigma 3"},
+			{ "powerplant", "Electromagnetic Power Plant"},
+			{ "powerplant2", "Electromagnetic Power Plant 2"},
+			{ "factory", "Prototype Weapons Plant"},
+			{ "Missile Base", "Abandoned Missile Base"},
+			{ "ocean", "Subterranean Base"},
+			{ "tower", "Fortress Tower"},
+			{ "forest", "Recon Base Ruins"},
+			{ "forest 2", "Recon Base Ruins 2"},
+			{ "airport", "New-type Airport"},
+			{ "gallery", "Energy Mine Ruins"},
+			{ "sigma stage 1", "Sigma Palace 1"},
+			{ "sigma stage 2", "Sigma Palace 2"},
+			{ "sigma stage 3", "Sigma Palace 3"},
 			#endregion
 			#region Medium
-			{ "sigma stage 1 md", "Sigma 1 MD"},
-			{ "sigma stage 2 md", "Sigma 2 MD"},
-			{ "forest md", "Forest MD"},
-			{ "ocean md", "Ocean MD"},
-			{ "Missile Base MD", "Snow Mountain MD"},
-			{ "highway md", "Highway MD"},
+			{ "sigma stage 1 md", "Sigma Palace 1 MD"},
+			{ "sigma stage 2 md", "Sigma Palace 2 MD"},
+			{ "forest md", "Recon Base Ruins MD"},
+			{ "ocean md", "Subterranean Base MD"},
+			{ "Missile Base MD", "Abandoned Missile Base MD"},
+			{ "highway md", "Central Highway MD"},
 			{ "weather control md", "Weather Control Center MD"},
-			{ "desert base md", "Desert Base MD"},
+			{ "desert base md", "Missile Launch Base MD"},
 			{ "maverick factory md", "Maverick Factory MD"},
-			{ "factory md", "Factory MD"},
-			{ "airport md", "Sky MD"},
+			{ "factory md", "Prototype Weapons Plant MD"},
+			{ "airport md", "New-type Airport MD"},
 			#endregion
 			#region small
-			{ "sigma1_1v1", "Sigma 1 VS. 1 "},
-			{ "airport 1v1", "Sky 1 VS. 1"},
+			{ "sigma1_1v1", "Sigma Palace 1 VS. 1 "},
+			{ "airport 1v1", "New-type Airport 1 VS. 1"},
 			{ "doppler lab 1v1", "Doppler B 1 VS. 1" },
-			{ "sigma stage 4 1v1", "Sigma 4 1 VS. 1"},
-			{ "factory 1v1", "Factory 1 VS. 1"},
+			{ "sigma stage 4 1v1", "Sigma Palace 4 1 VS. 1"},
+			{ "factory 1v1", "Prototype Weapons"},
 			{ "hunterbase 1v1", "Hunter Base 1 VS. 1" },
-			{ "forest 1v1", "Forest 1 VS. 1"},
-			{ "highway 1v1", "Highway 1 VS. 1"},
+			{ "forest 1v1", "Recon Base Ruins 1 VS. 1"},
+			{ "highway 1v1", "Central Highway 1 VS. 1"},
 			{ "zero virus 1v1", "Zero Space 3: "},
 			{ "central computer 1v1", "Central Computer 1 VS. 1"},
 			{ "jape tribute 1v1", "Jape Tribute 1 VS. 1"},
-			{ "ocean 1v1", "Ocean 1 VS. 1"},
-			{ "Missile Base 1v1", "Snow Mountain 1 VS. 1"},
-			{ "tower 1v1", "Tower 1 VS. 1"},
-			{ "powerplant 1v1", "Power Plant 1 VS. 1"},
+			{ "ocean 1v1", "Subterranean Base 1 VS. 1"},
+			{ "Missile Base 1v1", "Abandoned Missile Base 1 VS. 1"},
+			{ "tower 1v1", "Fortress Tower 1 VS. 1"},
+			{ "powerplant 1v1", "Electromagnetic Power"},
 			#endregion
 		};
 		if (nameMappings.TryGetValue(displayName, out var newName))
@@ -805,69 +800,13 @@ public class LevelData {
 			twoDisplayNames = true;
 			displayName2 = "Awakening 1 VS. 1";
 		}
-	}
-	public void mapShadersStuff() {
-		switch (displayName) {
-			case "Counter Hunter 1":
-				backwallShader = "xhunterBGBW";
-				backwallShaderImage = "paletteXhunter1backwall";
-				break;
-			case "Energen Crystal":
-				backwallShader = "energenCrystalBW";
-				backwallShaderImage = "paletteEnergenCrystalBackWall";
-				break;
-			case "Factory":
-				backwallShader = "FactoryBW";
-				backwallShaderImage = "paletteFactoryBackWall";
-				break;
-			case "Maverick Factory":
-				backwallShader = "MFactoryBW";
-				backwallShaderImage = "paletteMFactoryBW";
-				foregroundShader = "MFactoryBG";
-				foregroundShaderImage = "paletteMFactoryFG";
-				break;
-			case "Hunter Base":
-				backwallShader = "hunterBaseBg";
-				backwallShaderImage = "paletteHunterBaseBackwall";
-				break;
-			case "Weapons Factory":
-				backwallShader = "weaponsFactory";
-				backwallShaderImage = "paletteWeaponsFactory";
-				foregroundShader = "weaponsFactory";
-				foregroundShaderImage = "paletteWeaponsFactory";
-				break;
-			case "Frozen Town":
-				backwallShader = "frozenTown";
-				backwallShaderImage = "paletteFrozenTown";
-				foregroundShader = "frozenTown";
-				foregroundShaderImage = "paletteFrozenTown";
-				break;
-			case "Airborne Aircraft Carrier":
-				backwallShader = "aircraftCarrierBG";
-				backwallShaderImage = "paletteaircraftcarrierBW";
-				break;
-			case "Power Control Center":
-				backwallShader = "powerCenterBW";
-				backwallShaderImage = "palettepowercenterBW";
-				break;
-			case "Quarry":
-				backwallShader = "quarry";
-				backwallShaderImage = "paletteQuarry";
-				break;
-			case "Safari Park":
-				backwallShader = "safariParkBW";
-				backwallShaderImage = "paletteSafariParkBW";
-				foregroundShader = "safariParkBG";
-				foregroundShaderImage = "paletteSafariParkBG";
-				break;
-			case "Doppler A":
-				backwallShader = "dopplerA";
-				backwallShaderImage = "paletteDopplerABW";
-				break;
-			case "Volcanic Zone":
-				backwallShader = "volcanicZoneBW";
-				backwallShaderImage = "palettevolcanicZoneBW";
-				break;
+		if (displayName == "Electromagnetic Power") {
+			twoDisplayNames = true;
+			displayName2 = "Plant 1 VS. 1";
+		}
+		if (displayName == "Prototype Weapons") {
+			twoDisplayNames = true;
+			displayName2 = "Plant 1 VS. 1";
 		}
 	}
 	

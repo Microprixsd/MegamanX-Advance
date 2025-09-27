@@ -18,15 +18,11 @@ public class SonicSlicer : Weapon {
 		killFeedIndex = 24;
 		weaknessIndex = (int)WeaponIds.CrystalHunter;
 		damage = "2/4";
-		effect = "U:Bounces on walls. Breaks Wire Sponge Shield.\nC:Decreases vertical speed drastically.";
+		effect = "U: Bounces on Wall. Breaks W.Sponge Shield.\nC: Decreases vertical speed drastically.";
 		hitcooldown = "0/15";
-		Flinch = "0/26";
-		maxAmmo = 32;
+		flinch = "0/26";
 	}
-	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
-	}
+
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
@@ -45,11 +41,6 @@ public class SonicSlicer : Weapon {
 			new SonicSlicerProjCharged( pos, 2, xDir, mmx, player, player.getNextActorNetId(true), true);
 			new SonicSlicerProjCharged( pos, 3, xDir, mmx, player, player.getNextActorNetId(true), true);
 			new SonicSlicerProjCharged( pos, 4, xDir, mmx, player, player.getNextActorNetId(true), true);
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					3, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
 		}
 	}
 }

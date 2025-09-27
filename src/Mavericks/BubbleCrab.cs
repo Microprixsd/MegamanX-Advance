@@ -125,19 +125,10 @@ public class BubbleCrab : Maverick {
 	public MaverickState getSpecialState() {
 		if (shield == null && ammo >= 8) {
 			return new BCrabShieldStartState();
-		} else if (crabs.Count <= 3) {
-			removeCrabs();
+		} else if (crabs.Count < 3) {
 			return new BCrabSummonState();
 		} else {
 			return null!;
-		}
-	}
-	public void removeCrabs() {
-		if (crabs.Count >= 1) {
-			for (int i = crabs.Count - 1; i >= 0; i--) {
-				crabs[i].destroySelf();
-			}
-			crabs.Clear();
 		}
 	}
 
@@ -148,7 +139,7 @@ public class BubbleCrab : Maverick {
 	public override MaverickState[] strikerStates() {
 		return [
 			new BCrabShootState(),
-			//new BCrabSummonState(),
+			new BCrabSummonState(),
 			new BCrabClawState()
 		];
 	}

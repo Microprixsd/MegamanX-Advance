@@ -18,10 +18,10 @@ public class SpinWheel : Weapon {
 		killFeedIndex = 20 + (index - 9);
 		weaknessIndex = (int)WeaponIds.StrikeChain;
 		damage = "1/1*8";
-		effect = "U:Inflicts Slowdown on contact. Bounces on walls.\nProjectile won't destroy on hit nor give assists.";
+		effect = "Inflicts Slowdown. Doesn't destroy on hit.\nUncharged won't give assists.";
 		hitcooldown = "12/0";
-		Flinch = "0/26";
-		maxAmmo = 32;
+		flinch = "0/26";
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
@@ -42,11 +42,6 @@ public class SpinWheel : Weapon {
 			new SpinWheelProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
 			new SpinWheelProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					2, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
 		}
 	}
 }

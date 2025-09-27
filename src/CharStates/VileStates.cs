@@ -16,7 +16,6 @@ public class VileState : CharState {
 	
 	public override void onEnter(CharState oldState) {
 		vile = character as Vile ?? throw new NullReferenceException();
-		base.onEnter(oldState);
 	}
 }
 
@@ -71,7 +70,6 @@ public class VileRevive : VileState {
 
 	public VileRevive(bool isMK5) : base(isMK5 ? "revive_to5" : "revive") {
 		invincible = true;
-		statusEffectImmune = true;
 		this.isMK5 = isMK5;
 	}
 
@@ -119,7 +117,6 @@ public class VileRevive : VileState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		//character.setzIndex(ZIndex.Foreground);
-		character.clenaseAllDebuffs();
 		character.alive = true;
 		character.playSound("revive");
 		character.addMusicSource("demo_X3", character.getCenterPos(), false, loop: false);
@@ -271,7 +268,7 @@ public class VileHover : VileState {
 
 		float flyVelX = 0;
 		if (character.deltaPos.x != 0) {
-			flyVelX = character.xDir * character.getDashOrRunSpeed() * 0.5f * 60;
+			flyVelX = character.xDir * character.getDashOrRunSpeed() * 0.5f;
 		}
 
 		float flyVelY = 0;

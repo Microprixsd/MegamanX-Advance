@@ -18,19 +18,14 @@ public class ChameleonSting : Weapon {
 		shootSounds = ["csting", "csting", "csting", "stingCharge"];
 		fireRate = 45;
 		damage = "2";
-		effect = "U:Splits. \nC:Grants invulnerability.";
+		effect = "Splits. \nFull Charge grants invulnerability.";
 		hitcooldown = "0";
-		maxAmmo = 32;
-		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsageEX(int chargeLevel, Character character) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
 		if (chargeLevel < 3 && mmx.stingActiveTime > 0) {
-			return 2;
-		}
-		if (chargeLevel >= 3) {
 			return 4;
 		}
 		if (chargeLevel >= 3 && freeAmmoNextCharge) {
@@ -56,12 +51,7 @@ public class ChameleonSting : Weapon {
 				freeAmmoNextCharge = true;
 				return;
 			}
-			mmx.stingActiveTime = 240;
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					2, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
+			mmx.stingActiveTime = 480;
 		}
 	}
 }

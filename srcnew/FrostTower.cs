@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class FrostTower : Weapon {
 
-	public static FrostTower netWeapon = new();
+	public static FrostTower netWeapon = new FrostTower();
 	public FrostTower()
 	{
 		shootSounds = new string[] { "frostTower", "frostTower", "frostTower", "" };

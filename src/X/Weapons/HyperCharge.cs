@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace MMXOnline;
 
 public class HyperCharge : Weapon {
-	public float ammoUsage = 7;
 	public bool active;
+	public const float ammoUsage = 7;
 
 	public HyperCharge() : base() {
 		index = (int)WeaponIds.HyperCharge;
@@ -31,21 +31,21 @@ public class HyperCharge : Weapon {
 		if (chargeLevel >= 3) {
 			return 0;
 		}
-		return ammoUsage;
+		return 7;
 	}
 
 	public float getChipFactoredAmmoUsage(Player player) {
-		return ammoUsage;
+		return player.character is MegamanX mmx && mmx.hyperArmArmor == ArmorId.Max ? ammoUsage / 2 : ammoUsage;
 	}
 
 	public static float getRateofFireMod(Player player) {
 		if (player != null && player.hyperChargeSlot < player.weapons.Count &&
 			player.weapons[player.hyperChargeSlot] is XBuster &&
-			(player.character as MegamanX)?.hasUltimateArmor == true
+			(player.character as MegamanX)?.hasUltimateArmor != true
 		) {
-			return 1f;
+			return 0.75f;
 		}
-		return 0.75f;
+		return 1;
 	}
 
 	public float getRateOfFire(Player player) {
@@ -70,7 +70,7 @@ public class HyperCharge : Weapon {
 			player.weapons[player.hyperChargeSlot].ammo > 0;
 	}
 
-	public bool changeToWeaponSlot(Weapon wep) {
+	bool changeToWeaponSlot(Weapon wep) {
 		return (wep is
 			ChameleonSting or
 			RollingShield or

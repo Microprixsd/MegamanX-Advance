@@ -123,10 +123,6 @@ public class ZeroAirSlashState : ZeroGenericMeleeState {
 			attackCtrl = true;
 		}
 	}
-	public override void onExit(CharState? newState) {
-		base.onExit(newState);
-		zero.airAttackCooldown = 2;
-	}
 }
 
 public class ZeroRollingSlashtate : ZeroGenericMeleeState {

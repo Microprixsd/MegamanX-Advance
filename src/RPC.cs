@@ -305,7 +305,7 @@ public class RPCSpawnCharacter : RPC {
 			player.spawnCharAtPoint(
 				charNum, extraData,
 				new Point(x, y), xDir, charNetId, false,
-				forceSpawn: true
+				forceSpawn: true, isWarpIn: false
 			);
 		} else {
 			Global.level.backloggedSpawns.Add(
@@ -449,7 +449,7 @@ public class RPCApplyDamage : RPC {
 				addToLevel: false
 			) {
 				meleeId = meleeId,
-				ownerActor = mainActor
+				owningActor = mainActor
 			};
 		}
 		return actor;

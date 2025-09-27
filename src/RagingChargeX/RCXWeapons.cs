@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 
 namespace MMXOnline;
 
@@ -11,11 +12,11 @@ public class RagingChargeBuster : Weapon {
 		weaponBarBaseIndex = 70;
 		weaponBarIndex = 59;
 		weaponSlotIndex = 121;
-		shootSounds = new string[] { "stockBuster", "stockBuster", "stockBuster", "stockBuster", "stockBuster" };
-		fireRate = 20;
+		shootSounds = new string[] { "buster2", "buster2", "buster2", "buster2" };
+		fireRate = 90;
 		canHealAmmo = true;
-		drawAmmo = false;
-		drawCooldown = false;
+		drawAmmo = true;
+		drawCooldown = true;
 		allowSmallBar = false;
 		drawRoundedDown = true;
 		drawGrayOnLowAmmo = true;
@@ -23,8 +24,6 @@ public class RagingChargeBuster : Weapon {
 		ammoGainMultiplier = 2;
 		maxAmmo = 12;
 		ammo = maxAmmo;
-		drawRoundedDown = true;
-		drawGrayOnLowAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) { return 0; }
@@ -84,63 +83,28 @@ public class AbsorbWeapon : Weapon {
 	public Projectile absorbedProj;
 	public AbsorbWeapon(Projectile otherProj) {
 		index = (int)WeaponIds.UPParry;
-		shootSounds = new string[] { "", "", "", "", "" };
 		weaponSlotIndex = 118;
 		killFeedIndex = 168;
 		this.absorbedProj = otherProj;
-		fireRate = 0;
 		drawAmmo = false;
-	}
-	public override void shoot(Character character, int[] args) {
-		if (character is not RagingChargeX rcx) return;	
-		Player player = character.player;
-		character.changeState(new XUPParryProjState(absorbedProj, true, true), true);
-		rcx.absorbedProj = null;
-		player.weapons.RemoveAll(w => w is AbsorbWeapon);
-		int busterIndex = player.weapons.FindIndex(w => w is RagingChargeBuster);
-		player.changeWeaponSlot(busterIndex);
 	}
 }
 
-public class RCXZSaber : Weapon {
-	public RCXZSaber() : base() {
-		shootSounds = ["", "", "", "", ""];
-		index = (int)WeaponIds.ZSaber;
-		weaponBarBaseIndex = 21;
-		weaponBarIndex = weaponBarBaseIndex;
-		weaponSlotIndex = 48;
-		killFeedIndex = 9;
-		drawAmmo = false;
-		drawCooldown = false;
-	}
+public class XUPParry : Weapon {
+	public static XUPParry netWeapon = new XUPParry();
 
-	public override void shoot(Character character, int[] args) {
-		if (character is not RagingChargeX rcx) {
-			return;
-		}
-		Player player = character.player;
-		rcx.changeState(new RCXMaxWaveSaberState(), true);
-		player.weapons.RemoveAll(w => w is RCXZSaber);
-		int busterIndex = player.weapons.FindIndex(w => w is RagingChargeBuster);
-		player.changeWeaponSlot(busterIndex);
-	}
-}
-
-public class RCXParry : Weapon {
-	public static RCXParry netWeapon = new RCXParry();
-
-	public RCXParry() : base() {
+	public XUPParry() : base() {
 		fireRate = 45;
 		index = (int)WeaponIds.UPParry;
 		killFeedIndex = 168;
 	}
 }
 
-public class RCXPunch : Weapon
+public class XUPPunch : Weapon
 {
-	public static RCXPunch netWeapon = new();
+	public static XUPPunch netWeapon = new();
 
-	public RCXPunch() : base()
+	public XUPPunch() : base()
 	{
 		fireRate = 20;
 		index = (int)WeaponIds.UPPunch;
@@ -149,23 +113,23 @@ public class RCXPunch : Weapon
 	}
 }
 
-public class RCXKickCharge : Weapon
+public class XUPKickCharge : Weapon
 {
-	public static RCXKickCharge netWeapon = new();
+	public static XUPKickCharge netWeapon = new();
 
-	public RCXKickCharge() : base()
+	public XUPKickCharge() : base()
 	{
 		fireRate = 45;
-		index = (int)WeaponIds.KickCharge;
+		index = (int)WeaponIds.UPKickCharge;
 		killFeedIndex = 167;
 		//damager = new Damager(player, 3, Global.defFlinch, 0.5f);
 	}
 }
 
-public class UnlimitedCrush : Weapon {
-	public static UnlimitedCrush netWeapon = new();
+public class XUPUnlimitedCrush : Weapon {
+	public static XUPUnlimitedCrush netWeapon = new();
 
-	public UnlimitedCrush() : base() {
+	public XUPUnlimitedCrush() : base() {
 		fireRate = 45;
 		index = (int)WeaponIds.UnlimitedCrush;
 		killFeedIndex = 167;
@@ -182,11 +146,11 @@ public class RCXGrab : Weapon {
 		killFeedIndex = 92;
 	}
 
-	public class Chargedpunch : Weapon {
-		public static Chargedpunch netWeapon = new();
-		public Chargedpunch() : base() {
+	public class XUPPunchCharged : Weapon {
+		public static XUPPunchCharged netWeapon = new();
+		public XUPPunchCharged() : base() {
 			fireRate = 45;
-			index = (int)WeaponIds.Chargedpunch;
+			index = (int)WeaponIds.UPPunchCharged;
 			killFeedIndex = 167;
 		}
 	}

@@ -119,20 +119,16 @@ public struct Point {
 	public float angle {
 		get {
 			float ang = MathF.Atan2(y, x);
-			ang *= 180 / MathF.PI;
-			ang %= 360;
-			if (ang < 0) { ang += 360; };
-			return ang;
+			ang *= 180f / (float)Math.PI;
+			return ang % 360f;
 		}
 	}
 
 	public float byteAngle {
 		get {
 			float ang = MathF.Atan2(y, x);
-			ang *= 128 / MathF.PI;
-			ang %= 256;
-			if (ang < 0) { ang += 256; }
-			return ang;
+			ang *= 128f / (float)Math.PI;
+			return ang % 256f;
 		}
 	}
 

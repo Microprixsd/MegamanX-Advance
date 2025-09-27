@@ -140,7 +140,7 @@ public class AxlWeapon : Weapon {
 			axl.altSwitchTime = slowSwitchCooldown;
 		}
 
-		float aimBackwardsAmount = axl.getShootBackwardsDebuff();
+		float aimBackwardsAmount = axl.getAimBackwardsAmount();
 		shootCooldown *= (1 + aimBackwardsAmount * 0.25f);
 		altShotCooldown *= (1 + aimBackwardsAmount * 0.25f);
 

@@ -17,12 +17,9 @@ public class AcidBurst : Weapon {
 		killFeedIndex = 40;
 		weaknessIndex = (int)WeaponIds.FrostShield;
 		damage = "1/1";
-		effect = "Both:Reduces Enemy Defense. Poison stops when healed,\nvaccinated or immersed in water.\nPoison wont't give assists. DOT: 2+1/3+1 seconds. ";
+		effect = "DOT: 2+1/3+1. Reduces Enemy Defense. Acid DMG \nstops when cured or immersed in water. Doesn't Assists.";
 	}
-	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
-	}
+
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -34,9 +31,7 @@ public class AcidBurst : Weapon {
 			new AcidBurstProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
 			player.setNextActorNetId(player.getNextActorNetId());
-			new AcidBurstProjCharged(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			new AcidBurstProjCharged(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true);
 			new AcidBurstProjCharged(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
 		}
 	}

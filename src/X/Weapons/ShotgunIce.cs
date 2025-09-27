@@ -18,9 +18,9 @@ public class ShotgunIce : Weapon {
 		shootSounds = new string[] { "shotgunIce", "shotgunIce", "shotgunIce", "icyWind" };
 		fireRate = 30;
 		damage = "2/1-2";
-		effect = "U:Splits on contact on enemies or walls.\nC:Insta Freeze enemies. Ice sled up to 12 DMG.";
+		effect = "U:Can Split.\nC: Insta Freeze enemies. Ice sled up to 12 DMG.";
 		hitcooldown = "0/30";
-		Flinch = "0";
+		flinch = "0";
 		hasCustomChargeAnim = true;
 	}
 
@@ -41,11 +41,6 @@ public class ShotgunIce : Weapon {
 			//mmx.shotgunIceChargeTime = 1.5f;
 			character.changeState(new ShotgunIceChargedShot(), true);
 			new ShotgunIceProjSled(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					0, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
 		}
 	}
 }
@@ -114,23 +109,23 @@ public class ShotgunIceProj : Projectile {
 			destroySelf(disableRpc: true);
 			Character? chr = null;
 			new ShotgunIceProj(
-				pos, xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
+				pos.clone(), xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
 				((-1 * xDir), -2), chr, rpc: true
 			);
 			new ShotgunIceProj(
-				pos, xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
+				pos.clone(), xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
 				((-1 * xDir), -1), chr, rpc: true
 			);
 			new ShotgunIceProj(
-				pos, xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
+				pos.clone(), xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
 				((-1 * xDir), 0), chr, rpc: true
 			);
 			new ShotgunIceProj(
-				pos, xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
+				pos.clone(), xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
 				((-1 * xDir), 1), chr, rpc: true
 			);
 			new ShotgunIceProj(
-				pos, xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
+				pos.clone(), xDir, this, damager.owner, 1, Global.level.mainPlayer.getNextActorNetId(),
 				((-1 * xDir), 2), chr, rpc: true
 			);
 		}
@@ -177,7 +172,7 @@ public class ShotgunIceProjCharged : Projectile {
 
 		isOwnerLinked = true;
 		if (ownerPlayer?.character != null) {
-			ownerActor = ownerPlayer.character;
+			owningActor = ownerPlayer.character;
 		}
 	}
 

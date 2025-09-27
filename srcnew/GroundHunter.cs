@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class GroundHunter : Weapon {
 
-	public static GroundHunter netWeapon = new();
+	public static GroundHunter netWeapon = new GroundHunter();
 
 	public GroundHunter() : base() {
 		index = (int)WeaponIds.GroundHunter;
@@ -36,11 +36,6 @@ public class GroundHunter : Weapon {
 		} else {
 			new GroundHunterProj(this, pos, xDir, player, player.getNextActorNetId(), true) { downPressed = down };
 		}
-		if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					5, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
 	}
 }
 

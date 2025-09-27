@@ -14,13 +14,13 @@ public class HomingTorpedo : Weapon {
 		weaponBarIndex = weaponBarBaseIndex;
 		weaponSlotIndex = 1;
 		weaknessIndex = (int)WeaponIds.RollingShield;
-		shootSounds = new string[] { "torpedo", "torpedo", "torpedo", "buster3" };
-		fireRate = 45;
+		shootSounds = ["torpedo", "torpedo", "torpedo", "buster3"];
+		fireRate = 38;
 		damage = "2/1*6";
-		effect = "Both:Destroys on contact with projectiles or enemies.\nBesides of its homing capabilities.";
+		effect = "Destroys on contact with projectiles or enemies.\nBesides of it's homing capabilities.";
 		hitcooldown = "0";
-		Flinch = "0/13";
-		maxAmmo = 32;
+		flinch = "0/13";
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
@@ -36,17 +36,16 @@ public class HomingTorpedo : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel >= 3) {
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), 30, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), 15, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), 0, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), 0, true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), -15, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(), -30, true);
+
+		if (chargeLevel < 3) {
+			new TorpedoProjX(pos, xDir, mmx, player, player.getNextActorNetId(true), rpc: true);
 		} else {
-			new TorpedoProjX(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
+			player.getNextActorNetId(true);
+			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 30, true);
+			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 15, true);
+			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 0, true);
+			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), -15, true);
+			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), -30, true);
 		}
 	}
 } 

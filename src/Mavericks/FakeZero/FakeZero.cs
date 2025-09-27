@@ -123,13 +123,7 @@ public class FakeZero : Maverick {
 			return true;
 		}
 		if (grounded) {
-			bool holdGuard;
-			if (useChargeJump) {
-				holdGuard = input.isHeld(Control.Down, player);
-			} else {
-				holdGuard = input.isHeld(Control.Up, player);
-			}
-			if (holdGuard &&state is not FakeZeroGuardState) {
+			if (input.isHeld(Control.Down, player) && state is not FakeZeroGuardState) {
 				changeState(new FakeZeroGuardState());
 				return true;
 			}
@@ -147,10 +141,10 @@ public class FakeZero : Maverick {
 
 	public override float getRunSpeed() {
 		float retSpeed = baseSpeed + accSpeed;
-		if (retSpeed > Physics.WalkSpeedSec) {
-			return retSpeed * getRunDebuffs();
+		if (retSpeed > Physics.WalkSpeed) {
+			return retSpeed;
 		}
-		return Physics.WalkSpeedSec * getRunDebuffs();
+		return Physics.WalkSpeed;
 	}
 
 	public override string getMaverickPrefix() {

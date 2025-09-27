@@ -249,7 +249,7 @@ public partial class Actor {
 		Projectile? proj = getMeleeProjById(meleeId, centerPoint);
 		if (proj != null) {
 			proj.meleeId = meleeId;
-			proj.ownerActor = this;
+			proj.owningActor = this;
 			updateProjFromHitbox(proj);
 		}
 		return proj;
@@ -272,12 +272,8 @@ public partial class Actor {
 			return;
 		}
 		Global.level.removeFromGrid(this);
-		unsafePos.inc(amount);
+		pos.inc(amount);
 		Global.level.addToGrid(this);
-	}
-
-	public void incPos(float x, float y) {
-		incPos(new Point(x, y));
 	}
 
 	public void changePos(Point newPos) {
@@ -285,22 +281,12 @@ public partial class Actor {
 			return;
 		}
 		Global.level.removeFromGrid(this);
-		unsafePos = newPos;
+		pos = newPos;
 		Global.level.addToGrid(this);
 	}
 
-	public void changePos(float x, float y) {
-		changePos(new Point(x, y));
-	}
-	public void changePosX(float x) {
-		changePos(new Point(x, pos.y));
-	}
-	public void changePosY(float y) {
-		changePos(new Point(pos.x, y));
-	}
-
 	public CollideData? sweepTest(Point offset) {
-		Point inc = offset;
+		Point inc = offset.clone();
 		var collideData = Global.level.checkTerrainCollisionOnce(this, inc.x, inc.y);
 		if (collideData != null) {
 			return collideData;
@@ -369,10 +355,7 @@ public partial class Actor {
 		if (amount == Point.zero) {
 			return;
 		}
-		if (amount.y < 0) {
-			movedUpOnFrame = true;
-		}
-		var times = useDeltaTime ? Global.spf : 1;
+		amount *= useDeltaTime ? speedMul : Global.gameSpeed;
 
 		moveSub(amount, pushIncline, useIce);
 	}

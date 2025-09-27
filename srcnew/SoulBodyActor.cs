@@ -67,12 +67,6 @@ public class SoulBodyClone : MegamanX {
 			health -= fDamage;
 			//playSound("hit", sendRpc: true);
 
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					5, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
-
 			base.applyDamage(fDamage, attacker, actor, weaponIndex, projId);
 			return;
 		}

@@ -518,7 +518,7 @@ public class SelectAxlWeaponMenu : IMainMenu {
 			Fonts.drawText(FontType.Orange, weaponNames[friendlyWi], Global.halfScreenW, titleY2, Alignment.Center);
 
 			if (friendlyWi == 1) description = (
-				"Rapid-fire energy weapon with long range."
+				"Eapid-fire energy weapon with long range."
 			);
 			if (friendlyWi == 2) description = (
 				"Pump-action grenade launcher with AOE\nand blast knockback."

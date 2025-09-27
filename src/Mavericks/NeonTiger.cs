@@ -71,7 +71,7 @@ public class NeonTiger : Maverick {
 	}
 
 	public override float getRunSpeed() {
-		return 200f * getRunDebuffs();
+		return 200f;
 	}
 
 	public override MaverickState[] strikerStates() {

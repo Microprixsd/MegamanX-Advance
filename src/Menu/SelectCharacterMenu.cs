@@ -72,7 +72,6 @@ public class CharSelection {
 	];
 
 	public static CharSelection[] selections1v1 => [
-new CharSelection("RagingChargeX", 103, 0, 0, "mmx_revive_shake2", 0),
 		new CharSelection("X(X1)", 0, 1, 0, "menu_megaman", 1),
 		new CharSelection("X(X2)", 0, 2, 0, "menu_megaman", 2),
 		new CharSelection("X(X3)", 0, 3, 0, "menu_megaman", 3),

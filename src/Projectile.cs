@@ -46,7 +46,7 @@ public class Projectile : Actor {
 	public bool isMelee;
 	public int meleeId = -1;
 	public bool isOwnerLinked;
-	public Actor? ownerActor;
+	public Actor? owningActor;
 
 	const float leeway = 500;
 
@@ -75,9 +75,7 @@ public class Projectile : Actor {
 	List<Point> dests = new();
 	int? destIndex;
 	float initWallCooldown;
-
-	public bool createPlasma;
-	public bool hasReleasedPlasma;
+	
 
 	public Projectile(
 		Weapon weapon, Point pos, int xDir, float speed, float damage,
@@ -126,9 +124,8 @@ public class Projectile : Actor {
 		ownerPlayer = (
 			player ?? owner?.netOwner ?? Global.level.getPlayerByIdSafe(netId)
 		);
-		ownerActor = owner;
 		damager = new Damager(ownerPlayer, 0, 0, 0);
-		ownerActor = owner;
+		owningActor = owner;
 		this.xDir = xDir;
 		if (Global.level.gameMode.isTeamMode && Global.level.mainPlayer != ownerPlayer &&
 			this is not NapalmPartProj or FlameBurnerProj
@@ -476,7 +473,7 @@ public class Projectile : Actor {
 		}
 
 		if (ownedByLocalPlayer) {
-			if (shouldVortexSuck && otherProj is GenericMeleeProj otherGmp && otherProj.projId == (int)ProjIds.WheelGEat && damager.owner.alliance != otherProj.damager.owner.alliance && otherGmp.ownerActor is WheelGator wheelGator) {
+			if (shouldVortexSuck && otherProj is GenericMeleeProj otherGmp && otherProj.projId == (int)ProjIds.WheelGEat && damager.owner.alliance != otherProj.damager.owner.alliance && otherGmp.owningActor is WheelGator wheelGator) {
 				destroySelfNoEffect();
 				if (wheelGator.ownedByLocalPlayer) {
 					wheelGator.feedWheelGator(damager.damage);
@@ -487,7 +484,7 @@ public class Projectile : Actor {
 				return;
 			}
 
-			if (shouldVortexSuck && otherProj is GenericMeleeProj otherGmp2 && otherProj.projId == (int)ProjIds.DrDopplerAbsorb && damager.owner.alliance != otherProj.damager.owner.alliance && otherGmp2.ownerActor is DrDoppler drDoppler) {
+			if (shouldVortexSuck && otherProj is GenericMeleeProj otherGmp2 && otherProj.projId == (int)ProjIds.DrDopplerAbsorb && damager.owner.alliance != otherProj.damager.owner.alliance && otherGmp2.owningActor is DrDoppler drDoppler) {
 				destroySelfNoEffect();
 				if (drDoppler.ownedByLocalPlayer) {
 					drDoppler.healDrDoppler(damager.owner, damager.damage);
@@ -609,10 +606,10 @@ public class Projectile : Actor {
 				if (hitPos != null && destroyOnHit) changePos(hitPos.Value);
 
 				bool weakness = false;
-                if (character != null && character.player != null && character.player.weapon != null) {
-                    int wi = character.player.weapon.weaknessIndex;
-                    if (wi > 0 && wi == weapon.index) weakness = true;
-                }
+				if (character is MegamanX) {
+					int wi = character.player.weapon.weaknessIndex;
+					if (wi > 0 && wi == weapon.index) weakness = true;
+				}
 
 				if (this is BlackArrowProj && destroyed) return;
 				if ((this is BlackArrowProj || this is SpiralMagnumProj) && character?.isAlwaysHeadshot() == true) {
@@ -692,31 +689,6 @@ public class Projectile : Actor {
 	// it needs to be in the Damager class as a "on<PROJ>Damage() method"
 	// Also, this runs on every hit regardless of hit cooldown, so if hit cooldown must be factored, use onDamage
 	public virtual void onHitDamagable(IDamagable damagable) {
-		if (ownedByLocalPlayer && createPlasma && !hasReleasedPlasma) {
-			float xThreshold = 10;
-			Point targetPos = damagable.actor().getCenterPos();
-			float distToTarget = MathF.Abs(targetPos.x - pos.x);
-
-			int spawnXDir = xDir;
-			if (deltaPos.x != 0) {
-				spawnXDir = Math.Sign(deltaPos.x);
-			} else if (distToTarget != 0) {
-				spawnXDir = Math.Sign(targetPos.x - pos.x);
-			} else if (MathF.Abs(xDir) != 0) {
-				spawnXDir = Math.Sign(xDir);
-			} else {
-				spawnXDir = Helpers.randomRange(0, 1) != 0 ? 1 : -1;
-			}
-			Point spawnPoint = pos;
-			if (distToTarget > xThreshold) {
-				spawnPoint = new Point(targetPos.x + xThreshold * Math.Sign(pos.x - targetPos.x), pos.y);
-			}
-			new BusterForcePlasmaHit(
-				0, owningActor!, spawnPoint, spawnXDir,
-				owner.getNextActorNetId(), true, ownerPlayer
-			);
-			hasReleasedPlasma = true;
-		}
 		if (destroyOnHit) {
 			damagedOnce = true;
 			if (isNetcodeDamageOwner(damagable.actor())) {

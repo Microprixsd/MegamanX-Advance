@@ -19,7 +19,7 @@ public class TornadoFang : Weapon {
 		killFeedIndex = 47;
 		weaknessIndex = (int)WeaponIds.AcidBurst;
 		damage = "1/1";
-		effect = "U:Inflicts Slowdown. Loses speed on enemy contact.\nProjectile won't destroy on hit nor give assists.";
+		effect = "Inflicts Slowdown. Doesn't destroy on hit.\nUncharged won't give assists.";
 		hitcooldown = "15/8";
 		flinch = "0/26";
 		flinchCD = "0/1";
@@ -27,10 +27,10 @@ public class TornadoFang : Weapon {
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel < 3) {
-			if (doubleShootCooldown > 0) { return 1; }
-			else  return 2; 
+			if (doubleShootCooldown > 0) { return 2; }
+			else { return 1; }
 		}
-		return 4;
+		return 0;
 	}
 
 	public override void update() {
@@ -57,9 +57,7 @@ public class TornadoFang : Weapon {
 				}
 			}
 		} else {
-			var ct = new TornadoFangProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			var ct = new TornadoFangProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			if (character.ownedByLocalPlayer) {
 				mmx.chargedTornadoFang = ct;
 			}
@@ -122,23 +120,21 @@ public class TornadoFangProj : Projectile {
 		exhaust.xDir = xDir;
 		if (state == 0) {
 			if (type == 0) {
-				if (stateTime > 0.15f) {
+				if (stateTime > 9) {
 					vel.x = 0;
 				}
-			}
-			else if (type == 1 || type == 2) {
-				if (stateTime > 0.15f) {
+			} else if (type == 1 || type == 2) {
+				if (stateTime > 9) {
 					vel.y = 0;
 				}
-				if (stateTime > 0.15f && stateTime < 0.3f) vel.x = 100 * xDir;
+				if (stateTime > 9 && stateTime < 18) vel.x = 100 * xDir;
 				else vel.x = 0;
 			}
-			stateTime += Global.spf;
-			if (stateTime >= 0.75f) {
+			stateTime += Global.speedMul;
+			if (stateTime >= 45) {
 				state = 1;
 			}
-		}
-		else if (state == 1) {
+		} else if (state == 1) {
 			vel.x += Global.spf * 500 * xDir;
 			if (MathF.Abs(vel.x) > 350) vel.x = 350 * xDir;
 		}

@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class TwinSlasher : Weapon {
 
-	public static TwinSlasher netWeapon = new();
+	public static TwinSlasher netWeapon = new TwinSlasher();
 
 	public TwinSlasher() {
 		index = (int)WeaponIds.TwinSlasher;
@@ -46,7 +46,6 @@ public class TwinSlasher : Weapon {
 				if (i != 4) {
 					var tsc = new TwinSlasherProjCharged(
 						this, pos, xDir, i, player, i, player.getNextActorNetId(), true){
-				createPlasma = mmx.armArmor == ArmorId.Force
 			};
 				}
 			}

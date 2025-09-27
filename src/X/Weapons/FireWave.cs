@@ -19,7 +19,7 @@ public class FireWave : Weapon {
 		isStream = true;
 		switchCooldown = 15;
 		damage = "1/1";
-		effect = "Both:Inflicts burn to enemies.\nBurn won't give assists.\nDOT: 0.5/2 seconds.";
+		effect = "Inflicts burn to enemies. DOT: 0.5/2 seconds.\nBurn won't give assists.";
 		hitcooldown = "12/20";
 
 		ammoDisplayScale = 7;
@@ -48,9 +48,7 @@ public class FireWave : Weapon {
 				var proj = new FireWaveProj( pos, xDir, mmx, player, player.getNextActorNetId(), true);
 				proj.vel.inc(character.vel.times(-0.5f));
 			} else {
-				new FireWaveProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
-					createPlasma = mmx.armArmor == ArmorId.Force
-				};
+				new FireWaveProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
 		}
 	}
@@ -64,7 +62,7 @@ public class FireWaveProj : Projectile {
 	) {
 		weapon = FireWave.netWeapon;
 		damager.damage = 1;
-		damager.hitCooldown = 18;
+		damager.hitCooldown = 12;
 		vel = new Point(400 * xDir, 0);
 		projId = (int)ProjIds.FireWave;
 		fadeSprite = "fire_wave_fade";
@@ -122,9 +120,7 @@ public class FireWaveProjChargedStart : Projectile {
 				new FireWaveProjCharged(
 					pos, xDir, this, damager.owner, 0,
 					Global.level.mainPlayer.getNextActorNetId(), 0, rpc: true
-				) {
-					createPlasma = createPlasma && !hasReleasedPlasma
-				};
+				);
 				playSound("fireWave");
 			}
 		}
@@ -171,7 +167,7 @@ public class FireWaveProjCharged : Projectile {
 		destroyOnHit = false;
 		shouldShieldBlock = false;
 		this.timesReversed = timesReversed;
-		new Anim(this.pos, "fire_wave_charge_flash", 1, null, true);
+		new Anim(this.pos.clone(), "fire_wave_charge_flash", 1, null, true);
 
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
@@ -229,9 +225,7 @@ public class FireWaveProjCharged : Projectile {
 					pos.addxy(16 * xDir, 0), xDir * sign, this,
 					damager.owner, time + parentTime, Global.level.mainPlayer.getNextActorNetId(),
 					timesReversed, rpc: true
-				) {
-					createPlasma = createPlasma && !hasReleasedPlasma
-				};
+				);
 			}
 		}
 	}

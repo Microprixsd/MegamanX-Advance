@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class LightningWeb : Weapon {
 
-	public static LightningWeb netWeapon = new();
+	public static LightningWeb netWeapon = new LightningWeb();
 	public LightningWeb()
 	{
 		shootSounds = new string[] { "busterX4", "busterX4", "busterX4", "busterX4" };
@@ -40,11 +40,6 @@ public class LightningWeb : Weapon {
 			new LightningWebProj(this, pos, xDir, player, player.getNextActorNetId(), true);
 		} else {
 			new LightningWebProjCharged(this, pos, xDir, player, player.getNextActorNetId(), true);
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					5, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
 		}
 	}
 }

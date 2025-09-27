@@ -11,7 +11,7 @@ public class WolfSigmaHeadState : CharState {
 	public WolfSigma sigma;
 
 	public WolfSigmaHeadState() : base("head") {
-		pushImmune = true;
+		immuneToWind = true;
 	}
 
 	public override void update() {

@@ -7,10 +7,10 @@ namespace MMXOnline;
 public class Flag : Actor {
 	public int alliance = 0;
 	public Point pedestalPos;
-	public Character? linkedChar;
+	public Character chr;
 	public float timeDropped = 0;
 	public bool pickedUpOnce;
-	public FlagPedestal pedestal = null!;
+	public FlagPedestal pedestal;
 	public float killFeedThrottleTime;
 	public float? updraftY;
 	public bool nonOwnerHasUpdraft;
@@ -21,8 +21,7 @@ public class Flag : Actor {
 	public Flag(
 		int alliance, Point pos, ushort? netId, bool ownedByLocalPlayer
 	) : base(
-		alliance == GameMode.blueAlliance ? "blue_flag" : "red_flag",
-		pos, netId, ownedByLocalPlayer, false
+		alliance == GameMode.blueAlliance ? "blue_flag" : "red_flag", pos, netId, ownedByLocalPlayer, false
 	) {
 		this.alliance = alliance;
 		if (collider != null) { collider.wallOnly = true; }
@@ -33,11 +32,11 @@ public class Flag : Actor {
 	}
 
 	public override void onStart() {
-		CollideData hit = Global.level.raycast(
+		CollideData? hit = Global.level.raycast(
 			pos.addxy(0, -10), pos.addxy(0, 60), new List<Type>() { typeof(Wall), typeof(Ladder) }
 		);
-		if (hit.hitData?.hitPoint != null) {
-			changePos(hit.hitData.hitPoint.Value);
+		if (hit?.hitData?.hitPoint != null) {
+			pos = hit.hitData.hitPoint.Value;
 		}
 		pedestal = new FlagPedestal(alliance, pos, null, ownedByLocalPlayer);
 		pedestalPos = pedestal.pos;
@@ -53,21 +52,17 @@ public class Flag : Actor {
 			if (killFeedThrottleTime > 1) killFeedThrottleTime = 0;
 		}
 
-		if (linkedChar != null) {
-			changePos(linkedChar.getCenterPos());
-			xDir = -linkedChar.xDir;
-			if (!Global.level.gameObjects.Contains(linkedChar) ||
-				linkedChar.isWarpOut() ||
-				linkedChar.isInvulnerable() ||
-				linkedChar.destroyed
-			) {
-				dropFlag();
-			}
-		} else if (linkedChar?.canKeepFlag() != true) {
+		if (chr != null && !Global.level.gameObjects.Contains(chr)) {
+			dropFlag();
+		}
+		else if (chr != null && chr.isWarpOut()) {
+			dropFlag();
+		}
+		else if (chr?.canKeepFlag() != true) {
 			dropFlag();
 		}
 
-		if (linkedChar == null) {
+		if (chr == null) {
 			if (Global.level.gameMode.isOvertime()) {
 				timeDropped += Global.spf * 5;
 			} else {
@@ -101,19 +96,13 @@ public class Flag : Actor {
 	}
 
 	public float? getUpdraftY() {
-		if (grounded || linkedChar != null) {
-			return null;
-		}
+		if (grounded) return null;
 		if (pos.y > Math.Min(Global.level.killY, Global.level.height)) {
-			return Global.level.killY - 250;
+			return Global.level.killY - 175;
 		}
 		var hitKillZones = Global.level.getTerrainTriggerList(this, new Point(0, 0), typeof(KillZone));
-		if (hitKillZones.Count > 0 &&
-			hitKillZones[0].otherCollider != null &&
-			hitKillZones[0].gameObject is KillZone kz &&
-			kz.killInvuln
-		) {
-			return hitKillZones[0].otherCollider.shape.minY - 250;
+		if (hitKillZones.Count > 0 && hitKillZones[0].otherCollider != null && hitKillZones[0].gameObject is KillZone kz && kz.killInvuln) {
+			return hitKillZones[0].otherCollider.shape.minY - 175;
 		}
 		return null;
 	}
@@ -124,57 +113,53 @@ public class Flag : Actor {
 		updraftY = null;
 	}
 
+	// Only humans can take flags from bots
+	public bool canTakeFlag(Character taker, Character holder) {
+		if (taker == null || holder == null || taker == holder) {
+			return false;
+		}
+		return !taker.player.isBot && holder.player.isBot;
+	}
+
 	public override void onCollision(CollideData other) {
 		base.onCollision(other);
-		if (!ownedByLocalPlayer ||
-			other.otherCollider?.flag == (int)HitboxFlag.Hitbox ||
-			pickupCooldown > 0 ||
-			linkedChar != null ||
-			other.gameObject is not Character newChar
-		) {
+		if (!ownedByLocalPlayer) return;
+		if (other.otherCollider?.flag == (int)HitboxFlag.Hitbox) return;
+		if (pickupCooldown > 0) return;
+
+		if (other.gameObject is not Character newChar) {
 			return;
 		}
-		// Avoid neutral alliances from capturing.
-		if (newChar.player.alliance >= GameMode.neutralAlliance) {
+		if (chr != null && !canTakeFlag(newChar, chr)) {
 			return;
 		}
-		// Take if a 3rd team.
 		if (newChar.player.alliance != alliance && newChar.canPickupFlag()) {
 			pickupFlag(newChar);
 		}
 	}
 
-	public void pickupFlag(Character newChar) {
+	public void pickupFlag(Character chr) {
 		removeUpdraft();
-		newChar.onFlagPickup(this);
+		chr.onFlagPickup(this);
 		timeDropped = 0;
-		linkedChar = newChar;
+		this.chr = chr;
 		useGravity = false;
 		pickedUpOnce = true;
-		if (newChar != linkedChar) {
-			Global.level.gameMode.addKillFeedEntry(
-				new KillFeedEntry(
-					newChar.player.name + " took flag", newChar.player.alliance, newChar.player
-				)
-			);
-		}
-		if (!newChar.ownedByLocalPlayer) {
-			return;
-		}
-		if (newChar.ai != null && newChar.ai.aiState is FindPlayer) {
-			(newChar.ai.aiState as FindPlayer)?.setDestNodePos();
+		Global.level.gameMode.addKillFeedEntry(
+			new KillFeedEntry(chr.player.name + " took flag", chr.player.alliance, chr.player), true
+		);
+
+		if (chr.ai != null && chr.ai.aiState is FindPlayer) {
+			(chr.ai.aiState as FindPlayer).setDestNodePos();
 		}
 	}
 
 	public void dropFlag() {
-		if (linkedChar != null) {
+		if (chr != null) {
 			removeUpdraft();
-			Global.level.gameMode.addKillFeedEntry(
-				new KillFeedEntry(linkedChar.player.name + " dropped flag",
-				linkedChar.player.alliance, linkedChar.player), true
-			);
+			Global.level.gameMode.addKillFeedEntry(new KillFeedEntry(chr.player.name + " dropped flag", chr.player.alliance, chr.player), true);
 			useGravity = true;
-			linkedChar = null;
+			chr = null;
 		}
 	}
 
@@ -182,34 +167,19 @@ public class Flag : Actor {
 		removeUpdraft();
 		timeDropped = 0;
 		pickedUpOnce = false;
-		string team = alliance == GameMode.blueAlliance ? "Blue " : "Red ";
+		var team = alliance == GameMode.blueAlliance ? "Blue " : "Red ";
 		if (killFeedThrottleTime == 0) {
 			killFeedThrottleTime += Global.spf;
-			Global.level.gameMode.addKillFeedEntry(
-				new KillFeedEntry(team + "flag returned", alliance), true
-			);
+			Global.level.gameMode.addKillFeedEntry(new KillFeedEntry(team + "flag returned", alliance), true);
 		}
 		useGravity = true;
-		if (linkedChar != null) {
-			linkedChar.flag = null;
-		}
-		linkedChar = null;
-		changePos(pedestalPos);
-		if (alliance == GameMode.redAlliance) {
-			xDir = -1;
-		} else {
-			xDir = 1;
-		}
+		if (chr != null) chr.flag = null;
+		chr = null;
+		pos = pedestalPos.clone();
 	}
 
 	public UpdraftParticle getRandomParticle(float time) {
-		return new UpdraftParticle(
-			new Point(
-				pos.x + Helpers.randomRange(-20, 20),
-				pos.y + Helpers.randomRange(50, 100)
-			),
-			time
-		);
+		return new UpdraftParticle(new Point(pos.x + Helpers.randomRange(-20, 20), pos.y + Helpers.randomRange(50, 100)), time);
 	}
 
 	public bool hasUpdraft() {
@@ -230,29 +200,23 @@ public class Flag : Actor {
 					particles[i].pos.inc(new Point(0, -Global.spf * 200));
 				}
 				Point pos = particles[i].pos;
-				//DrawWrappers.DrawLine(
-				//pos.x, pos.y, pos.x, pos.y - 20, Color.White, 1, ZIndex.Foreground, true
-				//);
-				DrawWrappers.DrawCircle(
-					pos.x, pos.y, 1, true,
-					new Color(255, 255, 255,
-					(byte)(255 * (particles[i].time / UpdraftParticle.maxTime))),
-					1, ZIndex.Foreground, true
-				);
+				//DrawWrappers.DrawLine(pos.x, pos.y, pos.x, pos.y - 20, Color.White, 1, ZIndex.Foreground, true);
+				DrawWrappers.DrawCircle(pos.x, pos.y, 1, true, new Color(255, 255, 255, (byte)(255 * (particles[i].time / UpdraftParticle.maxTime))), 1, ZIndex.Foreground, true);
 			}
 		}
 
 		// To avoid latency of flag not sticking to character in online
-		if (linkedChar != null && !linkedChar.destroyed) {
-			Point centerPos = linkedChar.getCenterPos();
-			Point renderPos = new Point(
-				centerPos.x - MathF.Round(pos.x), centerPos.y - MathF.Round(pos.y)
-			);
-			base.render(renderPos.x, renderPos.y);
-			return;
+		if (Global.serverClient != null) {
+			foreach (var player in Global.level.players) {
+				if (player.character != null && player.character.flag == this) {
+					Point centerPos = player.character.getCenterPos();
+					base.render(centerPos.x - pos.x, centerPos.y - pos.y);
+					return;
+				}
+			}
 		}
 
-		if (pickedUpOnce && timeDropped > 0 && linkedChar == null) {
+		if (pickedUpOnce && timeDropped > 0 && chr == null) {
 			drawSpinner(1 - (timeDropped / 30));
 		}
 
@@ -281,21 +245,19 @@ public class Flag : Actor {
 			DrawWrappers.deferredTextDraws.Add(() => DrawWrappers.DrawCircle(
 				(-Global.level.camX + cx + Helpers.cosd(angCopy) * radius) / Global.viewSize,
 				(-Global.level.camY + cy + Helpers.sind(angCopy) * radius) / Global.viewSize,
-				(thickness - 0.5f) / Global.viewSize, true,
-				alliance == GameMode.redAlliance ? Color.Red : Color.Blue,
-				1, ZIndex.HUD, isWorldPos: false)
-			);
+				(thickness - 0.5f) / Global.viewSize, true, alliance == GameMode.redAlliance ? Color.Red : Color.Blue, 1, ZIndex.HUD, isWorldPos: false));
 			ang += (360f / count);
 		}
 	}
 
 	public override List<byte> getCustomActorNetData() {
-		List<byte> customData = [
-			.. BitConverter.GetBytes(linkedChar?.netId ?? ushort.MaxValue),
-			(byte)(hasUpdraft() ? 1 : 0),
-			(byte)(pickedUpOnce ? 1 : 0),
-			(byte)MathF.Floor(timeDropped * 8),
-		];
+		List<byte> customData = new();
+
+		customData.AddRange(BitConverter.GetBytes(chr?.netId ?? ushort.MaxValue));
+		customData.Add((byte)(hasUpdraft() ? 1 : 0));
+		customData.Add((byte)(pickedUpOnce ? 1 : 0));
+		customData.Add((byte)MathF.Floor(timeDropped * 8));
+
 		return customData;
 	}
 
@@ -306,32 +268,23 @@ public class Flag : Actor {
 		timeDropped = data[4] / 8f;
 
 		bool wasActive = isPickedUpNet;
+
+		Character? chara = null;
 		if (chrNetId != ushort.MaxValue) {
-			if (Global.level.getActorByNetId(chrNetId) is Character chara) {
-				if (chara.flag != this) {
-					if (chara.flag != null) {
-						chara.dropFlag();
-					}
-					pickupFlag(chara);
-				}
-				xDir = -chara.xDir;
-				linkedChar = chara;
+			chara = Global.level.getActorByNetId(chrNetId, true) as Character;
+
+			if (chara != null && chara.flag == null) {
+				chara.onFlagPickup(this);
 			}
 		}
-		else if (wasActive || linkedChar != null) {
-			if (linkedChar == null) {
-				foreach (Player player in Global.level.players) {
-					if (player?.character != null && player.character.flag == this) {
-						player.character.dropFlag();
-						player.character.flag = null;
-					}
+		else if (wasActive) {
+			foreach (Player player in Global.level.players) {
+				if (player?.character != null && player.character.flag == this) {
+					player.character.flag = null;
 				}
-			} else {
-				dropFlag();
 			}
-			linkedChar = null;
 		}
-		isPickedUpNet = linkedChar != null;
+		isPickedUpNet = chara != null;
 	}
 }
 
@@ -347,11 +300,7 @@ public class UpdraftParticle {
 
 public class FlagPedestal : Actor {
 	public int alliance = 0;
-	public FlagPedestal(
-		int alliance, Point pos, ushort? netId, bool ownedByLocalPlayer
-	) : base(
-		"flag_pedastal", pos, netId, ownedByLocalPlayer, false
-	) {
+	public FlagPedestal(int alliance, Point pos, ushort? netId, bool ownedByLocalPlayer) : base("flag_pedastal", pos, netId, ownedByLocalPlayer, false) {
 		this.alliance = alliance;
 		useGravity = false;
 		setzIndex(ZIndex.Character - 1);
@@ -360,33 +309,32 @@ public class FlagPedestal : Actor {
 		} else {
 			addRenderEffect(RenderEffectType.RedShadow);
 		}
-		canBeLocal = true;
 	}
 
 	public override void onCollision(CollideData other) {
 		base.onCollision(other);
-		if (!ownedByLocalPlayer ||
-			other.otherCollider?.flag == (int)HitboxFlag.Hitbox ||
-			other.gameObject is not Character chr ||
-			chr.flag == null ||
-			chr.player.alliance != alliance
-		) {
-			return;
-		}
-		chr.flag.returnFlag();
-		chr.flag = null;
-		chr.ai?.changeState(new FindPlayer(chr));
-		string msg = chr.player.name + " scored";
-		Global.level.gameMode.addKillFeedEntry(
-			new KillFeedEntry(msg, chr.player.alliance, chr.player), true
-		);
-		if (Global.isHost) {
-			if (alliance < GameMode.neutralAlliance) {
-				Global.level.gameMode.teamPoints[alliance]++;
+		if (!ownedByLocalPlayer) return;
+		if (other.otherCollider?.flag == (int)HitboxFlag.Hitbox) return;
+
+		Character? chr = other.gameObject as Character;
+		if (chr != null && chr.flag != null && chr.player.alliance == alliance) {
+			chr.flag.returnFlag();
+			chr.flag = null;
+			if (chr.ai != null) {
+				chr.ai.changeState(new FindPlayer(chr));
 			}
-			Global.level.gameMode.syncTeamScores();
+			chr.player.currency += 5;
+			RPC.actorToggle.sendRpc(chr.netId, RPCActorToggleType.AwardCurrency);
+
+			var msg = chr.player.name + " scored";
+			Global.level.gameMode.addKillFeedEntry(new KillFeedEntry(msg, chr.player.alliance, chr.player), true);
+			var ctf = Global.level.gameMode as CTF;
+			if (Global.isHost) {
+				if (alliance != GameMode.neutralAlliance) {
+					Global.level.gameMode.teamPoints[alliance]++;
+				}
+				Global.level.gameMode.syncTeamScores();
+			}
 		}
-		chr.player.currency += 5;
-		RPC.actorToggle.sendRpc(chr.netId, RPCActorToggleType.AwardCurrency);
 	}
 }

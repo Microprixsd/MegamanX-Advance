@@ -172,7 +172,7 @@ public class SigmaSlashProj : Projectile {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
 		if (ownerPlayer?.character != null) {
-			ownerActor = ownerPlayer.character;
+			owningActor = ownerPlayer.character;
 		}
 	}
 	public static Projectile rpcInvoke(ProjParameters args) {

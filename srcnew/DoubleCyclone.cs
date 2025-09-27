@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class DoubleCyclone : Weapon {
 
-	public static DoubleCyclone netWeapon = new();
+	public static DoubleCyclone netWeapon = new DoubleCyclone();
 
 	public DoubleCyclone() : base() {
 		index = (int)WeaponIds.DoubleCyclone;
@@ -68,12 +68,6 @@ public class DoubleCycloneState : CharState {
 					player, player.getNextActorNetId(), true);
 				
 				fired = true;
-				if (mmx.armArmor == ArmorId.Force) {
-					new BusterForcePlasmaHit(
-						7, mmx, shootPos1.Value, -xDir, player.getNextActorNetId(), sendRpc: true);
-					new BusterForcePlasmaHit(
-						7, mmx, shootPos2.Value, xDir, player.getNextActorNetId(), sendRpc: true);
-			}
 			}
 
 			if (mmx.dCycloneSpawn == null && mmx.isAnimOver()) mmx.changeToIdleOrFall();

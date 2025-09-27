@@ -14,8 +14,8 @@ public class Weapon {
 	public float switchCooldown = float.MaxValue;
 	public float soundTime = 0;
 	public bool isStream = false;
-	public string displayName = "Placeholder";
-	public string[] description = [""];
+	public string displayName = "";
+	public string[] description = {""};
 	public Damager? damager;
 	public int type; // For "swappable category" weapons, like techniques, vile weapon sections, etc.
 
@@ -64,6 +64,7 @@ public class Weapon {
 	public float rechargeAmmoCustomSettingAxl2;
 	public float rechargeAmmoCooldown;
 	public float altRechargeAmmoCooldown;
+	public bool hasCustomAnim;
 
 	public Weapon() {
 		ammo = 32;
@@ -152,10 +153,10 @@ public class Weapon {
 	}
 
 	public static List<Weapon> getAllXWeapons() {
-		return new List<Weapon>() {
-				// Base weapon.
+		return new List<Weapon>()
+		{
 				new XBuster(),
-				// X1 stuff.
+				//Mega Man X1
 				new HomingTorpedo(),
 				new ChameleonSting(),
 				new RollingShield(),
@@ -164,7 +165,7 @@ public class Weapon {
 				new ElectricSpark(),
 				new BoomerangCutter(),
 				new ShotgunIce(),
-				// X2 Stuff.
+				//Mega Man X2
 				new CrystalHunter(),
 				new BubbleSplash(),
 				new SilkShot(),
@@ -173,7 +174,7 @@ public class Weapon {
 				new StrikeChain(),
 				new MagnetMine(),
 				new SpeedBurner(),
-				// X3 Stuff.
+				//Mega Man X3
 				new AcidBurst(),
 				new ParasiticBomb(),
 				new TriadThunder(),
@@ -182,17 +183,15 @@ public class Weapon {
 				new GravityWell(),
 				new FrostShield(),
 				new TornadoFang(),
-				//X4 Stuff.
+			    //Mega Man X4
 				new LightningWeb(),
 				new SoulBody(),
-				new GroundHunter(),
-				new DoubleCyclone(),
-				new FrostTower(),
-				new RisingFire(),
-				new AimingLaser(),
-				new TwinSlasher(),
-				// X5 Stuff.
-				new CrescentShot(),
+	            new GroundHunter(),
+	            new DoubleCyclone(),
+	            new FrostTower(),
+	            new RisingFire(),
+	            new AimingLaser(),
+	            new TwinSlasher(),
 			};
 	}
 
@@ -331,9 +330,7 @@ public class Weapon {
 	}
 
 	public void addAmmo(float amount, Player player) {
-		if (player.character is MegamanX mmx && mmx.armArmor == ArmorId.Max && amount < 0) {
-			amount *= 0.25f;
-		}
+		if (player.character is MegamanX mmx && mmx.hyperArmArmor == ArmorId.Max && amount < 0) amount *= 0.5f;
 		ammo += amount;
 		ammo = Helpers.clamp(ammo, 0, maxAmmo);
 	}

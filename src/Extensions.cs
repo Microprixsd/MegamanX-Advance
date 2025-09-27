@@ -204,7 +204,7 @@ public class ProtectedInt {
 	public int value {
 		get {
 			if (internalVal * mul != internalValMul) {
-				//throw new Exception("Error on modified protected value");
+				throw new Exception("Error on modified protected value");
 			}
 			return internalVal;
 		}
@@ -264,7 +264,7 @@ public class ProtectedArrayInt {
 	public int this[int index] {
 		get {
 			if (internalVal[index] * mul != internalValMul[index]) {
-				//throw new Exception("Error on modified protected value");
+				throw new Exception("Error on modified protected value");
 			}
 			return internalVal[index];
 		}

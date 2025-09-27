@@ -16,7 +16,7 @@ public class GravityWell : Weapon {
 		killFeedIndex = 45;
 		weaknessIndex = (int)WeaponIds.RaySplasher;
 		damage = "2/4";
-		effect = "U:Disables Gravity to the enemy.\nProjectile won't give assists.\nC:Grants Flinch Immunity.";
+		effect = "Disables Gravity to the enemy. C: Super Armor.\nUncharged won't give assists.";
 		hitcooldown = "30";
 		flinch = "0/26";
 		maxAmmo = 16;
@@ -44,11 +44,6 @@ public class GravityWell : Weapon {
 		} else {
 			if (!character.ownedByLocalPlayer) return;
 			character.changeState(new GravityWellChargedState(), true);
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					5, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
-			}
 		}
 	}
 

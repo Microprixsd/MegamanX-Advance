@@ -8,7 +8,6 @@ public enum VileFlamethrowerType {
 	WildHorseKick,
 	SeaDragonRage,
 	DragonsWrath,
-	NoneNapalm,
 }
 
 public abstract class VileFlamethrower : Weapon {
@@ -24,16 +23,12 @@ public abstract class VileFlamethrower : Weapon {
 	public override float getAmmoUsage(int chargeLevel) {
 		return 0;
 	}
-	public static bool isFlameType(Vile vile) {
-		if (vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.DragonsWrath) return true;		
-		if (vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.WildHorseKick) return true;		
-		return (vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.SeaDragonRage);
-	}
 
 	public override void vileShoot(WeaponIds weaponInput, Vile vile) {
-		if (shootCooldown > 0) return;
-		if (vile.energy.ammo < 0) return;
-		if (vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.None) return;
+		if (shootCooldown == 0 && vile.energy.ammo > 0) {
+			vile.setVileShootTime(this);
+			vile.changeState(new FlamethrowerState(), true);
+		}
 	}
 }
 public class NoneFlamethrower : VileFlamethrower {
@@ -50,31 +45,7 @@ public class NoneFlamethrower : VileFlamethrower {
 		ammousage = 0;
 		fireRate = 0;
 		vileWeight = 0;
-	}
-}
-public class NoneNapalmFlamethrower : VileFlamethrower {
-	public static NoneNapalmFlamethrower netWeapon = new();
-	public NoneNapalmFlamethrower() : base() {
-		fireRate = 60;
-		index = (int)WeaponIds.VileFlamethrower;
-		type = (int)VileFlamethrowerType.NoneNapalm;
-		displayName = "None(NAPALM)";
-		description = new string[] { "Shoot jets of flame from your leg.", "Strong, but not energy efficient." };
-		killFeedIndex = 126;
-	}
-	public override float getAmmoUsage(int chargeLevel) {
-		return 0;
-	}
-	public override void vileShoot(WeaponIds weaponInput, Vile vile) {
-		if (vile.napalmWeapon.type == (int)NapalmType.None) return;
-		if (vile.napalmWeapon.type == (int)NapalmType.NoneFlamethrower) return;
-		if (vile.napalmWeapon.shootCooldown > 0) return;
-		vile.setVileShootTime(vile.napalmWeapon);
-		if (vile.tryUseVileAmmo((float)vile.napalmWeapon.ammousage)) {
-			vile.changeState(new AirBombNapalm(), false);
-		}
-		base.vileShoot(weaponInput, vile);
-	}
+	}	
 }
 
 public class WildHorseKick : VileFlamethrower {
@@ -102,10 +73,10 @@ public class WildHorseKick : VileFlamethrower {
 	}
 
 	public override void vileShoot(WeaponIds weaponInput, Vile vile) {
-		if (shootCooldown > 0) return;
-		vile.setVileShootTime(this);
-		vile.changeState(new FlamethrowerState(), true);
-		base.vileShoot(weaponInput, vile);
+		if (shootCooldown == 0 && vile.energy.ammo > 0) {
+			vile.setVileShootTime(this);
+			vile.changeState(new FlamethrowerState(), true);
+		}
 	}
 }
 
@@ -135,10 +106,10 @@ public class SeaDragonRage : VileFlamethrower {
 	}
 
 	public override void vileShoot(WeaponIds weaponInput, Vile vile) {
-		if (shootCooldown > 0) return;
-		vile.setVileShootTime(this);
-		vile.changeState(new FlamethrowerState(), true);
-		base.vileShoot(weaponInput, vile);
+		if (shootCooldown == 0 && vile.energy.ammo > 0) {
+			vile.setVileShootTime(this);
+			vile.changeState(new FlamethrowerState(), true);
+		}
 	}
 }
 
@@ -167,10 +138,10 @@ public class DragonsWrath : VileFlamethrower {
 	}
 
 	public override void vileShoot(WeaponIds weaponInput, Vile vile) {
-		if (shootCooldown > 0) return;
-		vile.setVileShootTime(this);
-		vile.changeState(new FlamethrowerState(), true);
-		base.vileShoot(weaponInput, vile);
+		if (shootCooldown == 0 && vile.energy.ammo > 0) {
+			vile.setVileShootTime(this);
+			vile.changeState(new FlamethrowerState(), true);
+		}
 	}
 }
 
@@ -188,9 +159,7 @@ public class FlamethrowerState : VileState {
 	public override void update() {
 		base.update();
 		character.turnToInput(player.input, player);
-		bool isDragonsWrath = vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.DragonsWrath;
-		bool isWildHorseKick = vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.WildHorseKick;
-		bool isSeaDragonRage = vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.SeaDragonRage;
+
 		shootTime += Global.speedMul;
 		if (shootTime >= 4) {
 			if (!vile.tryUseVileAmmo(2)) {
@@ -205,17 +174,19 @@ public class FlamethrowerState : VileState {
 			} else {
 				poiPos = (character.getFirstPOI() ?? character.getPOIPos(groundShotPOI));
 			}
-			if (isDragonsWrath) {
+			if (vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.DragonsWrath) {
 				new FlamethrowerDragonsWrath(
 					poiPos, character.xDir, isGrounded, vile, player,
 					player.getNextActorNetId(), rpc: true
 				);
-			} else if (isWildHorseKick) {
+			}
+			else if (vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.WildHorseKick) {
 				new FlamethrowerWildHorseKick(
 					poiPos, character.xDir, isGrounded, vile, player,
 					player.getNextActorNetId(), rpc: true
 				);
-			} else if (isSeaDragonRage) {
+			}
+			else if (vile.flamethrowerWeapon.type == (int)VileFlamethrowerType.SeaDragonRage) {
 				new FlamethrowerSeaDragonRage(
 					poiPos, character.xDir, isGrounded, vile, player,
 					player.getNextActorNetId(), rpc: true

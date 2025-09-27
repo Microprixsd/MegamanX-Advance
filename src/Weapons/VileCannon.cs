@@ -40,7 +40,7 @@ public class VileCannon : Weapon {
 			fireRate = 45;
 			vileAmmoUsage = 8;
 			ammousage = vileAmmoUsage;
-			damage = "2";
+			damage = "3";
 			displayName = "Front Runner";
 			projSprite = "vile_mk2_proj";
 			fadeSprite = "vile_mk2_proj_fade";
@@ -58,7 +58,7 @@ public class VileCannon : Weapon {
 			fadeSprite = "vile_mk2_fb_proj_fade";
 			killFeedIndex = 90;
 			weaponSlotIndex = 61;
-			description = ["High damage, but high ammo use\nand low range."];
+			description = new string[] { "The most powerful cannon around,", "it consumes a lot of energy." };
 			vileWeight = 3;
 			effect = "None.";
 		}
@@ -72,7 +72,7 @@ public class VileCannon : Weapon {
 			fadeSprite = "vile_mk2_lg_proj_fade";
 			killFeedIndex = 91;
 			weaponSlotIndex = 62;
-			description = new string[] { "This cannon fires 4 shots at once,", "but leaves you open to attack." };
+			description = new string[] { "This cannon fires 5 shots at once,", "but leaves you open to attack." };
 			vileWeight = 4;
 			effect = "Burst of 5 shots.";
 		}
@@ -147,7 +147,7 @@ public class VileCannonProj : Projectile {
 		pos, xDir, owner, sprite , netId, player
 	) {
 		xScale = xDir;
-		maxTime = 0.45f;
+		maxTime = 0.5f;
 		destroyOnHit = true;
 		this.type = type;
 		if (type == (int)VileCannonType.FrontRunner) {
@@ -155,14 +155,14 @@ public class VileCannonProj : Projectile {
 			sprite = "vile_mk2_proj";
 			fadeSprite = "vile_mk2_proj_fade";
 			fadeOnAutoDestroy = true;
-			damager.damage = 2;
+			damager.damage = 3;
 			projId = (int)ProjIds.FrontRunner;
 		} else if (type == (int)VileCannonType.FatBoy) {
 			weapon = VileCannon.netWeaponFB;
 			sprite = "vile_mk2_fb_proj";
 			fadeSprite = "vile_mk2_fb_proj_fade";
 			fadeOnAutoDestroy = true;
-			damager.damage = 3;
+			damager.damage = 4;
 			damager.flinch = Global.defFlinch;
 			projId = (int)ProjIds.FatBoy;
 			maxTime = 0.35f;
@@ -173,7 +173,6 @@ public class VileCannonProj : Projectile {
 			fadeOnAutoDestroy = true;	
 			damager.damage = 1;
 			projId = (int)ProjIds.LongshotGizmo;
-			maxTime = 0.5f;
 		}
 		byteAngle = byteAngle % 256;
 		this.byteAngle = byteAngle;
@@ -199,9 +198,9 @@ public class VileCannonProj : Projectile {
 	}
 }
 
-public class CannonAttack : CharState {
+public class CannonAttack : VileState {
 	bool isGizmo;
-	public Vile vile = null!;
+
 	public CannonAttack(bool isGizmo, bool grounded) : base(getSprite(isGizmo, grounded)) {
 		useDashJumpSpeed = true;
 		this.isGizmo = isGizmo;
@@ -280,13 +279,21 @@ public class CannonAttack : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		vile = character as Vile ?? throw new NullReferenceException();
 		shootLogic(vile);
+		if (!isGizmo && (player.input.isHeld(Control.Left, player) || player.input.isHeld(Control.Right, player))) {
+			exitOnAirborne = true;
+		} else {
+			exitOnAirborne = false;
+			character.useGravity = false;
+			character.stopMoving();
+		}
+		
 	}
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		vile.isShootingLongshotGizmo = false;
+		character.useGravity = true;
 		if (isGizmo) {
 			vile.gizmoCooldown = 0.5f;
 		}

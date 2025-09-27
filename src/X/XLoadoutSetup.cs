@@ -15,6 +15,7 @@ public class XLoadoutSetup {
 			bool enableX1Weapons = player.xArmor1v1 == 1 || !Global.level.server.useLoadout;
 			bool enableX2Weapons = player.xArmor1v1 == 2 || !Global.level.server.useLoadout;
 			bool enableX3Weapons = player.xArmor1v1 == 3 || !Global.level.server.useLoadout;
+			bool enableX4Weapons = player.xArmor1v1 == 4 || !Global.level.server.useLoadout;
 			weapons.Add(new XBuster());
 
 			if (enableX1Weapons) {
@@ -46,6 +47,17 @@ public class XLoadoutSetup {
 				weapons.Add(new GravityWell());
 				weapons.Add(new FrostShield());
 				weapons.Add(new TornadoFang());
+			}
+			if (enableX4Weapons) {
+				weapons.Add(new LightningWeb());
+				weapons.Add(new TwinSlasher());
+				weapons.Add(new SoulBody());
+	            weapons.Add(new GroundHunter());
+	            weapons.Add(new DoubleCyclone());
+	            weapons.Add(new FrostTower());
+	            weapons.Add(new RisingFire());
+	            weapons.Add(new AimingLaser());
+	            weapons.Add(new TwinSlasher());
 			}
 
 			if (player.hasArmArmor(3) || player.xArmor1v1 == 2) weapons.Add(new HyperCharge());

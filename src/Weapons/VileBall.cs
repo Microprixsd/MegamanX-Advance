@@ -79,7 +79,7 @@ public class VileBall : Weapon {
 			damage = "3";
 			hitcooldown = "0.5";
 			flinch = "6";
-			effect = "Splits on ground.";
+			effect = "Splits,no destroy on hit.";
 		}
 	}
 
@@ -308,8 +308,6 @@ public class AirBombAttack : VileState {
 	) {
 		this.isNapalm = isNapalm;
 		useDashJumpSpeed = true;
-		useGravity = false;
-		exitOnLanding = true;
 	}
 
 	public override void update() {
@@ -380,10 +378,13 @@ public class AirBombAttack : VileState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
+		character.useGravity = false;
+		character.vel = new Point();
 	}
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
+		character.useGravity = true;
 		if (vile.napalmWeapon.type == (int)NapalmType.NoneBall) {
 			if (vile.grenadeWeapon.type == (int)VileBallType.PeaceOutRoller) {
 				vile.grenadeWeapon.shootCooldown = 75;
@@ -416,20 +417,22 @@ public class AirBombNapalm : NapalmAttackTypes {
 		base.update();
 		if (!shot && character.sprite.frameIndex == 2) {
 			shot = true;
+			var poi = character.sprite.getCurrentFrame().POIs[0];
+			poi.x *= character.xDir;
 			if (vile.napalmWeapon.type == (int)NapalmType.RumblingBang) {
 				vile.setVileShootTime(vile.napalmWeapon);
 				new NapalmGrenadeProj(
-					character.pos, character.xDir, vile, character.player,
+					character.pos.add(poi), character.xDir, vile, character.player,
 					character.player.getNextActorNetId(), rpc: true
 				);
 			} else if (vile.napalmWeapon.type == (int)NapalmType.FireGrenade) {
 				new MK2NapalmGrenadeProj(
-					character.pos, character.xDir, vile, character.player,
+					character.pos.add(poi), character.xDir, vile, character.player,
 					character.player.getNextActorNetId(), rpc: true
 				);
 			} else if (vile.napalmWeapon.type == (int)NapalmType.SplashHit) {
 				new SplashHitGrenadeProj(
-					character.pos, character.xDir, vile, character.player,
+					character.pos.add(poi), character.xDir, vile, character.player,
 					character.player.getNextActorNetId(), rpc: true
 				);
 			}

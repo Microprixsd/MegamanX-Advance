@@ -19,8 +19,7 @@ public class RollingShield : Weapon {
 		fireRate = 45;
 		damage = "2/1";
 		effect = "Mobile Shield That Deletes Projectiles.";
-		hitcooldown = "0/20";
-		maxAmmo = 32;	
+		hitcooldown = "0/20";	
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
@@ -29,7 +28,7 @@ public class RollingShield : Weapon {
 				freeAmmoNextCharge = false;
 				return 0;
 			}
-			return 4;
+			return 8;
 		}
 		return 1;
 	}
@@ -51,9 +50,7 @@ public class RollingShield : Weapon {
 			} else {
 				mmx.chargedRollingShieldProj = new RollingShieldProjCharged(
 					pos, xDir, mmx, player, player.getNextActorNetId(), true
-				) {
-					createPlasma = mmx.armArmor == ArmorId.Force
-				};
+				);
 			}
 		}
 	}
@@ -132,7 +129,7 @@ public class RollingShieldProjCharged : Projectile {
 	) {
 		weapon = RollingShield.netWeapon;
 		damager.damage = 1;
-		damager.hitCooldown = 30;
+		damager.hitCooldown = 20;
 		vel = new Point(0 * xDir, 0);
 		projId = (int)ProjIds.RollingShieldCharged;
 		fadeSprite = "rolling_shield_charge_break";
@@ -196,7 +193,7 @@ public class RollingShieldProjCharged : Projectile {
 	public void decAmmo(float amount = 1) {
 		if (mmx?.currentWeapon is RollingShield && ammoDecCooldown == 0) {
 			ammoDecCooldown = damager.hitCooldown;
-			mmx?.currentWeapon?.addAmmo(-amount/2, damager.owner);
+			mmx?.currentWeapon?.addAmmo(-amount, damager.owner);
 		}
 	}
 

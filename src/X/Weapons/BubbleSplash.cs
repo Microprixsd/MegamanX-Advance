@@ -14,7 +14,7 @@ public class BubbleSplash : Weapon {
 	public BubbleSplash() : base() {
 		displayName = "Bubble Splash";
 		shootSounds = new string[] { "bubbleSplash", "bubbleSplash", "bubbleSplash", "bubbleSplashCharged" };
-		fireRate = 9;
+		fireRate = 6;
 		isStream = true;
 		index = (int)WeaponIds.BubbleSplash;
 		weaponBarBaseIndex = 10;
@@ -24,10 +24,10 @@ public class BubbleSplash : Weapon {
 		weaknessIndex = (int)WeaponIds.SpinWheel;
 		switchCooldown = 15;
 		damage = "1/1*6";
-		ammousage = 0.4;
+		ammousage = 0.5;
 		//effect = "Shoot a Stream up to 7 bubbles. C:Jump Boost.";
 		effect = "Charged: Grants Jump Boost.";
-		maxAmmo = 32;
+		maxAmmo = 28;
 		ammo = maxAmmo;
 	}
 
@@ -37,9 +37,9 @@ public class BubbleSplash : Weapon {
 				freeAmmoNextCharge = false;
 				return 0;
 			}
-			return 4;
+			return 7;
 		}
-		return 0.4f;
+		return 0.45f;
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {
@@ -101,10 +101,8 @@ public class BubbleSplash : Weapon {
 				for (int i = 0; i < 6; i++) {
 					var bubble = new BubbleSplashProjCharged(
 						pos, xDir, mmx, player, i, 
-						player.getNextActorNetId(true), true);
-					if (i == 0 && mmx.armArmor == ArmorId.Force) {
-						bubble.createPlasma = true;
-					}
+						player.getNextActorNetId(true), true
+					);
 					mmx.chargedBubbles?.Add(bubble);	
 				}
 			}
@@ -211,7 +209,7 @@ public class BubbleSplashProjCharged : Projectile {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir, new byte[] { (byte)type });
 		}
 		if (ownerPlayer?.character != null) {
-			ownerActor = ownerPlayer.character;
+			owningActor = ownerPlayer.character;
 		} 
 		canBeLocal = false;
 	}

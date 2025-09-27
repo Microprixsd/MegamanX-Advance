@@ -17,15 +17,12 @@ public class ElectricSpark : Weapon {
 		shootSounds = new string[] { "electricSpark", "electricSpark", "electricSpark", "electricSpark" };
 		fireRate = 30;
 		damage = "2/4";
-		effect =  "U:Splits on contact on enemies or walls.\nC:Projectile won't destroy on hit.";
+		effect =  "Can Split. Charged: Doesn't destroy on hit.";
 		hitcooldown = "0/0.5";
 		flinch = "6/26";
 		flinchCD = "1/0";
 	}
-	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
-	}
+
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
@@ -37,9 +34,7 @@ public class ElectricSpark : Weapon {
 		if (chargeLevel < 3) {
 			new ElectricSparkProj(pos, xDir, mmx, player, 0, player.getNextActorNetId(), rpc: true);
 		} else {
-			new ElectricSparkProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			new ElectricSparkProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
 	}
 }
@@ -117,11 +112,11 @@ public class ElectricSparkProj : Projectile {
             normal2.multiply(150 * 3);
 
 			new ElectricSparkProj(
-				pos, xDir, this , damager.owner, 1,
+				pos.clone(), xDir, this , damager.owner, 1,
 				Global.level.mainPlayer.getNextActorNetId(), ((int)normal2.x, (int)normal2.y), true
 			);
 			new ElectricSparkProj(
-				pos, xDir, this, damager.owner, 2,
+				pos.clone(), xDir, this, damager.owner, 2,
 				Global.level.mainPlayer.getNextActorNetId(), ((int)normal2.x * -1, (int)normal2.y * -1), rpc: true
 			);
 		}
@@ -171,9 +166,7 @@ public class ElectricSparkProjChargedStart : Projectile {
 				new ElectricSparkProjCharged(
 					pos.addxy(1 * xDir, 0), 1 * xDir, this, damager.owner,
 					damager.owner.getNextActorNetId(true), rpc: true
-				) {
-					createPlasma = createPlasma
-				};
+				);
 			}
 		}
 	}

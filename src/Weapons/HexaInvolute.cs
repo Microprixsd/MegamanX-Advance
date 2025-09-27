@@ -22,7 +22,7 @@ public class HexaInvoluteState : VileState {
 
 	public HexaInvoluteState() : base("super") {
 		superArmor = true;
-		pushImmune = true;
+		immuneToWind = true;
 		invincible = true;
 	}
 
@@ -62,7 +62,6 @@ public class HexaInvoluteState : VileState {
 		if (character.grounded) {
 			startGrounded = true;
 		}
-		character.clenaseDmgDebuffs();
 		character.stopMovingS();
 		vile.vileHoverTime = vile.vileMaxHoverTime;
 		vile.getOffMK5Platform();
@@ -148,8 +147,8 @@ public class HexaInvoluteProj : Projectile {
 	public override void update() {
 		base.update();
 
-		if (ownerActor != null) {
-			changePos(ownerActor.getCenterPos());
+		if (owningActor != null) {
+			changePos(owningActor.getCenterPos());
 		}
 
 		for (int i = particles.Count - 1; i >= 0; i--) {

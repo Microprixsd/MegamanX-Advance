@@ -23,7 +23,7 @@ public partial class Global {
 	// THIS VALUE MUST ALWAYS MANUALLY BE SET AFTER UPDATING ASSETS BEFORE BUILDING A RELEASE BUILD.
 	// Obtain it by pressing F1 in main menu.
 	// This step could be automated as future improvement in build scripts.
-	private const string assetChecksum = "86B00C17076AD59E94D34BEF561B57112";
+	private const string assetChecksum = "86B00C17076AD59E94D34BEF561B5715";
 
 	// For forks/mods of the game, add a prefix here so that different forks
 	// don't conflict with each other or the base game
@@ -598,7 +598,7 @@ public partial class Global {
 	public const int maxServers = 5;
 	public static int tickRate = 1;
 
-	public static readonly int superFlinch = 32;
+	public static readonly int superFlinch = 36;
 	public static readonly int defFlinch = 26;
 	public static readonly int halfFlinch = 13;
 	public static readonly int miniFlinch = 6;

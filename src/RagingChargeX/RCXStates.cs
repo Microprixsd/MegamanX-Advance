@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using SFML.Graphics;
@@ -22,40 +22,48 @@ public class RcxState : CharState {
 	}
 }
 
-public class RCXParryStartState : CharState {
-	public RCXParryStartState() : base("unpo_parry_start") {
-		superArmor = true;
-		stunImmune = true;
-		pushImmune = true;
-		invincible = true;
-	}
-
-	public override void update() {
-		base.update();
-		if (stateFrames == 0) {
-			character.turnToInput(player.input, player);
-		}
-		if (character.isAnimOver()) {
-			character.changeToIdleOrFall();
-		}
-	}
-
-}
 public class XUPParryStartState : CharState {
-	public RagingChargeX mmx = null!;
-	public XUPParryStartState() : base("unpo_parry_start") {
-	}
+    public RagingChargeX mmx = null!;
 
-	public override void update() {
-		base.update();
+    // VARIABLES DE ANIMACIÓN
+    string landSprite = "unpo_parry_start";      // Animación cuando está en el piso
+    string airSprite = "unpo_parry_air_start";   // Animación cuando está en el aire
+    bool grounded;                               // Para saber si estaba en el piso al entrar
 
-		if (stateTime < 0.1f) {
-			character.turnToInput(player.input, player);
-		}
+    public XUPParryStartState() : base("unpo_parry_start") { }
 
-		if (character.isAnimOver()) {
-			character.changeToIdleOrFall();
-		}
+    public override void onEnter(CharState oldState) {
+        base.onEnter(oldState);
+        mmx = player.character as RagingChargeX ?? throw new NullReferenceException();
+
+        grounded = character.grounded;
+
+        if (grounded) {
+            sprite = landSprite;
+            character.changeSpriteFromName(landSprite, true);
+        } else {
+            sprite = airSprite;
+            character.changeSpriteFromName(airSprite, true);
+        }
+    }
+
+    public override void update() {
+        base.update();
+
+        // Cambiar animación si aterriza durante el parry
+        if (!grounded && character.grounded) {
+            grounded = true;
+            sprite = landSprite;
+            character.changeSpriteFromName(landSprite, true);
+        }
+
+        if (stateTime < 0.1f) {
+            character.turnToInput(player.input, player);
+        }
+
+        if (character.isAnimOver()) {
+            character.changeToIdleOrFall();
+        }
 	}
 
 	public void counterAttack(Player? damagingPlayer, Actor? damagingActor, float damage) {
@@ -115,11 +123,6 @@ public class XUPParryStartState : CharState {
 		return character.frameIndex == 0;
 	}
 
-	public override void onEnter(CharState oldState) {
-		base.onEnter(oldState);
-		mmx = player.character as RagingChargeX ?? throw new NullReferenceException();
-	}
-
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 	}
@@ -151,7 +154,7 @@ public class UPParryMeleeProj : Projectile {
 	) : base(
 		pos, xDir, owner, "mmx_unpo_parry_proj", netId, player
 	) {
-		weapon = RCXParry.netWeapon;
+		weapon = XUPParry.netWeapon;
 		damager.damage = damage;
 		damager.hitCooldown = 30;
 		damager.flinch = Global.defFlinch;
@@ -229,7 +232,6 @@ public class XUPParryMeleeState : CharState {
 	}
 }
 
-
 public class UPParryRangedProj : Projectile {
 	public UPParryRangedProj(
 		Point pos, int xDir, string sprite, float damage, int flinch, float hitCooldown,
@@ -237,7 +239,7 @@ public class UPParryRangedProj : Projectile {
 	) : base(
 		pos, xDir, owner, sprite, netId, player
 	) {
-		weapon = RCXParry.netWeapon;
+		weapon = XUPParry.netWeapon;
 		damager.damage = damage;
 		damager.hitCooldown = hitCooldown;
 		damager.flinch = flinch;
@@ -340,7 +342,6 @@ public class XUPParryProjState : CharState {
 	}
 }
 
-
 public class XUPPunchState : CharState {
 	float slideVelX;
 	bool isGrounded;
@@ -366,6 +367,81 @@ public class XUPPunchState : CharState {
 		if (oldState is Dash) {
 			slideVelX = character.xDir * 250;
 		}
+	}
+}
+
+public class XUPChargedPunchState : CharState {
+	public float dashTime; //Tiempo del dash
+	public float dustTime; //Generador de Polvo con tiempo
+
+	public XUPChargedPunchState() : base("unpo_punch2", "") {
+		enterSound = "fsplasher";
+	}
+
+	public override void update() {
+    base.update();
+    character.move(new Point(character.xDir * 250, 0f));
+    dashTime += Global.spf;
+
+    // Solo terminar si pasa el tiempo máximo
+    if (dashTime > 0.45f) {
+        character.changeState(new Idle());
+        return;
+    }
+
+    dustTime += Global.spf;
+    if (dustTime > 0.1f) {
+        dustTime = 0f;
+        new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
+        base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
+      }
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.isDashing = true;
+		character.useGravity = true;
+	}
+	public override void onExit(CharState newState) {
+		base.onExit(newState);
+		character.useGravity = true;
+	}
+}
+
+public class XUPKickChargeState : CharState {
+	public float dashTime; //Tiempo del dash
+	public float dustTime; //Generador de Polvo con tiempo
+
+	public XUPKickChargeState() : base("unpo_slide", "") {
+		enterSound = "fsplasher";
+	}
+
+	public override void update() {
+		base.update();
+		character.move(new Point(character.xDir * 250, 0f));
+		dashTime += Global.spf;
+		if ((double)dashTime > 0.6) {
+			character.changeState(new Idle());
+			return;
+		}
+		if ((double)dustTime > 0.1) {
+			dustTime = 0f;
+			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
+			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
+		}
+		if (player.input.isPressed(Control.Jump, player)) {
+			character.changeToIdleOrFall();
+			return;
+		}
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.isDashing = true;
+	}
+	public override void onExit(CharState newState) {
+		base.onExit(newState);
+		character.useGravity = true;
 	}
 }
 
@@ -646,7 +722,6 @@ public class XReviveStart : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		invincible = true;
 		drLightAnim = new Anim(
 			character.pos.addxy(30 * character.xDir, -15),
 			"drlight", -character.xDir, player.getNextActorNetId(), false, sendRpc: true
@@ -665,7 +740,7 @@ public class XReviveStart : CharState {
 	}
 }
 
-	public class XRevive : CharState {
+public class XRevive : CharState {
 	public float radius = 200;
 	XReviveAnim reviveAnim = null!;
 	RagingChargeX rcx = null!;
@@ -715,7 +790,7 @@ public class XReviveStart : CharState {
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
-		rcx.invulnTime = 1;
+		rcx.invulnTime = 2;
 	}
 }
 
@@ -743,11 +818,11 @@ public class XReviveAnim : Anim {
 	}
 }
 
-public class RcxUpShot : RcxState {
+public class XUPUpShot : RcxState {
 	public bool shoot;
 	public bool grounded;
 
-	public RcxUpShot() : base("unpo_up_shot") {
+	public XUPUpShot() : base("unpo_up_shot") {
 		landSprite = "unpo_up_shot";
 		airSprite = "unpo_up_air_shot";
 		airMove = true;
@@ -756,27 +831,30 @@ public class RcxUpShot : RcxState {
 	}
 
 	public override void update() {
-		base.update();
-
-		// Ejecuta la lógica de disparo solo si el frame es suficiente.
-		if (character.frameIndex >= 0 && !shoot) {
-			// Marca que ya se disparó
-			shoot = true;
-			mmx.shootEx(-64);
-		}
-
-		// Si la animación terminó y han pasado al menos 0.3 segundos, cambia al estado idle o fall
-		if (stateFrames >= Character.DefaultShootAnimTime) {
-			character.changeToIdleOrFall();
-		}
-	}
+    base.update();
+    // Ejecuta la lógica de disparo solo si el frame es suficiente.
+    if (character.frameIndex >= 0 && !shoot) {
+        shoot = true;
+        mmx.shootEx(-64);
+    }
+    // Verifica si el personaje tocó el suelo durante la animación
+    if (!grounded && character.grounded) {
+        grounded = true;
+        sprite = landSprite;
+        character.changeSpriteFromName(landSprite, true);
+    }
+    if (stateFrames >= Character.DefaultShootAnimTime) {
+        character.changeToIdleOrFall();
+    }
+}
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
+		grounded = character.grounded; // <- importante
 		if (grounded) {
 			sprite = landSprite;
 			character.changeSpriteFromName(landSprite, true);
-		} else  {
+		} else {
 			sprite = airSprite;
 			character.changeSpriteFromName(airSprite, true);
 		}
@@ -784,11 +862,11 @@ public class RcxUpShot : RcxState {
 }
 
 
-public class RcxDownShoot : RcxState {
+public class XUPDownShoot : RcxState {
 	public bool shoot;
 	public bool grounded;
 
-	public RcxDownShoot() : base("unpo_down_shot") {
+	public XUPDownShoot() : base("unpo_down_shot") {
 		landSprite = "unpo_down_shot";
 		airMove = true;
 		useDashJumpSpeed = false;
@@ -814,46 +892,9 @@ public class RcxDownShoot : RcxState {
 	}
 }
 
-public class KickChargeState : CharState {
-	public float dashTime; //Tiempo del dash
-	public float dustTime; //Generador de Polvo con tiempo
-
-	public KickChargeState() : base("unpo_slide", "") {
-		enterSound = "fsplasher";
-	}
-
-	public override void update() {
-		base.update();
-		character.move(new Point(character.xDir * 250, 0f));
-		dashTime += Global.spf;
-		if ((double)dashTime > 0.6) {
-			character.changeState(new Idle());
-			return;
-		}
-		if ((double)dustTime > 0.1) {
-			dustTime = 0f;
-			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
-			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
-		}
-		if (player.input.isPressed(Control.Jump, player)) {
-			character.changeToIdleOrFall();
-			return;
-		}
-	}
-
-	public override void onEnter(CharState oldState) {
-		base.onEnter(oldState);
-		character.isDashing = true;
-	}
-	public override void onExit(CharState newState) {
-		base.onExit(newState);
-		character.useGravity = true;
-	}
-}
-
-public class UnlimitedCrushState : CharState {
+public class XUPUnlimitedCrushState : CharState {
 	public float GigaTime;
-	public UnlimitedCrushState() : base("unpo_gigga") {
+	public XUPUnlimitedCrushState() : base("unpo_gigga") {
 		enterSound = "gigaCrushLate";
 		invincible = true;
 	}
@@ -866,38 +907,5 @@ public class UnlimitedCrushState : CharState {
 				character.changeState(new Idle());
 			}
 		}
-	}
-}
-public class Chargedpunch : CharState {
-	public float dashTime; //Tiempo del dash
-	public float dustTime; //Generador de Polvo con tiempo
-
-	public Chargedpunch() : base("unpo_punch2", "") {
-		enterSound = "fsplasher";
-	}
-
-	public override void update() {
-		base.update();
-		character.move(new Point(character.xDir * 400, 0f));
-		dashTime += Global.spf;
-		if ((double)dashTime > 0.45) {
-			character.changeState(new Idle());
-			return;
-		}
-		if ((double)dustTime > 0.1) {
-			dustTime = 0f;
-			new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
-			base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
-		}
-	}
-
-	public override void onEnter(CharState oldState) {
-		base.onEnter(oldState);
-		character.isDashing = true;
-		character.useGravity = false;
-	}
-	public override void onExit(CharState newState) {
-		base.onExit(newState);
-		character.useGravity = true;
 	}
 }

@@ -86,7 +86,7 @@ public class WheelGator : Maverick {
 	}
 
 	public override float getRunSpeed() {
-		return 85 * getRunDebuffs();
+		return 85;
 	}
 
 	public override List<ShaderWrapper> getShaders() {

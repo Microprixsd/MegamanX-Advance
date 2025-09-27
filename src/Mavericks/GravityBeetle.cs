@@ -63,7 +63,7 @@ public class GravityBeetle : Maverick {
 	}
 
 	public override float getRunSpeed() {
-		return 80 * getRunDebuffs();
+		return 80;
 	}
 
 	public override string getMaverickPrefix() {

@@ -20,16 +20,16 @@ public class ParasiticBomb : Weapon {
 		killFeedIndex = 41;
 		weaknessIndex = (int)WeaponIds.GravityWell;
 		damage = "4/4";
-		effect = "U:Slows down enemies and slams them\nif detonated unless mashed off.\nC:Homing bees.";
+		effect = "Slows enemies and slams them if detonated \nunless mashed off. Homing bees.";
 		hitcooldown = "0";
-		Flinch = "26/26";
-		FlinchCD = "0";
-		maxAmmo = 32;
+		flinch = "26/26";
+		flinchCD = "0";
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 	
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 2; }
+		if (chargeLevel >= 3) { return 0.5f; }
 		return 1;
 	}
 

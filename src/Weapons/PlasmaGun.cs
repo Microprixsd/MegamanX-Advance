@@ -91,7 +91,7 @@ public class PlasmaGunProj : Projectile {
 
 		isMelee = true;
 		if (player?.character != null) {
-			ownerActor = player.character;
+			owningActor = player.character;
 		}
 	}
 
@@ -138,7 +138,7 @@ public class PlasmaGunAltProj : Projectile {
 
 		isMelee = true;
 		if (player?.character != null) {
-			ownerActor = player.character;
+			owningActor = player.character;
 		}
 	}
 

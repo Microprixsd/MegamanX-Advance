@@ -65,7 +65,7 @@ public class NovaStrikeState : CharState {
 	int leftOrRight;
 	Anim? Nova;
 	public NovaStrikeState(Point inputDir) : base("nova_strike") {
-		pushImmune = true;
+		immuneToWind = true;
 		invincible = true;
 		normalCtrl = false;
 		attackCtrl = false;
@@ -137,7 +137,7 @@ public class NovaStrikeState : CharState {
 
 public class NovaStrikeStateEX : CharState {
 	public NovaStrikeStateEX() : base("nova_strike") {
-		pushImmune = true;
+		immuneToWind = true;
 		invincible = true;
 		useDashJumpSpeed = true;
 	}
@@ -168,12 +168,6 @@ public class NovaStrikeStateEX : CharState {
 			character.changeToIdleOrFall();
 		}
 	}
-
-	public override void onEnter(CharState oldState) {
-		base.onEnter(oldState);
-		character.clenaseDmgDebuffs();
-	}
-
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
@@ -181,7 +175,7 @@ public class NovaStrikeStateEX : CharState {
 }
 public class NovaStrikeStateUpEX : CharState {
 	public NovaStrikeStateUpEX() : base("nova_strike_up") {
-		pushImmune = true;
+		immuneToWind = true;
 		invincible = true;
 		useDashJumpSpeed = true;
 	}
@@ -211,13 +205,6 @@ public class NovaStrikeStateUpEX : CharState {
 			character.changeToIdleOrFall();
 		}
 	}
-
-	public override void onEnter(CharState oldState) {
-		base.onEnter(oldState);
-		character.clenaseDmgDebuffs();
-	}
-
-
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
@@ -225,7 +212,7 @@ public class NovaStrikeStateUpEX : CharState {
 }
 public class NovaStrikeStateDownEX : CharState {
 	public NovaStrikeStateDownEX() : base("nova_strike_down") {
-		pushImmune = true;
+		immuneToWind = true;
 		invincible = true;
 		useDashJumpSpeed = true;
 	}
@@ -255,12 +242,6 @@ public class NovaStrikeStateDownEX : CharState {
 			character.changeToIdleOrFall();
 		}
 	}
-
-	public override void onEnter(CharState oldState) {
-		base.onEnter(oldState);
-		character.clenaseDmgDebuffs();
-	}
-
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;

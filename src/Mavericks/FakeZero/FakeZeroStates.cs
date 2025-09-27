@@ -291,13 +291,7 @@ public class FakeZeroGuardState : MaverickState {
 				maverick.changeToIdleOrFall();
 			}
 		} else {
-			bool holdGuard;
-			if (maverick.useChargeJump) {
-				holdGuard = input.isHeld(Control.Down, player);
-			} else {
-				holdGuard = input.isHeld(Control.Up, player);
-			}
-			if (!holdGuard) {
+			if (!input.isHeld(Control.Down, player)) {
 				maverick.changeToIdleOrFall();
 			}
 		}

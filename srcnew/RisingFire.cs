@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class RisingFire : Weapon {
 
-	public static RisingFire netWeapon = new();
+	public static RisingFire netWeapon = new RisingFire();
 
 	public RisingFire() {
 		shootSounds = new string[] { "ryuenjin", "ryuenjin", "ryuenjin", "ryuenjin" };
@@ -193,7 +193,7 @@ public class RisingFireChargedState : CharState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		character.dashedInAir = 0;
-		character.stopMovingWeak();
+		character.stopMoving();
 		character.useGravity = false;
 		if (!character.grounded) {
 			character.frameIndex = 2;

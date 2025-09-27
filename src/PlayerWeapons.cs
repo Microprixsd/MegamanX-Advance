@@ -233,6 +233,7 @@ label:
 		}
 		changeWeaponSlot(ws);
 	}
+
 	public void clearXWeapons() {
 		preXWeapons = new List<Weapon>(weapons);
 		weapons.Clear();
@@ -302,6 +303,11 @@ label:
 		}
 	}
 
+	public void addHyperCharge() {
+		if (!weapons.Any(w => w is HyperCharge)) {
+			weapons.Insert(getLastWeaponIndex(), new HyperCharge());
+		}
+	}
 
 	public void removeNovaStrike() {
 		if (weapon is HyperNovaStrike) {

@@ -22,7 +22,6 @@ public class FrostShield : Weapon {
 		flinch = "0/26-26";
 		maxAmmo = 16;
 		ammo = maxAmmo;
-		effect = "Both:Only Fire type weapons can damage it.\nBlocks projectiles, Clangs Zero, Leaves spikes.\nC:Tackle or Shoot it.";
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
@@ -48,9 +47,7 @@ public class FrostShield : Weapon {
 				}
 				mmx.chargedFrostShield = new FrostShieldProjCharged(
 					pos, xDir, mmx, player, player.getNextActorNetId(), true
-				) {
-					createPlasma = mmx.armArmor == ArmorId.Force
-				};
+				);
 			}
 		}
 	}
@@ -290,13 +287,12 @@ public class FrostShieldProjCharged : Projectile {
 			destroySelf();
 			return;
 		}
-		if (frameTime > 2 && character.player.input.isPressed(Control.Special1, character.player)) {
+
+		if (frameTime > 2 && character.player.input.isPressed(Control.Shoot, character.player)) {
 			destroySelf();
-			if (frameTime > 2 && character.player.input.isPressed(Control.Shoot, character.player)) {
-				destroySelf();
-			}
 		}
 	}
+
 	public override void postUpdate() {
 		base.postUpdate();
 		if (!ownedByLocalPlayer) return;
@@ -316,9 +312,7 @@ public class FrostShieldProjCharged : Projectile {
 		if (owner.character is MegamanX mmx && mmx.chargedFrostShield == this) {
 			mmx.chargedFrostShield = null;
 		}
-		new FrostShieldProjChargedGround(pos, character?.xDir ?? 1, this, owner, owner.getNextActorNetId(), rpc: true) {
-			createPlasma = createPlasma && !hasReleasedPlasma
-		};
+		new FrostShieldProjChargedGround(pos, character?.xDir ?? 1, this, owner, owner.getNextActorNetId(), rpc: true);
 	}
 }
 

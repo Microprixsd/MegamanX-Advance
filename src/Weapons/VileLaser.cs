@@ -53,7 +53,7 @@ public class VileLaser : Weapon {
 			damage = "6";
 			hitcooldown = "0.5";
 			flinch = "26";
-			effect = "Self Damages.";
+			effect = "No DMG inside Ride.";
 		} else if (vileLaserType == VileLaserType.StraightNightmare) {
 			index = (int)WeaponIds.StraightNightmare;
 			displayName = "Straight Nightmare";
@@ -151,7 +151,7 @@ public class RisingSpecterProj : Projectile {
 		poi, xDir, owner, "empty", netId, player
 	) {
 		weapon = VileLaser.netWeaponRS;
-		damager.damage = 4;
+		damager.damage = 6;
 		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 30;
 		maxTime = 0.5f;
@@ -255,7 +255,11 @@ public class NecroBurstAttack : VileState {
 		if (!shot) {
 			shot = true;
 			shoot(vile);
-			character.applyDamage(8, player, character, (int)WeaponIds.NecroBurst, (int)ProjIds.NecroBurst);
+			if (vile.hasFrozenCastle) {
+				character.applyDamage(4, player, character, (int)WeaponIds.NecroBurst, (int)ProjIds.NecroBurst);			
+			} else {
+				character.applyDamage(6, player, character, (int)WeaponIds.NecroBurst, (int)ProjIds.NecroBurst);
+			}
 		}
 		if (character.sprite.isAnimOver()) {
 			character.changeToIdleOrFall();

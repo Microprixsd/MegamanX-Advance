@@ -7,7 +7,7 @@ namespace MMXOnline;
 
 public class AimingLaser : Weapon {
 
-	public static AimingLaser netWeapon = new();
+	public static AimingLaser netWeapon = new AimingLaser();
 
 	public AimingLaser() : base() {
 		displayName = "Aiming Laser";
@@ -399,7 +399,6 @@ public class AimingLaserChargedProj : Projectile {
 		setIndestructableProperties();
 		mmx = player.character as MegamanX ?? throw new NullReferenceException();
 		mmx.aLaserChargedProj = this;
-		createPlasma = mmx.armArmor == ArmorId.Force;
 		this.byteAngle = byteAngle;
 		this.player = player;
 		shootDir = new Point(xDir, 0);

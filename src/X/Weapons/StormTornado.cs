@@ -18,11 +18,11 @@ public class StormTornado : Weapon {
 		fireRate = 120;
 		switchCooldown = 30;
 		damage = "1/4";
-		effect = "U:Weak push. Projectile won't give assists.\nBoth:Extinguishes Fire.\nProjectile won't destroy on Hit.";
+		effect = "Weak push. Extinguishes Fire. Ignores Shields.\nUncharged won't give assists.";
 		hitcooldown = "15/20";
-		Flinch = "0/26";
-		FlinchCD = "0/1";
-		maxAmmo = 32;
+		flinch = "0/26";
+		flinchCD = "0/1";
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
@@ -42,9 +42,7 @@ public class StormTornado : Weapon {
 		if (chargeLevel < 3) {
 			new TornadoProj(pos, xDir, false, mmx, player, player.getNextActorNetId(), true);
 		} else {
-			new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
 	}
 }
@@ -212,11 +210,9 @@ public class TornadoProjCharged : Projectile {
 	}
 
 	public void ground() {
-		var ground = Global.level.raycast(
-			pos.addxy(0, -10), pos.addxy(0, Global.level.height), new List<Type> { typeof(Wall) }
-		);
-		if (ground?.hitData.hitPoint != null) {
-			changePosY(ground.hitData.hitPoint.Value.y);
+		var ground = Global.level.raycast(pos.addxy(0, -10), pos.addxy(0, Global.level.height), new List<Type> { typeof(Wall) });
+		if (ground.hitData.hitPoint != null) {
+			pos.y = ground.hitData.hitPoint.Value.y;
 		}
 	}
 

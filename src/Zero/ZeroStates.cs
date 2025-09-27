@@ -24,7 +24,7 @@ public class HyperZeroStart : ZeroState {
 	public float radius = 200;
 	public float time;
 	Anim? virusEffectParts;
-	Anim?[] virusAnim = new Anim?[3];
+	Anim[] virusAnim = new Anim[3];
 	float[] delayedVirusTimer = { 0, 7, 14 };
 	string virusAnimName = "";
 
@@ -37,25 +37,23 @@ public class HyperZeroStart : ZeroState {
 		if (virusAnimName != "") {
 			int animCount = 0;
 			for (int i = 0; i < virusAnim.Length; i++) {
-				Anim? targetAnim = virusAnim[i];
-				if (targetAnim != null) {
-					if (targetAnim.pos == character.getCenterPos()) {
-						targetAnim.destroySelf();
+				if (virusAnim[i] != null) {
+					if (virusAnim[i].pos == character.getCenterPos()) {
+						virusAnim[i].destroySelf();
 					}
-					if (targetAnim.destroyed) {
+					if (virusAnim[i].destroyed) {
 						character.playSound("shingetsurinx5", true);
 						if (stateFrames > 55) {
 							virusAnim[i] = null;
 							continue;
 						}
-						targetAnim = createVirusAnim();
-						virusAnim[i] = targetAnim;
+						virusAnim[i] = virusAnim[i] = createVirusAnim();
 					} else {
 						animCount++;
 					}
-					targetAnim.moveToPos(character.getCenterPos(), 300);
-					if (targetAnim.pos.distanceTo(character.getCenterPos()) < 10) {
-						targetAnim.destroySelf();
+					virusAnim[i].moveToPos(character.getCenterPos(), 300);
+					if (virusAnim[i].pos.distanceTo(character.getCenterPos()) < 10) {
+						virusAnim[i].destroySelf();
 					}
 				} else if (delayedVirusTimer[i] > 0) {
 					delayedVirusTimer[i] -= Global.speedMul;
@@ -92,7 +90,6 @@ public class HyperZeroStart : ZeroState {
 		character.useGravity = false;
 		character.vel = new Point();
 		character.player.currency -= 10;
-		character.clenaseAllDebuffs();
 		if (zero.hyperMode == 2) {
 			zero.changeSpriteFromName("hyper_viral", true);
 			virusAnimName = "sigmavirushead";
@@ -203,8 +200,8 @@ public class SaberParryStartState : CharState {
 		bool stunnableParry = false;
 
 		if (damagingActor is Projectile proj) {
-			if (proj.ownerActor != null) {
-				counterAttackTarget = proj.ownerActor;
+			if (proj.owningActor != null) {
+				counterAttackTarget = proj.owningActor;
 			}
 			stunnableParry = proj.canBeParried();
 		}

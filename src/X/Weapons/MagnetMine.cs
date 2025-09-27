@@ -18,18 +18,13 @@ public class MagnetMine : Weapon {
 		weaponSlotIndex = 15;
 		killFeedIndex = 20 + (index - 9);
 		weaknessIndex = (int)WeaponIds.SilkShot;
-		effect = "U:Planted mines have a limit of 10.\nC:Can absorb projectiles and grow its size.\nGrowth depends on the damage absorbed.";
+		effect = "C: Can absorb projectiles and grow it's size.\nSize growth depends on the damage of the projectile.";
 		hitcooldown = "0/12";
 		damage = "2,4/1,2,4";
-		Flinch = "0/26";
-		FlinchCD = "0/1";
-		maxAmmo = 32;
-		ammo = maxAmmo;
+		flinch = "0/26";
+		flinchCD = "0/1";
 	}
-	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
-	}
+
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -45,9 +40,7 @@ public class MagnetMine : Weapon {
 				mmx.magnetMines.RemoveAt(0);
 			}
 		} else {
-			new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
 	}
 }
@@ -240,11 +233,11 @@ public class MagnetMineProjCharged : Projectile {
 			}
 
 			if (pos.y > startY + maxY) {
-				changePosY(startY + maxY);
+				pos.y = startY + maxY;
 				vel.y = 0;
 			}
 			if (pos.y < startY - maxY) {
-				changePosY(startY - maxY);
+				pos.y = startY - maxY;
 				vel.y = 0;
 			}
 			soundTime += Global.spf;

@@ -20,16 +20,12 @@ public class StrikeChain : Weapon {
 		weaknessIndex = (int)WeaponIds.SonicSlicer;
 		switchCooldown = 20;
 		damage = "2/4";
-		effect = "Both:Hooks enemies and items.\nPull yourself towards walls.\nBe Spider-Man.";
+		effect = "Hooks enemies and items. Be Spider-Man.";
 		hitcooldown = "30";
-		Flinch = "Hooked Time";
-		FlinchCD = "0";
-		maxAmmo = 32;
+		flinch = "Hooked Time";
+		flinchCD = "0";
 	}
-	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
-	}
+
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 		int chargeLevel = args[0];
@@ -41,9 +37,7 @@ public class StrikeChain : Weapon {
 
 		Projectile proj;
 		if (chargeLevel >= 3) {
-			proj = new StrikeChainProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			proj = new StrikeChainProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true);
 		} else {
 			proj = new StrikeChainProj(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true);
 		}
@@ -374,7 +368,7 @@ public class StrikeChainProj : Projectile {
 				return;
 			}
 			//Character specific code.
-			if (chr != null && !chr.isGrabImmune() && !chr.isPushImmune()) {
+			if (chr != null) {
 				if (!chr.canBeDamaged(player.alliance, player.id, projId)) return;
 				hookActor(actor);
 

@@ -17,7 +17,7 @@ public class BoomerangCutter : Weapon {
 		shootSounds = new string[] { "boomerang", "boomerang", "boomerang", "buster3" };
 		fireRate = 30;
 		damage = "2/2";
-		effect = "U:Your ammo refills when you retrieve the projectile.\nC:Projectile won't destroy on hit nor give assists.";
+		effect = "Charged: Doesn't destroy on hit.\nCharged won't give assists.";
 		hitcooldown = "0/0.5";
 		flinch = "0/26";
 	}
@@ -39,14 +39,10 @@ public class BoomerangCutter : Weapon {
 			player.setNextActorNetId(player.getNextActorNetId());
 
 			var twin1 = new BoomerangProjCharged(pos.addxy(0, 5), null, xDir, mmx, player, 90, 1, player.getNextActorNetId(true), null, true);
-			var twin2 = new BoomerangProjCharged(pos.addxy(5, 0), null, xDir, mmx, player, 0, 1, player.getNextActorNetId(true), null, true) {
-				createPlasma = mmx.armArmor == ArmorId.Force && xDir == 1
-			};
+			var twin2 = new BoomerangProjCharged(pos.addxy(5, 0), null, xDir, mmx, player, 0, 1, player.getNextActorNetId(true), null, true);
 			var twin3 = new BoomerangProjCharged(pos.addxy(0, -5), null, xDir, mmx, player, -90, 1, player.getNextActorNetId(true), null, true);
-			var twin4 = new BoomerangProjCharged(pos.addxy(-5, 0), null, xDir, mmx, player, -180, 1, player.getNextActorNetId(true), null, true) {
-				createPlasma = mmx.armArmor == ArmorId.Force && xDir == -1
-			};
-
+			var twin4 = new BoomerangProjCharged(pos.addxy(-5, 0), null, xDir, mmx, player, -180, 1, player.getNextActorNetId(true), null, true);
+			
 			var a = new BoomerangProjCharged(pos.addxy(0, 5), pos.addxy(0, 35), xDir, mmx, player, 90, 0, player.getNextActorNetId(true), twin1, true);
 			var b = new BoomerangProjCharged(pos.addxy(5, 0), pos.addxy(35, 0), xDir, mmx, player, 0, 0, player.getNextActorNetId(true), twin2, true);
 			var c = new BoomerangProjCharged(pos.addxy(0, -5), pos.addxy(0, -35), xDir, mmx, player, -90, 0, player.getNextActorNetId(true), twin3, true);

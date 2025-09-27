@@ -364,8 +364,8 @@ public class SelectWeaponMenu : IMainMenu {
 			DrawWrappers.DrawRect(210, basePos - yOffSet, 359, basePos, false, outlineColor, 1, ZIndex.HUD, false);
 
 			Fonts.drawText(FontType.RedishOrange, "Damage: " + damage, 27, 183);
-			Fonts.drawText(FontType.Yellow, "Flinch: " + Flinch, 139, 183);
-			Fonts.drawText(FontType.Orange, "FCD: " + FlinchCD, 262, 183);
+			Fonts.drawText(FontType.Yellow, "Flinch: " + flinch, 139, 183);
+			Fonts.drawText(FontType.Orange, "FCD: " + flinchCD, 262, 183);
 
 			Fonts.drawText(FontType.Blue, "Ammo: " + maxAmmo, 27, 171);
 			Fonts.drawText(FontType.Purple, "Fire Rate: " + rateOfFire, 108, 171);
@@ -377,7 +377,7 @@ public class SelectWeaponMenu : IMainMenu {
 					ArmorId.Light => "Mega Buster Mark 17 with Spiral Shot.",
 					ArmorId.Giga => "Mega Buster Mark 17 with Double Shot.",
 					ArmorId.Max => "Mega Buster Mark 17 with Cross Shot.",
-					ArmorId.Force => "Mega Buster Mark 17 with Plasma Shot.",
+					ArmorId.Force => "Mega Buster Mark 17 with Stock Shot.",
 					_ => "Mega Buster Mark 17 baseline form.",
 				};
 				if (Global.level?.mainPlayer.character is MegamanX mmx && mmx.hasUltimateArmor == true) {

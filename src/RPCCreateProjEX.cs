@@ -14,6 +14,8 @@ public partial class RPCCreateProj : RPC {
 		{ (int)ProjIds.Buster3Giga, Buster3GigaProj.rpcInvoke },
 		{ (int)ProjIds.Buster3Max, Buster3MaxProj.rpcInvoke },
 		{ (int)ProjIds.Buster4, Buster4Proj.rpcInvoke },
+		{ (int)ProjIds.BusterX4, Buster3X4Proj.rpcInvoke },
+		{ (int)ProjIds.BusterX8, Buster4X8Proj.rpcInvoke },
 		{ (int)ProjIds.Buster4Giga, Buster4GigaProj.rpcInvoke },
 		{ (int)ProjIds.Buster4Giga2, Buster4Giga2Proj.rpcInvoke },
 		{ (int)ProjIds.Buster4Max, Buster4MaxProj.rpcInvoke },
@@ -67,7 +69,6 @@ public partial class RPCCreateProj : RPC {
 		{ (int)ProjIds.ItemTracer, ItemTracerProj.rpcInvoke },
 		{ (int)ProjIds.GigaCrush, GigaCrushProj.rpcInvoke },
 
-
 		//X3 PROJS
 		{ (int)ProjIds.AcidBurst, AcidBurstProj.rpcInvoke },
 		{ (int)ProjIds.AcidBurstSmall, AcidBurstProjSmall.rpcInvoke },
@@ -96,9 +97,8 @@ public partial class RPCCreateProj : RPC {
 		{ (int)ProjIds.TornadoFangCharged, TornadoFangProjCharged.rpcInvoke },
 		{ (int)ProjIds.XSaberProj, XSaberProj.rpcInvoke },
 
-
 		//X4 PROJS
-		{ (int)ProjIds.LightningWebProj, LightningWebProj.rpcInvoke },
+       { (int)ProjIds.LightningWebProj, LightningWebProj.rpcInvoke },
 		{ (int)ProjIds.LightningWeb, LightningWebProjWeb.rpcInvoke },
 		{ (int)ProjIds.LightningWebChargedProj, LightningWebProjCharged.rpcInvoke },
 		{ (int)ProjIds.LightningWebCharged, LightningWebProjWebCharged.rpcInvoke },
@@ -126,7 +126,8 @@ public partial class RPCCreateProj : RPC {
 		{ (int)ProjIds.TwinSlasherCharged3, TwinSlasherProjCharged.rpcInvoke },
 		{ (int)ProjIds.TwinSlasherCharged4, TwinSlasherProjCharged.rpcInvoke },
 
-		//EXTRA
+
+		//Unlimited Potential
 		{ (int)ProjIds.UPParryMelee, UPParryMeleeProj.rpcInvoke },
 		{ (int)ProjIds.UPParryProj, UPParryRangedProj.rpcInvoke },
 		
@@ -300,7 +301,6 @@ public partial class RPCCreateProj : RPC {
 		// Rides
 		{ (int)ProjIds.MechTorpedo, TorpedoProjMech.rpcInvoke },
 
-		// Advace X stuff.
 	};
 
 }

@@ -148,7 +148,7 @@ public class VileLoadout {
 	[ProtoMember(8)] public int cutter;
 	[ProtoMember(9)] public int flamethrower;
 
-	public static int maxWeight = 16;
+	public const int maxWeight = 1000;
 
 	public List<Weapon> getWeaponsFromLoadout(bool includeMech) {
 		var weapons = new List<Weapon>();
@@ -180,7 +180,7 @@ public class VileLoadout {
 		if (!inRange(ball, -2, 3)) { ball = 0; }
 		if (!inRange(laser, -1, 2)) { laser = 0; }
 		if (!inRange(cutter, -1, 2)) { cutter = 0; }
-		if (!inRange(flamethrower, -1, 4)) { flamethrower = 0; }
+		if (!inRange(flamethrower, -1, 3)) { flamethrower = 0; }
 
 		if (getTotalWeight() > maxWeight) {
 			cannon = 0;

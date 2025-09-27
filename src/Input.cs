@@ -388,13 +388,6 @@ public class Input {
 		return isHeld(inputName, null);
 	}
 
-	public int getMenuXDir() {
-		int dir = 0;
-		if (isPressedMenu(Control.MenuLeft)) { dir--; }
-		if (isPressedMenu(Control.MenuRight)) { dir++; }
-		return dir;
-	}
-
 	public Dictionary<string, int> heldFrames = new Dictionary<string, int>();
 	public bool isPressedOrHeldMenu(string inputName) {
 		if (!heldFrames.ContainsKey(inputName)) heldFrames[inputName] = 0;
@@ -413,13 +406,9 @@ public class Input {
 		}
 	}
 
-	public bool useAxlCursorControls(Player? player) {
-		return (
-			player != Global.level.mainPlayer &&
-			Options.main.useMouseAim &&
-			!isAI &&
-			player?.character is Axl
-		);
+	public bool useAxlCursorControls(Player player) {
+		if (player != Global.level.mainPlayer) return false;
+		return (Global.level.mainPlayer.isAxl) && Options.main.useMouseAim;
 	}
 
 	public bool isAimingBackwards(Player player) {
@@ -487,7 +476,7 @@ public class Input {
 		return true;
 	}
 
-	public bool isHeld(string inputName, Player? player) {
+	public bool isHeld(string inputName, Player player) {
 		if (possessedControlHeld.ContainsKey(inputName)) return possessedControlHeld[inputName];
 
 		if (player != null && !player.canControl) {
@@ -511,7 +500,6 @@ public class Input {
 		if (!allowInput(player, inputName)) {
 			return false;
 		}
-		int charId = (int?)(player?.character?.charId) ?? player?.charNum ?? -1;
 
 		if (player?.character != null && player.gridModeHeld) {
 			if (inputName == Control.Left || inputName == Control.Right ||
@@ -529,24 +517,22 @@ public class Input {
 			}
 		}
 
-		var keyboardMapping = Control.getKeyboardMapping(charId, Options.main.axlAimMode);
+		var keyboardMapping = Control.getKeyboardMapping(player?.charNum ?? -1, Options.main.axlAimMode);
 
 		int? keyboardKey = keyboardMapping.GetValueOrDefault(inputName);
 		if (keyboardKey != null && isHeld((Key)keyboardKey)) {
 			return true;
 		}
 		if (Control.isJoystick()) {
-			var controllerMapping = Control.getControllerMapping(charId, Options.main.axlAimMode);
-			if (!controllerMapping.ContainsKey(inputName)) {
-				return false;
-			}
+			var controllerMapping = Control.getControllerMapping(player?.charNum ?? -1, Options.main.axlAimMode);
+			if (!controllerMapping.ContainsKey(inputName)) return false;
 			int? buttonKey = controllerMapping[inputName];
 			return isHeld(buttonKey);
 		}
 		return false;
 	}
 
-	public bool isPressed(string inputName, Player? player) {
+	public bool isPressed(string inputName, Player player) {
 		if (possessedControlPressed.ContainsKey(inputName)) {
 			return possessedControlPressed[inputName];
 		}
@@ -570,7 +556,6 @@ public class Input {
 		if (!allowInput(player, inputName)) {
 			return false;
 		}
-		int charId = (int?)(player?.character?.charId) ?? player?.charNum ?? -1;
 
 		if (useAxlCursorControls(player)) {
 			if (inputName == Control.Shoot) {
@@ -580,7 +565,7 @@ public class Input {
 			}
 		}
 
-		var keyboardMapping = Control.getKeyboardMapping(charId, Options.main.axlAimMode);
+		var keyboardMapping = Control.getKeyboardMapping(player?.charNum ?? -1, Options.main.axlAimMode);
 
 		int? keyboardKey = keyboardMapping.GetValueOrDefault(inputName);
 
@@ -594,7 +579,7 @@ public class Input {
 			return true;
 		}
 		if (Control.isJoystick()) {
-			var controllerMapping = Control.getControllerMapping(charId, Options.main.axlAimMode);
+			var controllerMapping = Control.getControllerMapping(player?.charNum ?? -1, Options.main.axlAimMode);
 			int? buttonKey = controllerMapping.GetValueOrDefault(inputName);
 			return isPressed(buttonKey);
 		}
@@ -667,8 +652,23 @@ public class Input {
 		return isPressed(Control.WeaponLeft, player) || isPressed(Control.WeaponRight, player);
 	}
 
+    public bool isWeaponLeftPressed(Player player) {
+		return isPressed(Control.WeaponLeft, player);
+	}
+
+	public bool isWeaponRightPressed(Player player) {
+		return isPressed(Control.WeaponRight, player);
+	}
 	public bool isWeaponLeftOrRightHeld(Player player) {
 		return isHeld(Control.WeaponLeft, player) || isHeld(Control.WeaponRight, player);
+	}
+
+    public bool isWeaponLeftHeld(Player player) {
+		return isHeld(Control.WeaponLeft, player);
+	}
+
+	public bool isWeaponRightHeld(Player player) {
+		return isHeld(Control.WeaponRight, player);
 	}
 
 	// Return if left or right is pressed. Not both.

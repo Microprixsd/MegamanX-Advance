@@ -50,7 +50,7 @@ public class DenjinWeapon : Weapon {
 		damage = "3";
 		hitcooldown = "0.1";
 		flinch = "26";
-		effect = "";
+		effect = "None.";
 	}
 }
 
@@ -119,9 +119,6 @@ public class ZeroUppercut : ZeroState {
 			jumpedYet = true;
 			character.dashedInAir++;
 			float ySpeedMod = 1.2f;
-			if (type == RisingType.RisingFang && !isHeld) {
-				ySpeedMod = 1f;
-			}
 			character.vel.y = -character.getJumpPower() * ySpeedMod;
 			if (!isUnderwater) {
 				string saberSound = type switch {
@@ -155,11 +152,11 @@ public class ZeroUppercut : ZeroState {
 			}
 		}
 		if (character.sprite.frameIndex >= 4 && character.sprite.frameIndex < 7) {
-			float speed = 1.65f;
+			float speed = 100;
 			if (type == RisingType.Denjin) {
-				speed = 2;
+				speed = 120;
 			}
-			character.moveXY(character.xDir * speed, 0);
+			character.move(new Point(character.xDir * speed, 0));
 		}
 
 		var wallAbove = Global.level.checkTerrainCollisionOnce(character, 0, -10);

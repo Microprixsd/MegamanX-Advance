@@ -59,9 +59,7 @@ public class BaseSigma : Character {
 			intialCharState = new NetLimbo();
 			useGravity = false;
 		}
-		if (intialCharState.GetType() != charState.GetType()) {
-			changeState(intialCharState);
-		}
+		changeState(intialCharState);
 	}
 
 	public override int baselineMaxHealth() {

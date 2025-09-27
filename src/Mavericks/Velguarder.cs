@@ -54,7 +54,7 @@ public class Velguarder : Maverick {
 	}
 
 	public override float getRunSpeed() {
-		return 135f * getRunDebuffs();
+		return 135f;
 	}
 
 	public MaverickState getShootState() {

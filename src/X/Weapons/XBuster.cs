@@ -112,7 +112,7 @@ public class XBuster : Weapon {
 		}
 
 		if (mmx.hasUltimateArmor && chargeLevel >= 3 && !isStock && mmx.armArmor != ArmorId.Max) {
-			new Anim(pos, "buster4_muzzle_flash", xDir, null, true);
+			new Anim(pos.clone(), "buster4_muzzle_flash", xDir, null, true);
 			new BusterPlasmaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			character.playSound("plasmaShot", sendRpc: true);	
 			return;
@@ -141,46 +141,51 @@ public class XBuster : Weapon {
 		} else if (chargeLevel == 1) {
 			new Buster2Proj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else if (chargeLevel == 2) {
-			if (mmx.armArmor == ArmorId.Light || mmx.armArmor == ArmorId.None) {
+			if (mmx.armArmor == ArmorId.None) {
+				new Buster3X4Proj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				new Anim(pos.clone(), "buster_plasma_muzzle", xDir, null, destroyOnEnd: true);
+			} else if (mmx.armArmor == ArmorId.Light) {
 				new Buster3LightProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
 			} else if (mmx.armArmor == ArmorId.Giga) {
 				new Buster3GigaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
 			} else if (mmx.armArmor == ArmorId.Max) {
 				new Buster3MaxProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
 			}
 		} else if (chargeLevel >= 3) {
 			if (isStock) {
 				new Buster4Giga2Proj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
-			else if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-				new Anim(pos.clone(), "buster_plasma_muzzle", xDir, null, destroyOnEnd: true);
-				shootSound = "plasmaShot";
+			else if (mmx.armArmor == ArmorId.None) {
+				new Buster4X8Proj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
 			}
 			else if (mmx.armArmor == ArmorId.Max) {
-				mmx.stockedMaxBusterLv += 2;
-				if (!mmx.charState.attackCtrl ||
-					!mmx.charState.normalCtrl ||
-					mmx.charState is WallSlide
-				) {
-					new Anim(
-						pos, "buster4_x3_muzzle", xDir, player.getNextActorNetId(),
-						true, sendRpc: true
-					);
-					new Buster4MaxProj(
-						pos, xDir, mmx, player,
-						player.getNextActorNetId(), true
-					);
-					mmx.stockedMaxBusterLv--;
+					mmx.stockedMaxBusterLv += 2;
+					if (!mmx.charState.attackCtrl ||
+						!mmx.charState.normalCtrl ||
+						mmx.charState is WallSlide
+					) {
+						new Anim(
+							pos, "buster4_x3_muzzle", xDir, player.getNextActorNetId(),
+							true, sendRpc: true
+						);
+						new Buster4MaxProj(
+							pos, xDir, mmx, player,
+							player.getNextActorNetId(), true
+						);
+						mmx.stockedMaxBusterLv--;
+					} else {
+						mmx.changeState(new X3ChargeShot(null));
+						return;
+					}
+				} else if (mmx.armArmor == ArmorId.Giga) {
+					new Buster4GigaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 				} else {
-					mmx.changeState(new X3ChargeShot(null));
-					return;
+					shootLightBuster4(mmx, pos, xDir);
 				}
-			} else if (mmx.armArmor == ArmorId.Giga) {
-				new Buster4GigaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-			} else {
-				shootLightBuster4(mmx, pos, xDir);
-			}
 		}
 		if (shootSound != "") {
 			character.playSound(shootSound, sendRpc: true);	
@@ -210,7 +215,7 @@ public class XBuster : Weapon {
 
 	public void shootLightBuster4(MegamanX mmx, Point pos, int xDir) {
 		Player player = mmx.player;
-		new Anim(pos, "buster4_muzzle_flash", xDir, null, true);
+		new Anim(pos.clone(), "buster4_muzzle_flash", xDir, null, true);
 		//Create the buster effect
 		int xOff = xDir * -5;
 		player.setNextActorNetId(player.getNextActorNetId());

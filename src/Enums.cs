@@ -77,6 +77,7 @@ public enum WeaponIds {
 	GravityWell,
 	FrostShield,
 	TornadoFang,
+	// X4 Weapons.
 	LightningWeb,
 	SoulBody,
 	GroundHunter,
@@ -85,8 +86,8 @@ public enum WeaponIds {
 	RisingFire,
 	AimingLaser,
 	TwinSlasher,
-	CrescentShot,
-	// You can change these.
+
+	// Other stuff whose order does not matter.
 	GigaCrush,
 	ItemTracer,
 	XSaber,
@@ -96,13 +97,14 @@ public enum WeaponIds {
 	LightHelmetHeadbutt,
 	LightUPGrab,
 	UPPunch,
+	UPPunchCharged,
+	UPKickCharge,
 	UPParry,
+	UnlimitedCrush,
 	NovaStrike,
 	X6Saber,
 	RagingChargeBuster,
-	KickCharge,
-	UnlimitedCrush,
-	Chargedpunch,
+
 	// DO NOT CHANGE THE ORDER OF THESE SIGMA WEAPONS
 	Sigma,
 	// X1 Summons.
@@ -319,12 +321,13 @@ public enum ProjIds {
 	Buster4Giga,
 	Buster4Giga2,
 	Buster4Max,
+	BusterX4,
+	BusterX8,
 	BusterUnpo,
-	BusterUnpoUp,
-	BusterUnpoDown,
 	BusterX3Proj2,
 	BusterX3Plasma,
 	BusterX3PlasmaHit,
+	//Mega Man X1
 	Torpedo,
 	TorpedoCharged,
 	MechTorpedo,
@@ -345,6 +348,7 @@ public enum ProjIds {
 	ShotgunIce,
 	ShotgunIceSled,
 	ShotgunIceCharged,
+	//Mega Man X2
 	CrystalHunter,
 	CrystalHunterDash,
 	BubbleSplash,
@@ -368,6 +372,7 @@ public enum ProjIds {
 	SpeedBurnerTrail,
 	SpeedBurnerCharged,
 	SpeedBurnerRecoil,
+	//Mega Man X3
 	AcidBurst,
 	AcidBurstSmall,
 	AcidBurstCharged,
@@ -398,6 +403,8 @@ public enum ProjIds {
 	TornadoFang,
 	TornadoFang2,
 	TornadoFangCharged,
+
+	//Mega Man X4
 	LightningWeb,
 	LightningWebProj,
 	LightningWebCharged,
@@ -410,10 +417,6 @@ public enum ProjIds {
 	TwinSlasherCharged2,
 	TwinSlasherCharged3,
 	TwinSlasherCharged4,
-	TwinSlasherCharged5,
-	TwinSlasherCharged6,
-	TwinSlasherCharged7,
-	TwinSlasherCharged8,
 	DoubleCyclone,
 	DoubleCycloneCharged,
 	DoubleCycloneChargedSpawn,
@@ -429,6 +432,7 @@ public enum ProjIds {
 	RisingFireUnderwaterCharged,
 	AimingLaser,
 	AimingLaserCharged,
+	//Extras
 	GigaCrush,
 	ItemTracer,
 	HyperBuster,
@@ -438,16 +442,16 @@ public enum ProjIds {
 	XSaberProj,
 	Headbutt,
 	UPGrab,
-	UPGrabDamage,
 	UPPunch,
+	UPPunchCharged,
+	UPKickCharge,
+	UnlimitedCrush,
 	UPParryBlock,
 	UPParryMelee,
 	UPParryProj,
-	KickCharge,
-	UnlimitedCrush,
+	UPGrabDamage,
 	NovaStrike,
 	X6Saber,
-	Chargedpunch,
 
 	ZBuster,
 	ZSaber,
@@ -784,10 +788,6 @@ public enum ProjIds {
 	DZBuster4,
 	DZMelee,
 	DZHadangeki,
-
-	// Advance stuff.
-	BusterForcePlasmaProj,
-	BusterForcePlasmaHit,
 
 	// Special damage types.
 	SelfDmg = 30000,

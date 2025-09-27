@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using SFML.Graphics;
 using SFML.Graphics.Glsl;
 
@@ -20,26 +19,20 @@ public class RaySplasher : Weapon {
 		killFeedIndex = 44;
 		weaknessIndex = (int)WeaponIds.SpinningBlade;
 		damage = "1/1";
-		effect = "C:Grants Flinch Immunity.";
+		effect = "Charged: Grants Super Armor.";
 		hitcooldown = "5";
 		hasCustomChargeAnim = true;
 	}
 
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
-		Point pos = character.getShootPos();
-		int xDir = character.getShootXDir();
-		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
 		if (chargeLevel < 3) {
 			mmx.shootingRaySplasher = this;
 		} else {
-			character.changeState(new RaySplasherChargedState(), true);
-			if (mmx.armArmor == ArmorId.Force) {
-				new BusterForcePlasmaHit(
-					4, mmx, pos, xDir, player.getNextActorNetId(), sendRpc: true
-				);
+			if (character.ownedByLocalPlayer) {
+				character.changeState(new RaySplasherChargedState(), true);
 			}
 		}
 	}
@@ -49,10 +42,6 @@ public class RaySplasher : Weapon {
 			if (mmx.shootingRaySplasher != null) {
 				mmx.raySplasherCooldown += Global.speedMul;
 				if (mmx.raySplasherCooldown > 1) {
-					//Stop when invincible
-					if (mmx.charState.invincible) return;
-					if (mmx.invulnTime > 0) return;
-					if (!mmx.charState.attackCtrl) return;
 					if (mmx.raySplasherCooldown >= 4) {
 						addAmmo(-0.15f, mmx.player);
 						mmx.raySplasherCooldown = 1;
@@ -66,7 +55,7 @@ public class RaySplasher : Weapon {
 					mmx.shootAnimTime = 10;
 					mmx.raySplasherCooldown2 += Global.speedMul;
 				}
-				if (mmx.raySplasherCooldown2 >= 66) {
+				if (mmx.raySplasherCooldown2 >= 76) {
 					mmx.shootingRaySplasher = null;
 					mmx.raySplasherCooldown2 = 0;
 				}
@@ -142,8 +131,8 @@ public class RaySplasherTurret : Actor, IDamagable {
 	MegamanX? mmx;
 	int state = 0;
 	Actor? target;
-	float health = 5;
-	float maxHealth = 5;
+	float health = 4;
+	float maxHealth = 4;
 	const float range = 130;
 	float drainTime;
 	float raySplasherShootTime;

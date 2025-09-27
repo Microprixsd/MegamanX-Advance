@@ -146,7 +146,8 @@ public class PreOptionsMenu : IMainMenu {
 		Fonts.drawText(menuFont, "Graphics settings", startX, optionPos[2], Alignment.Center, selected: selectY == 2);
 		Fonts.drawText(menuFont, "Character settings", startX, optionPos[3], Alignment.Center, selected: selectY == 3);
 		Fonts.drawText(menuFont, "Controls", startX, optionPos[4], Alignment.Center, selected: selectY == 4);
-		Fonts.drawText(menuFont, "Sound Mode", startX, optionPos[5], Alignment.Center, selected: selectY == 5, selectedFont: FontType.Purple);
+		if (!inGame)
+			Fonts.drawText(menuFont, "Sound Mode", startX, optionPos[5], Alignment.Center, selected: selectY == 5, selectedFont: FontType.Purple);
 
 		Fonts.drawTextEX(FontType.Grey, "[OK]: Choose, [BACK]: Back", Global.halfScreenW, 198, Alignment.Center);
 		if (Options.main.blackFade) {

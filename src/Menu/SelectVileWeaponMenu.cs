@@ -64,9 +64,7 @@ public class SelectVileWeaponMenu : IMainMenu {
 				NoneFlamethrower.netWeapon,
 				WildHorseKick.netWeapon,
 				SeaDragonRage.netWeapon,
-				DragonsWrath.netWeapon,
-				NoneNapalmFlamethrower.netWeapon,
-
+				DragonsWrath.netWeapon
 			]),
 			("Laser", [
 				new VileLaser(VileLaserType.None),
@@ -178,7 +176,7 @@ public class SelectVileWeaponMenu : IMainMenu {
 		);
 		Fonts.drawText(
 			getWeightSum() > VileLoadout.maxWeight ? FontType.RedishOrange : FontType.DarkPurple,
-			getWeightSum() + "/" + VileLoadout.maxWeight,
+			getWeightSum() + "/" + 28,
 			Global.screenW - 60, 20,
 			Alignment.Left
 		);

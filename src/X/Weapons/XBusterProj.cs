@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using MMXOnline;
 
 namespace MMXOnline;
 public class BusterProj : Projectile {
@@ -242,12 +240,12 @@ public class Buster4Giga2Proj: Projectile {
 		}
 	}
 }
-public class Buster4MaxProj: Projectile {
+public class Buster4MaxProj : Projectile {
 	float partTime;
 	public Buster4MaxProj(
 		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
 	) : base(
-		pos, xDir, owner, "buster4_x3", netId, player	
+		pos, xDir, owner, "buster4_x3", netId, player
 	) {
 		weapon = XBuster.netWeapon;
 		damager.damage = 4;
@@ -277,6 +275,58 @@ public class Buster4MaxProj: Projectile {
 		);
 	}
 }
+
+public class Buster4X8Proj : Projectile {
+	public Buster4X8Proj(
+		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
+	) : base(
+		pos, xDir, owner, "buster4_x4", netId, player
+	) {
+		weapon = XBuster.netWeapon;
+		damager.damage = 4;
+		damager.flinch = Global.halfFlinch;
+		vel = new Point(350 * xDir, 0);
+		fadeOnAutoDestroy = true;
+		fadeSprite = "buster3_fade";
+		reflectable = true;
+		maxTime = 0.5f;
+		projId = (int)ProjIds.BusterX8;
+		if (rpc) {
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+		}
+	}
+	public static Projectile rpcInvoke(ProjParameters args) {
+		return new Buster3GigaProj(
+			args.pos, args.xDir, args.owner, args.player, args.netId
+		);
+	}
+}
+
+public class Buster3X4Proj : Projectile {
+	public Buster3X4Proj(
+		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
+	) : base(
+		pos, xDir, owner, "buster3_x4", netId, player
+	) {
+		weapon = XBuster.netWeapon;
+		damager.damage = 3;
+		damager.flinch = Global.halfFlinch;
+		vel = new Point(350 * xDir, 0);
+		fadeOnAutoDestroy = true;
+		fadeSprite = "buster3_x4_fade";
+		reflectable = true;
+		maxTime = 0.5f;
+		projId = (int)ProjIds.BusterX4;
+		if (rpc) {
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+		}
+	}
+	public static Projectile rpcInvoke(ProjParameters args) {
+		return new Buster3X4Proj(
+			args.pos, args.xDir, args.owner, args.player, args.netId
+		);
+	}
+}
 public class Buster4Proj : Projectile {
 	public int type = 0;
 	public float offsetTime = 0;
@@ -301,7 +351,7 @@ public class Buster4Proj : Projectile {
 		this.smoothStart = smoothStart;
 		maxTime = 0.6f;
 		projId = (int)ProjIds.Buster4;
-		vel = new Point(396*xDir,0);
+		vel = new Point(396 * xDir, 0);
 		if (rpc) {
 			byte[] extraArgs = [(byte)type, (byte)offsetTime, (byte)(smoothStart ? 1 : 0)];
 			rpcCreate(pos, player, netId, xDir, extraArgs);

@@ -10,7 +10,7 @@ public class TriadThunder : Weapon {
 		displayName = "Triad Thunder";
 		shootSounds = new string[] { "triadThunder", "triadThunder", "triadThunder", "" };
 		fireRate = 135;
-		switchCooldown = 45;
+		switchCooldown = 60;
 		index = (int)WeaponIds.TriadThunder;
 		weaponBarBaseIndex = 19;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -18,17 +18,17 @@ public class TriadThunder : Weapon {
 		killFeedIndex = 42;
 		weaknessIndex = (int)WeaponIds.TornadoFang;
 		damage = "2/4+3";
-		effect = "U:Projectile won't destroy on hit nor give assists.\nC:Grants Flinch Immunity.";
+		effect = "Charged: Grants Super Armor.\nUncharged won't give assists.";
 		hitcooldown = "30";
-		Flinch = "6/26";
-		FlinchCD = "2.25/0";
-		maxAmmo = 32;
+		flinch = "6/26";
+		flinchCD = "2.25/0";
+		maxAmmo = 10;
 		ammo = maxAmmo;
 		hasCustomChargeAnim = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
+		if (chargeLevel >= 3) { return 2.5f; }
 		return 1;
 	}
 
@@ -97,7 +97,7 @@ public class TriadThunderProj : Projectile {
 
 		isMelee = true;
 		if (ownerPlayer?.character != null) {
-			ownerActor = ownerPlayer.character;
+			owningActor = ownerPlayer.character;
 		}
 	}
 
@@ -184,7 +184,7 @@ public class TriadThunderBall : Projectile {
 
 		isMelee = true;
 		if (ownerPlayer.character != null) {
-			ownerActor = ownerPlayer.character;
+			owningActor = ownerPlayer.character;
 		}
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
@@ -360,7 +360,7 @@ public class TriadThunderQuake : Projectile {
 
 		isMelee = true;
 		if (ownerPlayer?.character != null) {
-			ownerActor = ownerPlayer.character;
+			owningActor = ownerPlayer.character;
 		}
 	}
 
@@ -399,9 +399,7 @@ public class TriadThunderChargedState : CharState {
 			character.shakeCamera(sendRpc: true);
 			new TriadThunderProjCharged(new Point(x, y), -1, 0, mmx, player, player.getNextActorNetId(), rpc: true);
 			new TriadThunderProjCharged(new Point(x, y), 1, 0, mmx, player, player.getNextActorNetId(), rpc: true);
-			new TriadThunderQuake(new Point(x, y), 1, mmx, player, player.getNextActorNetId(), rpc: true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			new TriadThunderQuake(new Point(x, y), 1, mmx, player, player.getNextActorNetId(), rpc: true);
 			character.playSound("crashX3", forcePlay: false, sendRpc: true);
 		}
 		if (character.isAnimOver()) {

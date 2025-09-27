@@ -11,8 +11,8 @@ public class SpinningBlade : Weapon {
 	public SpinningBlade() : base() {
 		displayName = "Spinning Blade";
 		shootSounds = new string[] { "", "", "", "spinningBladeCharged" };
-		fireRate = 60;
-		switchCooldown = 30;
+		fireRate = 75;
+		switchCooldown = 45;
 		index = (int)WeaponIds.SpinningBlade;
 		weaponBarBaseIndex = 20;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -20,11 +20,11 @@ public class SpinningBlade : Weapon {
 		killFeedIndex = 43;
 		weaknessIndex = (int)WeaponIds.TriadThunder;
 		damage = "2/2";
-		effect = "U:Goes back after some time on screen.\nC:Projectile won't destroy on hit.";
+		effect = "Goes back after some time on screen.";
 		hitcooldown = "0/30";
-		Flinch = "0/26";
-		FlinchCD = "0/1";
-		maxAmmo = 32;
+		flinch = "0/26";
+		flinchCD = "0/1";
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
@@ -45,9 +45,7 @@ public class SpinningBlade : Weapon {
 			new SpinningBladeProj(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true);
 			new SpinningBladeProj(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
 		} else {
-			var csb = new SpinningBladeProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+			var csb = new SpinningBladeProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			if (mmx.ownedByLocalPlayer) {
 				mmx.chargedSpinningBlade = csb;
 			}

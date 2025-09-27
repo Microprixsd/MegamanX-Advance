@@ -74,7 +74,7 @@ public class SuiretsusenProj : Projectile {
 		pos, xDir, owner, "spear_proj", netId, player
 	) {
 		weapon = SuiretsusenWeapon.staticWeapon;
-		damager.damage = 5;
+		damager.damage = 6;
 		damager.hitCooldown = 45;
 		damager.flinch = Global.defFlinch;
 		vel = new Point(200 * xDir, 0);
@@ -87,7 +87,7 @@ public class SuiretsusenProj : Projectile {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
 		if (ownerPlayer?.character != null) {
-			ownerActor = ownerPlayer.character;
+			owningActor = ownerPlayer.character;
 		}
 	}
 

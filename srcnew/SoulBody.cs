@@ -6,7 +6,7 @@ namespace MMXOnline;
 
 public class SoulBody : Weapon {
 
-	public static SoulBody netWeapon = new();
+	public static SoulBody netWeapon = new SoulBody();
 	public SoulBody() : base() {
 		index = (int)WeaponIds.SoulBody;
 		displayName = "Soul Body";
@@ -185,15 +185,12 @@ public class ControlClone : CharState {
 			if (target != null) ang = character.pos.directionTo(target.getCenterPos()).byteAngle;
 
 			new SoulBodyX5(
-				new SoulBody(), character.pos, character.xDir,
-				player, player.getNextActorNetId(), cloneCount + 1, ang, true
-			) {
-				createPlasma = mmx.armArmor == ArmorId.Force
-			};
+            new SoulBody(), character.pos, character.xDir,
+            player, player.getNextActorNetId(), cloneCount + 1, ang, true
+            );
 
 			cloneCount++;
 			cloneCooldown = 20;
-
 		}
 	}
 }

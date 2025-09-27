@@ -23,9 +23,7 @@ public class GameMode {
 
 	public const int blueAlliance = 0;
 	public const int redAlliance = 1;
-	public const int neutralAlliance = 50;
-	public const int stageAlliance = 52;
-	public const int freelanceAlliance = 60;
+	public const int neutralAlliance = 10;
 
 	public bool isTeamMode = false;
 	public float overTime = 0;
@@ -746,60 +744,22 @@ public class GameMode {
 					drawGigaWeaponCooldown(102, cooldown);
 				}
 			}
-			if (drawPlayer.character is Vile vava) {
-				int xStart = (int)Global.halfScreenW / 17;
-				int yStart = 160;
-				if (vava.cannonWeapon.shootCooldown > 0) {
-					float Ccooldown = 1 - Helpers.progress(vava.cannonWeapon.shootCooldown, vava.cannonWeapon.fireRate);
-					drawGigaWeaponCooldown(43, Ccooldown, xStart, yStart);
-					yStart += 15;
-				}
-				if (vava.rocketPunchWeapon.shootCooldown > 0) {
-					float Ccooldown = 1 - Helpers.progress(vava.rocketPunchWeapon.shootCooldown, vava.rocketPunchWeapon.fireRate);
-					drawGigaWeaponCooldown(45, Ccooldown, xStart, yStart);
-					yStart += 15;
-				}
-				if (vava.missileWeapon.shootCooldown > 0) {
-					float Ccooldown = 1 - Helpers.progress(vava.missileWeapon.shootCooldown, vava.missileWeapon.fireRate);
-					drawGigaWeaponCooldown(17, Ccooldown, xStart, yStart, isKillFeed: true, xStart, yStart);
-					yStart += 15;
-				}
-				if (vava.napalmWeapon.shootCooldown > 0) {
-					float Ccooldown = 1 - Helpers.progress(vava.napalmWeapon.shootCooldown, vava.napalmWeapon.fireRate);
-					drawGigaWeaponCooldown(30, Ccooldown, xStart, yStart, isKillFeed: true, xStart, yStart);
-					yStart += 15;
-				}
-				if (vava.cutterWeapon.shootCooldown > 0) {
-					float Ccooldown = 1 - Helpers.progress(vava.cutterWeapon.shootCooldown, vava.cutterWeapon.fireRate);
-					drawGigaWeaponCooldown(114, Ccooldown, xStart, yStart, isKillFeed: true, xStart - 1, yStart);
-					yStart += 15;
-				}
-				if (vava.flamethrowerWeapon.shootCooldown > 0) {
-					float Ccooldown = 1 - Helpers.progress(vava.flamethrowerWeapon.shootCooldown, vava.flamethrowerWeapon.fireRate);
-					drawGigaWeaponCooldown(118, Ccooldown, xStart, yStart, isKillFeed: true, xStart, yStart);
-					yStart += 15;
-				}
-				if (vava.grenadeWeapon.shootCooldown > 0) {
-					float Ccooldown = 1 - Helpers.progress(vava.grenadeWeapon.shootCooldown, vava.grenadeWeapon.fireRate);
-					drawGigaWeaponCooldown(15, Ccooldown, xStart, yStart, isKillFeed: true, xStart, yStart);
-				}
-			}
 			if (drawPlayer.character is Vile vilePilot &&
-				vilePilot.rideArmor != null &&
-				vilePilot.rideArmor == vilePilot.linkedRideArmor
-				&& vilePilot.rideArmor.raNum == 2
-				) {
-					int x = 13, y = 155;
-					int napalmNum = drawPlayer.loadout.vileLoadout.napalm;
-					if (napalmNum < 0) napalmNum = 0;
-					if (napalmNum > 2) napalmNum = 0;
-					Global.sprites["hud_hawk_bombs"].drawToHUD(
-						napalmNum, x, y, alpha: vilePilot.napalmWeapon.shootCooldown == 0 ? 1 : 0.5f
-					);
-					Fonts.drawText(
-						FontType.Grey, "x" + vilePilot.rideArmor.hawkBombCount.ToString(), x + 10, y - 4
-					);
-				}
+			vilePilot.rideArmor != null &&
+			vilePilot.rideArmor == vilePilot.linkedRideArmor
+			&& vilePilot.rideArmor.raNum == 2
+			) {
+				int x = 13, y = 155;
+				int napalmNum = drawPlayer.loadout.vileLoadout.napalm;
+				if (napalmNum < 0) napalmNum = 0;
+				if (napalmNum > 2) napalmNum = 0;
+				Global.sprites["hud_hawk_bombs"].drawToHUD(
+					napalmNum, x, y, alpha: vilePilot.napalmWeapon.shootCooldown == 0 ? 1 : 0.5f
+				);
+				Fonts.drawText(
+					FontType.Grey, "x" + vilePilot.rideArmor.hawkBombCount.ToString(), x + 10, y - 4
+				);
+			}
 			if (drawPlayer.weapons == null) {
 				return;
 			}
@@ -868,9 +828,9 @@ public class GameMode {
 				FontType.BlueMenu, hudErrorMsg,
 				Global.halfScreenW, 50, Alignment.Center
 			);
-		} else if (mainPlayer?.character is KaiserSigma) {
+		} else if (mainPlayer.character is KaiserSigma) {
 			string msg = "";
-			if (KaiserSigma.canKaiserSpawn(mainPlayer.character, out _)) msg += "[DASH]: Relocate";
+			if (KaiserSigma.canKaiserSpawn(mainPlayer.character, out _)) msg += "[JUMP]: Relocate";
 			if (msg != "") {
 				Fonts.drawText(
 					FontType.BlueMenu, Helpers.controlText(msg),
@@ -1061,14 +1021,15 @@ public class GameMode {
 		List<Point> revealedSpots = new List<Point>();
 		float revealedRadius = Global.viewScreenW * 0.5f;
 		
-		if (level.mainPlayer.character is BaseSigma) {
-			foreach (var maverick in level.mainPlayer.mavericks)
-			{
-				if (maverick == level.mainPlayer.currentMaverick && !level.mainPlayer.isAlivePuppeteer()) continue;
+		if (level.mainPlayer.mavericks.Count > 0) {
+			foreach (var maverick in level.mainPlayer.mavericks) {
+				if (maverick == level.mainPlayer.currentMaverick) {
+					continue;
+				}
 				revealedSpots.Add(maverick.pos);
 			}
 			revealedRadius = Global.viewScreenW * 0.5f;
-		}
+		} 
 		if (level.boundBlasterAltProjs.Count > 0) {
 			foreach (var bbAltProj in level.boundBlasterAltProjs) {
 				revealedSpots.Add(bbAltProj.pos);
@@ -1400,10 +1361,7 @@ public class GameMode {
 		//Health
 		Point pos = getHUDHealthPosition(position, true);
 		int dir = 1;
-		if (position is HUDHealthPosition.Right or
-			HUDHealthPosition.TopRight or
-			HUDHealthPosition.BotRight
-		) {
+		if (position is HUDHealthPosition.Right or HUDHealthPosition.TopRight or HUDHealthPosition.BotRight) {
 			dir = -1;
 		}
 		renderHealth(player, pos, false, false);
@@ -1517,7 +1475,6 @@ public class GameMode {
 		Global.sprites[healthBaseSprite].drawToHUD(frameIndex, baseX, baseY);
 		baseY -= 16;
 		int barIndex = 0;
-		int sBarIndex = 4;
 
 		if (player?.character is RagingChargeX mmx) {
 			float hpPercent = MathF.Floor(player.health / player.maxHealth * 100f);
@@ -1525,46 +1482,25 @@ public class GameMode {
 			else if (hpPercent >= 50) barIndex = 3;
 			else if (hpPercent >= 25) barIndex = 4;
 			else barIndex = 5;
-			sBarIndex = 1;
 		}
 
-		float modifier = Player.getHpMod();
-		if (modifier < 1) {
-			modifier = 1;
-		}
-		float maxHP = MathF.Ceiling(maxHealth / modifier);
-		float curHP = MathF.Floor(health / modifier);
-		float ceilCurHP = MathF.Ceiling(health / modifier);
-		float floatCurHP = health / modifier;
-		float fhpAlpha = floatCurHP - curHP;
-		float savings = 0;
-		float svCeil = 0;
-		float svFloat = 0;
-		float svAlpha = 0;
-		if (damageSavings >= 1) {
-			savings = curHP + MathF.Floor(damageSavings / modifier);
-			svCeil = ceilCurHP + MathF.Ceiling(damageSavings / modifier);
-			svFloat = curHP + damageSavings / modifier;
-			svAlpha = svFloat - savings;
-		}
-
-		for (var i = 0; i < Math.Ceiling(maxHP); i++) {
+		for (var i = 0; i < MathF.Ceiling(maxHealth); i++) {
 			// Draw HP
-			if (i < curHP) {
+			if (i < MathF.Ceiling(health)) {
 				Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY);
-			}
-			else if (i < savings) {
-				Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY);
-			}
-			else {
+			} else if (i < MathInt.Ceiling(health) + damageSavings) {
+				Global.sprites["hud_health_full"].drawToHUD(4, baseX, baseY);
+			} else if (i < MathInt.Ceiling(greyHp)) {
+				Global.sprites["hud_weapon_full"].drawToHUD(30, baseX, baseY);
+			} else {
 				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
-				if (i < ceilCurHP) {
-					Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY, fhpAlpha);
-				}
-				else if (i < svCeil) {
-					Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY, svAlpha);
-				}
 			}
+
+			// 2-layer health
+			if (twoLayerHealth > 0 && i < MathF.Ceiling(twoLayerHealth)) {
+				Global.sprites["hud_health_full"].drawToHUD(2, baseX, baseY);
+			}
+
 			baseY -= 2;
 		}
 		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
@@ -2113,13 +2049,8 @@ public class GameMode {
 		drawGigaWeaponCooldown(weapon.weaponSlotIndex, 1 - cooldown, x, y);
 	}
 
-	public void drawGigaWeaponCooldown(int slotIndex, float cooldown, int x = 11, int y = 159, bool isKillFeed = false, int xKF = 11, int yKF = 159) {
-		if (isKillFeed) {
-			Global.sprites["hud_weapon_icon"].drawToHUD(118, x, y);
-			Global.sprites["hud_killfeed_weapon"].drawToHUD(slotIndex, xKF, yKF);
-		} else {
-			Global.sprites["hud_weapon_icon"].drawToHUD(slotIndex, x, y);
-		}
+	public void drawGigaWeaponCooldown(int slotIndex, float cooldown, int x = 11, int y = 159) {
+		Global.sprites["hud_weapon_icon"].drawToHUD(slotIndex, x, y);
 		drawWeaponSlotCooldown(x, y, cooldown);
 	}
 
@@ -2160,9 +2091,6 @@ public class GameMode {
 			if (weapon is MagnetMine && mmx.magnetMines.Count > 0) {
 				drawWeaponText(x, y, mmx.magnetMines.Count.ToString());
 			}
-			if (weapon is AimingLaser && mmx.aLaserTargets.Count >= 1) {
-				drawWeaponText(x, y, mmx.aLaserTargets.Count.ToString());
-			}
 			if (weapon is HyperCharge hc) {
 				if (level.mainPlayer.hyperChargeSlot >= 0 &&
 					mainPlayer.weapons[level.mainPlayer.hyperChargeSlot].ammo == 0
@@ -2171,7 +2099,8 @@ public class GameMode {
 				} else {
 					drawWeaponSlotCooldown(x, y, hc.shootCooldown / hc.fireRate);
 				}
-			} else if (weapon is HyperNovaStrike ns) {
+			}
+			else if (weapon is HyperNovaStrike ns) {
 				drawWeaponSlotCooldown(x, y, ns.shootCooldown / ns.fireRate);
 			}
 		}
