@@ -17,7 +17,7 @@ public class HomingTorpedo : Weapon {
 		shootSounds = new string[] { "torpedo", "torpedo", "torpedo", "buster3" };
 		fireRate = 45;
 		damage = "2/1*6";
-		effect = "Destroys on contact with projectiles or enemies.\nBesides of it's homing capabilities.";
+		effect = "Both:Destroys on contact with projectiles or enemies.\nBesides of its homing capabilities.";
 		hitcooldown = "0";
 		Flinch = "0/13";
 		maxAmmo = 32;

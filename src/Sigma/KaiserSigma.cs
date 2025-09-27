@@ -46,7 +46,7 @@ public partial class KaiserSigma : Character {
 		) {
 			visible = false
 		};
-		maxHealth = (decimal)Player.getModifiedHealth(32);
+		maxHealth = getMaxHealth();
 		if (!ownedByLocalPlayer || isRevive) {
 			health = maxHealth;
 		}
@@ -68,11 +68,18 @@ public partial class KaiserSigma : Character {
 		altSoundId = AltSoundIds.X3;
 	}
 
+	public override CharState getIdleState() => new KaiserSigmaIdleState();
+	public override CharState getRunState(bool skipInto = false) => new KaiserSigmaWalkState();
+	public override CharState getJumpState() => new KaiserSigmaJumpState();
+	public override CharState getAirJumpState() => new KaiserSigmaJumpState();
+	public override CharState getFallState() => new KaiserSigmaFallState();
+	public override CharState getTauntState() => new KaiserSigmaTauntState();
+
 	public override int getMaxHealth() {
 		if (isATrans) {
 			return base.getMaxHealth();
 		}
-		return Player.getModifiedHealth(32);
+		return MathInt.Ceiling(Player.getModifiedHealth(32) * Player.getHpMod());
 	}
 
 	public override void update() {
@@ -305,6 +312,10 @@ public partial class KaiserSigma : Character {
 	}
 
 	public override bool canPickupFlag() {
+		return false;
+	}
+
+	public override bool canKeepFlag() {
 		return false;
 	}
 

@@ -13,11 +13,11 @@ public partial class Player {
 	public static Player stagePlayer = new Player(
 		"Stage", 255, -1,
 		new PlayerCharData() { charNum = -1 },
-		false, true, GameMode.neutralAlliance,
+		false, true, GameMode.stageAlliance,
 		new Input(false),
 		new ServerPlayer(
 			"Stage", 255, false,
-			-1, GameMode.neutralAlliance, "NULL", null, 0
+			-1, GameMode.stageAlliance, "NULL", null, 0
 		)
 	);
 	public static Player errorPlayer = new Player(
@@ -468,7 +468,9 @@ public partial class Player {
 	public ShaderWrapper acidShader = Helpers.cloneShaderSafe("acid");
 	public ShaderWrapper oilShader = Helpers.cloneShaderSafe("oil");
 	public ShaderWrapper igShader = Helpers.cloneShaderSafe("igIce");
+	public ShaderWrapper mvIgShader = Helpers.cloneShaderSafe("igIce");
 	public ShaderWrapper infectedShader = Helpers.cloneShaderSafe("infected");
+	public ShaderWrapper mvInfectedShader = Helpers.cloneShaderSafe("infected");
 	public ShaderWrapper frozenCastleShader = Helpers.cloneShaderSafe("frozenCastle");
 	public ShaderWrapper possessedShader = Helpers.cloneShaderSafe("possessed");
 	public ShaderWrapper vaccineShader = Helpers.cloneShaderSafe("vaccine");
@@ -695,30 +697,45 @@ public partial class Player {
 
 	public float getMaverickMaxHp(MaverickModeId controlMode) {
 		if (!Global.level.is1v1() && controlMode == MaverickModeId.TagTeam) {
-			return getModifiedHealth(20) + (heartTanks * getHeartTankModifier());
+			return MathF.Ceiling(
+				(getModifiedHealth(20) + heartTanks * getHeartTankModifier()) * getHpMod()
+			);
 		}
-		return MathF.Ceiling(getModifiedHealth(24));
+		return MathF.Ceiling(getModifiedHealth(24) * getHpMod());
 	}
 
 	public bool hasAllItems() {
 		return subtanks.Count >= UpgradeMenu.getMaxSubTanks() && heartTanks >= UpgradeMenu.getMaxHeartTanks();
 	}
 
-	public static float getBaseHealth() {
+	public static float getHpMod() {
 		if (Global.level.server.customMatchSettings != null) {
 			return Global.level.server.customMatchSettings.healthModifier;
+		}
+		return 1;
+	}
+
+	public static decimal getHpDMod() {
+		if (Global.level.server.customMatchSettings != null) {
+			return (decimal)Global.level.server.customMatchSettings.healthModifier;
+		}
+		return 1;
+	}
+
+	public static float getBaseHp() {
+		if (Global.level.server.customMatchSettings != null) {
+			return Global.level.server.customMatchSettings.baseHp;
 		}
 		return 16;
 	}
 
 	public static int getModifiedHealth(float health) {
 		if (Global.level.server.customMatchSettings != null) {
-			float retHp = getBaseHealth();
+			float retHp = getBaseHp();
 			float extraHP = health - 16;
 
-			//float hpMulitiplier = MathF.Ceiling(getBaseHealth() / 16);
-			//retHp += MathF.Ceiling(extraHP + hpMulitiplier);
-			retHp += MathF.Ceiling(extraHP);
+			float hpMulitiplier = getBaseHp() / 16;
+			retHp += MathF.Ceiling(extraHP * hpMulitiplier);
 
 			if (retHp < 1) {
 				retHp = 1;
@@ -735,14 +752,14 @@ public partial class Player {
 	public float getMaxHealth() {
 		// 1v1 is the only mode without possible heart tanks/sub tanks
 		if (Global.level.is1v1()) {
-			return getModifiedHealth(28);
+			return MathF.Ceiling(getModifiedHealth(28) * getHpMod());
 		}
 		int bonus = 0;
 		if (isSigma) {
 			bonus = 6;
 		}
 		return MathF.Ceiling(
-			getModifiedHealth(16 + bonus) + (heartTanks * getHeartTankModifier())
+			(getModifiedHealth(16 + bonus) + heartTanks * getHeartTankModifier()) * getHpMod()
 		);
 	}
 
@@ -914,10 +931,10 @@ public partial class Player {
 		if (character is Vile vile) {
 			if (isSelectingRA()) {
 				int maxRAIndex = vile.isVileMK1 ? 3 : 4;
-				if (input.isPressedMenu(Control.MenuDown)) {
+				if (input.isPressedMenu(Control.MenuLeft)) {
 					selectedRAIndex--;
 					if (selectedRAIndex < 0) selectedRAIndex = maxRAIndex;
-				} else if (input.isPressedMenu(Control.MenuUp)) {
+				} else if (input.isPressedMenu(Control.MenuRight)) {
 					selectedRAIndex++;
 					if (selectedRAIndex > maxRAIndex) selectedRAIndex = 0;
 				}
@@ -2153,8 +2170,7 @@ public partial class Player {
 				return false;
 			}
 			/*
-			if (character?.charState?.isGrabbedState == true)
-			{
+			if (character?.charState?.isGrabbedState == true) {
 				return false;
 			}
 			*/
@@ -2171,7 +2187,10 @@ public partial class Player {
 		if (Global.level?.server?.customMatchSettings != null) {
 			fillSubtank(Global.level.server.customMatchSettings.subtankGain);
 		} else {
-			fillSubtank(4);
+			if (character is Zero or PunchyZero or BusterZero) fillSubtank(2);
+			if (character is Vile) fillSubtank(2);
+            if (character is Axl) fillSubtank(3);
+            if (character is MegamanX or BaseSigma) fillSubtank(4);
 		}
 		if (character is Zero zero && zero.isViral) {
 			zero.freeBusterShots++;

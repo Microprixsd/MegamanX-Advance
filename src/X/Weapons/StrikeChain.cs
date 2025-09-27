@@ -20,7 +20,7 @@ public class StrikeChain : Weapon {
 		weaknessIndex = (int)WeaponIds.SonicSlicer;
 		switchCooldown = 20;
 		damage = "2/4";
-		effect = "Hooks enemies and items. Be Spider-Man.";
+		effect = "Both:Hooks enemies and items.\nPull yourself towards walls.\nBe Spider-Man.";
 		hitcooldown = "30";
 		Flinch = "Hooked Time";
 		FlinchCD = "0";
@@ -374,7 +374,7 @@ public class StrikeChainProj : Projectile {
 				return;
 			}
 			//Character specific code.
-			if (chr != null) {
+			if (chr != null && !chr.isGrabImmune() && !chr.isPushImmune()) {
 				if (!chr.canBeDamaged(player.alliance, player.id, projId)) return;
 				hookActor(actor);
 

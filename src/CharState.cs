@@ -35,9 +35,11 @@ public class CharState {
 	public bool useGravity = true;
 
 	public bool invincible;
-	public bool stunResistant;
+	public bool stunImmune;
 	public bool superArmor;
-	public bool immuneToWind;
+	public bool pushImmune;
+	public bool slowImmune;
+	public bool statusEffectImmune;
 	public int accuracy;
 	public bool isGrabbedState;
 
@@ -364,6 +366,7 @@ public class WarpIn : CharState {
 	public WarpIn(bool addInvulnFrames = true) : base("warp_in") {
 		this.addInvulnFrames = addInvulnFrames;
 		invincible = true;
+		statusEffectImmune = true;
 	}
 
 	public override void update() {
@@ -401,9 +404,12 @@ public class WarpIn : CharState {
 
 			if (character.isAnimOver()) {
 				character.grounded = true;
-				character.pos.y = destY;
-				character.pos.x = destX;
-				character.changeToIdleOrFall();
+				character.changePos(destX, destY);
+				if (refillHP && !player.warpedInOnce) {
+					character.changeState(new WarpIdle(player.warpedInOnce));
+				} else {
+					character.changeToIdleOrFall();
+				}
 			}
 			return;
 		}
@@ -464,6 +470,9 @@ public class WarpIn : CharState {
 		if (player.warpedInOnce || Global.debug) {
 			sigmaRounds = 10;
 		}
+		if (refillHP && character.ownedByLocalPlayer && !player.warpedInOnce) {
+			character.health = 0;
+		}
 	}
 
 	public override void onExit(CharState? newState) {
@@ -478,6 +487,70 @@ public class WarpIn : CharState {
 			character.invulnTime = (player.warpedInOnce || Global.level.joinedLate) ? 2 : 0;
 		}
 		player.warpedInOnce = true;
+	}
+}
+
+public class WarpIdle : CharState {
+	public bool firstSpawn;
+	public bool fullHP;
+	public bool fullAlt;
+	float healTime = -4;
+
+	public WarpIdle(bool firstSpawn = false) : base("win") {
+		this.firstSpawn = firstSpawn;
+		invincible = true;
+		statusEffectImmune = true;
+	}
+
+	public override void update() {
+		base.update();
+		refillNormal();
+
+		if ((character.isAnimOver() || character.sprite.loopCount >= 1) && fullHP && fullAlt) {
+			character.changeToIdleOrFall();
+		}
+	}
+
+
+	public void refillNormal() {
+		fullAlt = true;
+		healTime += Global.gameSpeed;
+		if (fullHP || healTime < 3) {
+			return;
+		}
+		// Health.
+		if (character.health < character.maxHealth) {
+			decimal hpMod = Player.getHpDMod();
+			if (hpMod < 1) { hpMod = 1; }
+			character.health = Helpers.clampMax(
+				character.health + hpMod, character.maxHealth
+			);
+		} else {
+			fullHP = true;
+		}
+		if (Global.level.mainPlayer.character == character) {
+			character.playSound("heal", forcePlay: true);
+		}
+		healTime = 0;
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.stopMovingS();
+		character.useGravity = false;
+		specialId = SpecialStateIds.WarpIdle;
+		character.invulnTime = firstSpawn ? 5 : 0;
+	}
+
+	public override void onExit(CharState? newState) {
+		base.onExit(newState);
+		character.visible = true;
+		character.useGravity = true;
+		character.splashable = true;
+		specialId = SpecialStateIds.None;
+		if (character.ownedByLocalPlayer) {
+			character.invulnTime = firstSpawn ? 1 : 0;
+		}
 	}
 }
 
@@ -507,7 +580,7 @@ public class WarpOut : CharState {
 			character.playSound("warpOut", forcePlay: true, sendRpc: true);
 		}
 
-		warpAnim.pos.y -= Global.spf * 1000;
+		warpAnim.incPos(0, -16 * character.speedMul);
 
 		if (character.pos.y <= destY) {
 			warpAnim.destroySelf();
@@ -593,10 +666,10 @@ public class Run : CharState {
 
 	public override void update() {
 		base.update();
-		var move = new Point(0, 0);
+		Point move = new Point(0, 0);
 		float runSpeed = character.getRunSpeed();
 		if (stateFrames <= 4) {
-			runSpeed = 60 * character.getRunDebuffs();
+			runSpeed = 1 * character.getRunDebuffs();
 		}
 		if (player.input.isHeld(Control.Left, player)) {
 			character.xDir = -1;
@@ -606,7 +679,7 @@ public class Run : CharState {
 			if (character.canMove()) move.x = runSpeed;
 		}
 		if (move.magnitude > 0) {
-			character.move(move);
+			character.movePoint(move);
 		} else {
 			character.changeToIdleOrFall();
 		}
@@ -660,8 +733,8 @@ public class SwordBlock : CharState {
 		exitOnAirborne = true;
 		attackCtrl = true;
 		normalCtrl = true;
-		stunResistant = true;
-		immuneToWind = true;
+		stunImmune = true;
+		pushImmune = true;
 	}
 
 	public override void update() {
@@ -824,18 +897,18 @@ public class Dash : CharState {
 			}
 		}
 		// Dash regular speed.
-		if (dashTime > 3 && !stop) {
-			character.move(new Point(character.getDashSpeed() * dashDir, 0));
+		if (dashTime >= 4 && !stop) {
+			character.moveXY(character.getDashSpeed() * dashDir, 0);
 		}
 		// End move.
 		else if (stop && inputXDir != 0) {
-			character.move(new Point(character.getRunSpeed() * inputXDir, 0));
+			character.moveXY(character.getRunSpeed() * inputXDir, 0);
 			character.changeState(character.getRunState(true), true);
 			return;
 		}
 		// Speed at start and end.
 		else if (!stop || dashHeld) {
-			character.move(new Point(Physics.DashStartSpeed * character.getRunDebuffs() * dashDir, 0));
+			character.moveXY(Physics.DashStartSpeed * character.getRunDebuffs() * dashDir, 0);
 		}
 		// Dust effect.
 		if (dustTime >= 6 && !character.isUnderwater()) {
@@ -947,16 +1020,16 @@ public class AirDash : CharState {
 			}
 		}
 		// Dash regular speed.
-		if (dashTime > 3 && !stop) {
-			character.move(new Point(character.getDashSpeed() * dashDir, 0));
+		if (dashTime >= 4 && !stop) {
+			character.moveXY(character.getDashSpeed() * dashDir, 0);
 		}
 		// End move.
 		else if (stop && inputXDir != 0) {
-			character.move(new Point(character.getDashSpeed() * inputXDir, 0));
+			character.moveXY(character.getDashSpeed() * inputXDir, 0);
 		}
 		// Speed at start and end.
 		else if (!stop) {
-			character.move(new Point(Physics.DashStartSpeed * character.getRunDebuffs() * dashDir, 0));
+			character.moveXY(Physics.DashStartSpeed * character.getRunDebuffs() * dashDir, 0);
 		}
 		// Timer
 		dashTime += character.speedMul;
@@ -1168,7 +1241,7 @@ public class LadderClimb : CharState {
 		this.snapX = MathF.Round(snapX);
 		this.incY = incY;
 		attackCtrl = true;
-		immuneToWind = true;
+		pushImmune = true;
 	}
 
 	public override void onEnter(CharState oldState) {

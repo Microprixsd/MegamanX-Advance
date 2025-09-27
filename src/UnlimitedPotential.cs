@@ -31,8 +31,8 @@ public class XUPParryStartState : CharState {
 		}*/
 		mmx.addPercentAmmo(100);
 		if (damagingActor is Projectile proj) {
-			if (proj.owningActor != null) {
-				counterAttackTarget = proj.owningActor;
+			if (proj.ownerActor != null) {
+				counterAttackTarget = proj.ownerActor;
 			}
 			if (!proj.isMelee && proj.shouldVortexSuck) {
 				absorbedProj = proj;
@@ -181,6 +181,7 @@ public class XUPParryMeleeState : CharState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		mmx = player.character as RagingChargeX ?? throw new NullReferenceException();
+		character.clenaseDmgDebuffs();
 		//character.frameIndex = 2;
 	}
 
@@ -238,9 +239,9 @@ public class XUPParryProjState : CharState {
 	public RagingChargeX mmx = null!;
 	public XUPParryProjState(Projectile otherProj, bool shootProj, bool absorbThenShoot) : base("unpo_parry_attack") {
 		this.otherProj = otherProj;
-		invincible = true;
 		this.shootProj = shootProj;
 		this.absorbThenShoot = absorbThenShoot;
+		invincible = true;
 	}
 
 	public override void update() {
@@ -283,9 +284,10 @@ public class XUPParryProjState : CharState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		mmx = player.character as RagingChargeX ?? throw new NullReferenceException();
+		character.clenaseDmgDebuffs();
 		if (!shootProj || absorbThenShoot) {
 			absorbAnim = new Anim(
-				otherProj.pos, otherProj.sprite.name, otherProj.xDir, 
+				otherProj.pos, otherProj.sprite.name, otherProj.xDir,
 				player.getNextActorNetId(), false, sendRpc: true
 			);
 			absorbAnim.syncScale = true;
@@ -470,6 +472,7 @@ public class XReviveStart : CharState {
 
 	public XReviveStart() : base("revive_start") {
 		invincible = true;
+		statusEffectImmune = true;
 	}
 
 	public bool cancellable() {
@@ -607,7 +610,7 @@ public class XRevive : CharState {
 
 	public XRevive() : base("revive_shake") {
 		invincible = true;
-		immuneToWind = true;
+		statusEffectImmune = true;
 		enterSound = "xRevive";
 	}
 

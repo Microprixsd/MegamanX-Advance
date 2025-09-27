@@ -18,7 +18,7 @@ public class StormTornado : Weapon {
 		fireRate = 120;
 		switchCooldown = 30;
 		damage = "1/4";
-		effect = "Weak push. Extinguishes Fire. Ignores Shields.\nUncharged won't give assists.";
+		effect = "U:Weak push. Projectile won't give assists.\nBoth:Extinguishes Fire.\nProjectile won't destroy on Hit.";
 		hitcooldown = "15/20";
 		Flinch = "0/26";
 		FlinchCD = "0/1";
@@ -212,9 +212,11 @@ public class TornadoProjCharged : Projectile {
 	}
 
 	public void ground() {
-		var ground = Global.level.raycast(pos.addxy(0, -10), pos.addxy(0, Global.level.height), new List<Type> { typeof(Wall) });
-		if (ground.hitData.hitPoint != null) {
-			pos.y = ground.hitData.hitPoint.Value.y;
+		var ground = Global.level.raycast(
+			pos.addxy(0, -10), pos.addxy(0, Global.level.height), new List<Type> { typeof(Wall) }
+		);
+		if (ground?.hitData.hitPoint != null) {
+			changePosY(ground.hitData.hitPoint.Value.y);
 		}
 	}
 

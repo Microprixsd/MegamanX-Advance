@@ -291,7 +291,7 @@ public class RekkohaProj : Projectile {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
 		if (ownerPlayer?.character != null) {
-			owningActor = ownerPlayer.character;
+			ownerActor = ownerPlayer.character;
 		}
 	}
 	public static Projectile rpcInvoke(ProjParameters args) {
@@ -584,7 +584,7 @@ public abstract class ZeroGigaAttack : CharState {
 
 	public ZeroGigaAttack(string sprite, Weapon weapon) : base(sprite) {
 		invincible = true;
-		stunResistant = true;
+		stunImmune = true;
 		this.weapon = weapon;
 	}
 
@@ -621,10 +621,11 @@ public abstract class ZeroGigaAttack : CharState {
 	}
 	
 	public override void onEnter(CharState oldState) {
+		character.clenaseDmgDebuffs();
 		base.onEnter(oldState);
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		weapon.shootCooldown = weapon.fireRate;
 		base.onExit(newState);
 	}
@@ -689,8 +690,8 @@ public class RekkohaState : CharState {
 	public RekkohaState(Weapon weapon) : base("rekkoha") {
 		this.weapon = weapon;
 		invincible = true;
-		stunResistant = true;
-		immuneToWind = true;
+		stunImmune = true;
+		pushImmune = true;
 	}
 
 	public override void update() {
@@ -751,6 +752,7 @@ public class RekkohaState : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
+		character.clenaseAllDebuffs();
 		if (player.isMainPlayer) {
 			effect = new RekkohaEffect();
 		}
@@ -800,7 +802,7 @@ public class DarkHoldShootState : CharState {
 
 	public DarkHoldShootState(Weapon gigaAttack) : base("darkhold") {
 		invincible = true;
-		stunResistant = true;
+		stunImmune = true;
 		this.gigaAttack = gigaAttack;
 	}
 
@@ -821,6 +823,11 @@ public class DarkHoldShootState : CharState {
 		}
 	}
 
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.clenaseDmgDebuffs();
+	}
+
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		gigaAttack.shootCooldown = gigaAttack.fireRate;
@@ -835,7 +842,7 @@ public class DarkHoldState : CharState {
 	public float lastArmAngle = 0;
 
 	public DarkHoldState(Character character, float time) : base(character.sprite.name) {
-		immuneToWind = true;
+		pushImmune = true;
 		stunTime = time;
 
 		this.frameIndex = character?.frameIndex ?? 0;
@@ -853,7 +860,7 @@ public class DarkHoldState : CharState {
 			character.changeToIdleOrFall();
 		}
 		// Does not stack with other time stops.
-		stunTime -= 1;
+		stunTime -= player.mashValue() * 60f;
 	}
 
 	public override bool canEnter(Character character) {
@@ -874,7 +881,7 @@ public class DarkHoldState : CharState {
 		specialId = oldState.specialId;
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
 		character.frameSpeed = 1;

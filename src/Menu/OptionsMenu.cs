@@ -243,7 +243,7 @@ public class OptionsMenu : IMainMenu {
 					},
 					(Point pos, int index) => {
 						Fonts.drawText(
-							optionFontValue, "Fast Shaders:",
+							optionFontValue, "Legacy Shaders:",
 							pos.x, pos.y, selected: selectedArrowPosY == index
 						);
 						Fonts.drawText(
@@ -251,7 +251,7 @@ public class OptionsMenu : IMainMenu {
 							pos.x + 166, pos.y, selected: selectedArrowPosY == index
 						);
 					},
-					"Uses a faster shader system for better performance,\n" +
+					"Uses an old shader system for better performance on old hardware,\n" +
 					"disables special effects like team mode outlines."
 				),
 				// Preset
@@ -887,24 +887,6 @@ public class OptionsMenu : IMainMenu {
 						);
 					},
 					"Disables performing Nova Strike\n if a Floor is close by."
-				),
-				// Should Nova on floor walls.
-				new MenuOption(
-					30, startY,
-					() => {
-						Helpers.menuLeftRightBool(ref Options.main.oldUpgradeMenuX);
-					},
-					(Point pos, int index) => {
-						Fonts.drawText(
-							optionFontText, "Old Upgrade Menu:",
- 							pos.x, pos.y, selected: selectedArrowPosY == index
-						);
-						Fonts.drawText(
-							optionFontValue, Helpers.boolYesNo(Options.main.oldUpgradeMenuX),
-							pos.x + 166, pos.y, selected: selectedArrowPosY == index
-						);
-					},
-					"Activates the old upgrade armor menu."
 				),
 				/*
 				new MenuOption(

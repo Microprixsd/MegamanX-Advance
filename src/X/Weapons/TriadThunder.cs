@@ -18,7 +18,7 @@ public class TriadThunder : Weapon {
 		killFeedIndex = 42;
 		weaknessIndex = (int)WeaponIds.TornadoFang;
 		damage = "2/4+3";
-		effect = "Charged: Grants Super Armor.\nUncharged won't give assists.";
+		effect = "U:Projectile won't destroy on hit nor give assists.\nC:Grants Flinch Immunity.";
 		hitcooldown = "30";
 		Flinch = "6/26";
 		FlinchCD = "2.25/0";
@@ -97,7 +97,7 @@ public class TriadThunderProj : Projectile {
 
 		isMelee = true;
 		if (ownerPlayer?.character != null) {
-			owningActor = ownerPlayer.character;
+			ownerActor = ownerPlayer.character;
 		}
 	}
 
@@ -184,7 +184,7 @@ public class TriadThunderBall : Projectile {
 
 		isMelee = true;
 		if (ownerPlayer.character != null) {
-			owningActor = ownerPlayer.character;
+			ownerActor = ownerPlayer.character;
 		}
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
@@ -360,7 +360,7 @@ public class TriadThunderQuake : Projectile {
 
 		isMelee = true;
 		if (ownerPlayer?.character != null) {
-			owningActor = ownerPlayer.character;
+			ownerActor = ownerPlayer.character;
 		}
 	}
 

@@ -46,14 +46,14 @@ public class ChargeEffect {
 		};
 
 		chargeParts = new List<ChargeParticle>() {
-			new ChargeParticle(point1.clone(), 0, null),
-			new ChargeParticle(point2.clone(), 3, null),
-			new ChargeParticle(point3.clone(), 0, null),
-			new ChargeParticle(point4.clone(), 1.5f, null),
-			new ChargeParticle(point5.clone(), -1.5f, null),
-			new ChargeParticle(point6.clone(), -3, null),
-			new ChargeParticle(point7.clone(), -1.5f, null),
-			new ChargeParticle(point8.clone(), -1.5f, null)
+			new ChargeParticle(point1, 0, null),
+			new ChargeParticle(point2, 3, null),
+			new ChargeParticle(point3, 0, null),
+			new ChargeParticle(point4, 1.5f, null),
+			new ChargeParticle(point5, -1.5f, null),
+			new ChargeParticle(point6, -3, null),
+			new ChargeParticle(point7, -1.5f, null),
+			new ChargeParticle(point8, -1.5f, null)
 		};
 	}
 
@@ -77,8 +77,10 @@ public class ChargeEffect {
 		for (int i = 0; i < chargeParts.Count; i++) {
 			var part = chargeParts[i];
 			if (part.time > 0) {
-				part.pos.x = Helpers.moveTo(part.pos.x, 0, Global.spf * 70);
-				part.pos.y = Helpers.moveTo(part.pos.y, 0, Global.spf * 70);
+				part.changePos(
+					Helpers.moveTo(part.pos.x, 0, Global.spf * 70),
+					Helpers.moveTo(part.pos.y, 0, Global.spf * 70)
+				);
 			}
 			if (chargeType == 3 && chargeLevel >= 3) {
 				chargePart = "charge_part_4";
@@ -92,8 +94,10 @@ public class ChargeEffect {
 			part.time += Global.spf * 20;
 			if (part.time > 3) {
 				part.time = -3;
-				part.pos.x = origPoints[i].x;
-				part.pos.y = origPoints[i].y;
+				part.changePos(
+					origPoints[i].x,
+					origPoints[i].y
+				);
 			}
 		}
 
