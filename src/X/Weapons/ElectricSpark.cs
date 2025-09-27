@@ -19,8 +19,8 @@ public class ElectricSpark : Weapon {
 		damage = "2/4";
 		effect =  "Can Split. Charged: Doesn't destroy on hit.";
 		hitcooldown = "0/0.5";
-		Flinch = "6/26";
-		FlinchCD = "1/0";
+		flinch = "6/26";
+		flinchCD = "1/0";
 	}
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3) { return 4; }
@@ -137,17 +137,20 @@ public class ElectricSparkProjChargedStart : Projectile {
 	public ElectricSparkProjChargedStart(
 		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
 	) : base(
-		pos, xDir, owner, "electric_spark_charge_start", netId, player	
+		pos, xDir, owner, "electric_spark_charge_start", netId, player
 	) {
 		weapon = ElectricSpark.netWeapon;
 		vel = new Point(0 * xDir, 0);
 		projId = (int)ProjIds.ElectricSparkChargedStart;
 		destroyOnHit = false;
 		shouldShieldBlock = false;
-
+		damager.damage = 4;
+		damager.flinch = Global.defFlinch;
+		damager.hitCooldown = 30;
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
+		projId = (int)ProjIds.ElectricSparkCharged;
 	}
 
 	public static Projectile rpcInvoke(ProjParameters args) {

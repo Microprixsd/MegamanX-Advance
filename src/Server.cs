@@ -63,7 +63,6 @@ public class Server {
 	[ProtoMember(34)] public byte teamNum = 2;
 	[ProtoMember(35)] public int altPlayTo;
 
-
 	[JsonIgnore]
 	public bool favorHost = true;
 
@@ -220,7 +219,9 @@ public class Server {
 		if (isBot) {
 			serverPlayer = serverPlayer.clone();
 			serverPlayer.isHost = false;
-			serverPlayer.charNum = overrideCharNum ?? Helpers.randomRange(0, 3);
+			serverPlayer.charNum = overrideCharNum ?? Helpers.randomRange(
+				(int)CharIds.X, (int)CharIds.BusterZero
+			);
 			serverPlayer.preferredAlliance = overrideAlliance;
 		}
 
@@ -251,22 +252,21 @@ public class Server {
 	}
 
 	public void periodicPing(NetServer s_server, ServerPlayer? prioritizedAutobalancePlayer = null) {
-		NetOutgoingMessage om = s_server.CreateMessage();
-
-		foreach (var player in players) {
+		//NetOutgoingMessage om = s_server.CreateMessage();
+		foreach (ServerPlayer player in players) {
 			if (player.connection != null) {
 				player.ping = (int)MathF.Round(player.connection.AverageRoundtripTime * 1000);
 			}
 		}
 
 		if ((!hidden || isP2P) && GameMode.isStringTeamMode(gameMode) &&
-			gameMode != GameMode.TeamElimination && level != "training"
+			gameMode != GameMode.TeamElimination && (level != "training" || level != "training2")
 		) {
 			int[] teamSizes = GameMode.getAllianceCounts(players, teamNum);
 			int biggerTeam = teamSizes.Max();
 			int smallerTeam = teamSizes.Min();
 			// Check if a team has +2 characters than other team to move 1.
-			bool areTeamsUnbalanced = (biggerTeam - 1 >= smallerTeam);
+			bool areTeamsUnbalanced = biggerTeam - 1 >= smallerTeam;
 
 			if (playerToAutobalance != null) {
 				// Player left match
@@ -369,7 +369,7 @@ public class Server {
 		return Array.IndexOf(teamSizes, smallerTeam);
 	}
 
-	public ServerPlayer selectPlayerToAutobalance(
+	public ServerPlayer? selectPlayerToAutobalance(
 		int allianceToChooseFrom, ServerPlayer? prioritizedAutobalancePlayer
 	) {
 		var pool = players.FindAll(p => p.alliance == allianceToChooseFrom && !p.isSpectator);
@@ -388,6 +388,12 @@ public class Server {
 			pool.ForEach(p => p.alreadyAutobalanced = false);
 		}
 		pool = pool.FindAll(p => !p.alreadyAutobalanced);
+		if (pool.Count == 0) { 
+			pool = players.FindAll(p => p.alliance == allianceToChooseFrom && !p.isSpectator);
+		}
+		if (pool.Count == 0) {
+			return null;
+		}
 		return pool.GetRandomItem();
 	}
 
@@ -753,10 +759,13 @@ public class Server {
 		} else if (s_server.Connections.Count > 0) {
 			NetOutgoingMessage om;
 			if (host != null && host.connection == im.SenderConnection) {
-				// Host promotion: find the first non-bot player and promote them to host
-				host = players.FirstOrDefault(p => !p.isBot);
+				// Host promotion: find the first non-bot player and promote them to host.
+				// Only do if server is P2P tho.
+				if (!isP2P) {
+					host = players.FirstOrDefault(p => !p.isBot);
+				}
+				// Host found: send this message to clients and make all bot share the host's connection.
 				if (host != null) {
-					// Host found: send this message to clients and make all bot share the host's connection.
 					host.isHost = true;
 					foreach (var player in players) {
 						if (player.isBot) {
@@ -773,7 +782,7 @@ public class Server {
 					}
 					periodicPing(s_server);
 				} else {
-					// No host found: shut down server, everyone left
+					// No host found: shut down server, everyone left or was P2P.
 					shutdown("All players left, shutting down server.");
 					return;
 				}
@@ -847,7 +856,7 @@ public class Server {
 				int charNum = bytes[0];
 				int team = bytes[1];
 
-				if (charNum == 255) charNum = Helpers.randomRange(0, 3);
+				if (charNum == 255) charNum = Helpers.randomRange((int)CharIds.X, (int)CharIds.BusterZero);
 				int? preferredAlliance = null;
 
 				if (team >= 0 && team <= teamNum) {

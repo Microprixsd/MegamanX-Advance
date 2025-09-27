@@ -21,8 +21,8 @@ public class TornadoFang : Weapon {
 		damage = "1/1";
 		effect = "Inflicts Slowdown. Doesn't destroy on hit.\nUncharged won't give assists.";
 		hitcooldown = "15/8";
-		Flinch = "0/26";
-		FlinchCD = "0/1";
+		flinch = "0/26";
+		flinchCD = "0/1";
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {

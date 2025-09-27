@@ -88,7 +88,7 @@ public class XHover : XState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		character.stopMovingWeak();
+		character.stopMoving();
 		startXDir = character.xDir;
 		if (stateTime <= 0.1f) {
 			sound = character.playSound("uahover", forcePlay: false, sendRpc: true);
@@ -139,14 +139,14 @@ public class LightDash : CharState {
 			shootSprite = "dash_end_shoot";
 			character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
 		}
-		if (dashTime <= 3 || stop) {
+		if (dashTime < 4 || stop) {
 			if (inputXDir != 0 && inputXDir != dashDir) {
 				character.xDir = (int)inputXDir;
 				dashDir = character.xDir;
 			}
 		}
 		// Dash regular speed.
-		if (dashTime > 3 && !stop) {
+		if (dashTime >= 4 && !stop) {
 			character.move(new Point(character.getDashSpeed() * 1.15f * dashDir, 0));
 		}
 		// End move.
@@ -249,14 +249,14 @@ public class GigaAirDash : CharState {
 			shootSprite = "dash_end_shoot";
 			character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
 		}
-		if (dashTime <= 3 || stop) {
+		if (dashTime < 4 || stop) {
 			if (inputXDir != 0 && inputXDir != dashDir) {
 				character.xDir = (int)inputXDir;
 				dashDir = character.xDir;
 			}
 		}
 		// Dash regular speed.
-		if (dashTime > 3 && !stop || stop && dashHeld) {
+		if (dashTime >= 4 && !stop || stop && dashHeld) {
 			character.move(new Point(character.getDashSpeed() * 1.15f * dashDir, 0));
 		}
 		// Dash start and end while hold.
@@ -389,7 +389,7 @@ public class X2ChargeShot : CharState {
 	MegamanX mmx = null!;
 
 	public X2ChargeShot(Weapon? weaponOverride, int shootNum) : base("cross_shot") {
-		this.shootNum = shootNum;
+		this.shootNum = shootNum % 2;
 		this.weaponOverride = weaponOverride;
 		useDashJumpSpeed = true;
 		airMove = true;
@@ -411,24 +411,19 @@ public class X2ChargeShot : CharState {
 			fired = true;
 			if (shootNum == 0) {
 				weapon.shoot(mmx, [4, 0]);
-				weapon.shootCooldown = weapon.fireRate;
-				mmx.shootCooldown = weapon.fireRate;
-				if (weapon.shootSounds[3] != "") {
-					character.playSound(weapon.shootSounds[3], sendRpc: true);
-				}
-				weapon.addAmmo(-weapon.getAmmoUsageEX(3, character), player);
-				mmx.stockedTime = 0;
 			} else {
-				mmx.stockedBuster = false;
 				weapon.shoot(mmx, [4, 1]);
-				weapon.shootCooldown = weapon.fireRate;
-				mmx.shootCooldown = weapon.fireRate;
-				if (weapon.shootSounds[3] != "") {
-					character.playSound(weapon.shootSounds[3], sendRpc: true);
-				}
-				weapon.addAmmo(-weapon.getAmmoUsageEX(3, character), player);
-				mmx.stockedTime = 0;
 			}
+			if (mmx.stockedBusterLv >= 1) {
+				mmx.stockedBusterLv--;
+			}
+			weapon.shootCooldown = weapon.fireRate;
+			mmx.shootCooldown = weapon.fireRate;
+			if (weapon.shootSounds[3] != "") {
+				character.playSound(weapon.shootSounds[3], sendRpc: true);
+			}
+			weapon.addAmmo(-weapon.getAmmoUsageEX(3, character), player);
+			mmx.stockedTime = 0;
 		}
 		if (character.isAnimOver()) {
 			if (shootNum == 0 && pressFire) {
@@ -551,6 +546,9 @@ public class X3ChargeShot : CharState {
 				);
 			}
 			mmx.stockedTime = 0;
+			if (mmx.stockedMaxBusterLv >= 1) {
+				mmx.stockedMaxBusterLv--;
+			}
 		}
 		if (character.isAnimOver()) {
 			if (state == 0 && pressFire) {
@@ -591,10 +589,7 @@ public class X3ChargeShot : CharState {
 		if (mmx == null) {
 			throw new NullReferenceException();
 		}
-		if (!mmx.stockedMaxBuster) {
-			if (hyperBusterWeapon == null) {
-				mmx.stockedMaxBuster = true;
-			}
+		if (mmx.stockedMaxBusterLv >= 2) {
 			sprite = "cross_shot";
 			defaultSprite = sprite;
 			landSprite = "cross_shot";
@@ -602,8 +597,7 @@ public class X3ChargeShot : CharState {
 				sprite = "cross_air_shot";
 			}
 			character.changeSpriteFromName(sprite, true);
-		} else {
-			mmx.stockedMaxBuster = false;
+		} else if (mmx.stockedMaxBusterLv >= 1) { //might not be correct
 			state = 1;
 			sprite = "cross_shot2";
 			defaultSprite = sprite;
@@ -616,13 +610,29 @@ public class X3ChargeShot : CharState {
 	}
 
 	public override void onExit(CharState? newState) {
-		if (state == 0) {
-			mmx.stockedMaxBuster = true;
-		} else {
-			mmx.stockedMaxBuster = false;
-		}
 		character.shootAnimTime = 0;
 		mmx.stockedTime = 0;
 		base.onExit(newState);
+	}
+}
+public class XTaunt : CharState {
+	public XTaunt() : base("win") {
+
+	}
+	public override void update() {
+		base.update();
+		if (stateTime >= 30f/60f && !Global.level.gameMode.playerWon(player)) {
+			character.changeToIdleOrFall();
+		}
+		if (!once) {
+			once = true;
+			character.playSound("ching", sendRpc: true);
+			new Anim(
+				character.pos.addxy(character.xDir * 4, -22f),
+				"zero_ching", -character.xDir,
+				player.getNextActorNetId(),
+				destroyOnEnd: true, sendRpc: true
+			);
+		}
 	}
 }

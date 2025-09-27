@@ -8,7 +8,7 @@ namespace MMXOnline;
 
 public partial class Player {
 	public List<Weapon> weapons => character?.weapons ?? oldWeapons;
-	public List<Weapon> oldWeapons = new();
+	public List<Weapon> oldWeapons = [];
 
 	public int weaponSlot {
 		get => character?.weaponSlot ?? 0;
@@ -20,12 +20,6 @@ public partial class Player {
 	public Weapon? weapon => character?.currentWeapon;
 
 	public Weapon? lastHudWeapon = null;
-
-	public AxlWeapon? axlWeapon {
-		get {
-			return weapon as AxlWeapon;
-		}
-	}
 
 	public MaverickWeapon? maverickWeapon {
 		get { return weapon as MaverickWeapon; }
@@ -45,6 +39,7 @@ public partial class Player {
 		}
 	}
 
+	/// <summary> Returns the current manually-controlled maverick. </summary>
 	public MaverickWeapon? currentMaverickWeapon {
 		get {
 			if (character == null) {
@@ -59,22 +54,7 @@ public partial class Player {
 		}
 	}
 
-	public Maverick? currentMaverick {
-		get {
-			Weapon? mw = weapons.FirstOrDefault(
-				w => w is MaverickWeapon mw && mw.maverick?.aiBehavior == MaverickAIBehavior.Control
-			);
-			return (mw as MaverickWeapon)?.maverick;
-		}
-	}
-
-	public bool shouldBlockMechSlotScroll() {
-		if (character is Vile { isVileMK5: true, linkedRideArmor: not null }) {
-			return false;
-		}
-		return Options.main.blockMechSlotScroll;
-		
-	}
+	public Maverick? currentMaverick => character?.currentMaverick;
 
 	public bool gridModeHeld;
 	public Point gridModePos = new Point();
@@ -123,50 +103,32 @@ public partial class Player {
 		}
 
 		if (input.isPressed(Control.WeaponLeft, this)) {
-			if (isDisguisedAxl && isZero && input.isHeld(Control.Down, this)) return;
 			weaponLeft();
 		} else if (input.isPressed(Control.WeaponRight, this)) {
-			if (isDisguisedAxl && isZero && input.isHeld(Control.Down, this)) return;
 			weaponRight();
 		} else if (character != null && !Control.isNumberBound(realCharNum, Options.main.axlAimMode)) {
-			if (weapon is MechMenuWeapon mmw &&
-				character.linkedRideArmor == null &&
-				shouldBlockMechSlotScroll()
-			) {
-				if (input.isPressed(Key.Num1, canControl)) {
-					selectedRAIndex = 0;
-					character.onMechSlotSelect(mmw);
-				} else if (input.isPressed(Key.Num2, canControl)) {
-					selectedRAIndex = 1;
-					character.onMechSlotSelect(mmw);
-				} else if (input.isPressed(Key.Num3, canControl)) {
-					selectedRAIndex = 2;
-					character.onMechSlotSelect(mmw);
-				} else if (input.isPressed(Key.Num4, canControl)) {
-					selectedRAIndex = 3;
-					character.onMechSlotSelect(mmw);
-				} else if (input.isPressed(Key.Num5, canControl)) {
-					selectedRAIndex = 4;
-					character.onMechSlotSelect(mmw);
-				}
-			} else {
-				if (input.isPressed(Key.Num1, canControl) && weapons.Count >= 1) {
-					changeWeaponSlot(0);
-					if (isVile && weapon is MechMenuWeapon mmw2 && shouldBlockMechSlotScroll()) {
-						character.onMechSlotSelect(mmw2);
-					}
-				} else if (input.isPressed(Key.Num2, canControl) && weapons.Count >= 2) {
-					changeWeaponSlot(1);
-					if (isVile && weapon is MechMenuWeapon mmw2 && shouldBlockMechSlotScroll()) {
-						character.onMechSlotSelect(mmw2);
-					}
-				} else if (input.isPressed(Key.Num3, canControl) && weapons.Count >= 3) {
-					changeWeaponSlot(2);
-					if (isVile && weapon is MechMenuWeapon mmw2 && shouldBlockMechSlotScroll()) {
-						character.onMechSlotSelect(mmw2);
-					}
-				} else if (input.isPressed(Key.Num4, canControl) && weapons.Count >= 4) { changeWeaponSlot(3); } else if (input.isPressed(Key.Num5, canControl) && weapons.Count >= 5) { changeWeaponSlot(4); } else if (input.isPressed(Key.Num6, canControl) && weapons.Count >= 6) { changeWeaponSlot(5); } else if (input.isPressed(Key.Num7, canControl) && weapons.Count >= 7) { changeWeaponSlot(6); } else if (input.isPressed(Key.Num8, canControl) && weapons.Count >= 8) { changeWeaponSlot(7); } else if (input.isPressed(Key.Num9, canControl) && weapons.Count >= 9) { changeWeaponSlot(8); } else if (input.isPressed(Key.Num0, canControl) && weapons.Count >= 10) { changeWeaponSlot(9); }
+			if (input.isPressed(Key.Num1, canControl) && weapons.Count >= 1) {
+				changeWeaponSlot(0);
+			} else if (input.isPressed(Key.Num2, canControl) && weapons.Count >= 2) {
+				changeWeaponSlot(1);
+			} else if (input.isPressed(Key.Num3, canControl) && weapons.Count >= 3) {
+				changeWeaponSlot(2);
+			} else if (input.isPressed(Key.Num4, canControl) && weapons.Count >= 4) {
+				changeWeaponSlot(3);
+			} else if (input.isPressed(Key.Num5, canControl) && weapons.Count >= 5) {
+				changeWeaponSlot(4);
+			} else if (input.isPressed(Key.Num6, canControl) && weapons.Count >= 6) {
+				changeWeaponSlot(5);
+			} else if (input.isPressed(Key.Num7, canControl) && weapons.Count >= 7) {
+				changeWeaponSlot(6);
+			} else if (input.isPressed(Key.Num8, canControl) && weapons.Count >= 8) {
+				changeWeaponSlot(7);
+			} else if (input.isPressed(Key.Num9, canControl) && weapons.Count >= 9) {
+				changeWeaponSlot(8);
+			} else if (input.isPressed(Key.Num0, canControl) && weapons.Count >= 10) {
+				changeWeaponSlot(9);
 			}
+		
 		}
 	}
 
@@ -248,12 +210,10 @@ public partial class Player {
 label:
 		if (ws < 0) {
 			ws = weapons.Count - 1;
-			if (shouldBlockMechSlotScroll() && isVile && weapons.ElementAtOrDefault(ws) is MechMenuWeapon) {
-				ws--;
-				if (ws < 0) ws = 0;
-			}
 		}
-		if ((weapons.ElementAtOrDefault(ws) is GigaCrush && Options.main.gigaCrushSpecial) || (weapons.ElementAtOrDefault(ws) is HyperNovaStrike && Options.main.novaStrikeSpecial)) {
+		if ((weapons.ElementAtOrDefault(ws) is GigaCrush && Options.main.gigaCrushSpecial) ||
+			(weapons.ElementAtOrDefault(ws) is HyperNovaStrike && Options.main.novaStrikeSpecial)
+		) {
 			ws--;
 			goto label;
 		}
@@ -264,9 +224,6 @@ label:
 		int ws = weaponSlot + 1;
 label:
 		int max = weapons.Count;
-		if (shouldBlockMechSlotScroll() && isVile && weapons.ElementAtOrDefault(max - 1) is MechMenuWeapon) {
-			max--;
-		}
 		if (ws >= max) {
 			ws = 0;
 		}
@@ -284,12 +241,8 @@ label:
 
 	public void configureWeapons(Character character) {
 		// Save weapons for cross-life maverick HP if not an Axl.
-		List<Weapon> weapons = character.weapons;
-		if (disguise == null) {
+		if (!character.isATrans) {
 			oldWeapons = character.weapons;
-		}
-		if (ownedByLocalPlayer && character is BaseSigma && weapons.Count == 3) {
-			character.weaponSlot = Options.main.sigmaWeaponSlot;
 		}
 	}
 
@@ -380,7 +333,7 @@ label:
 		}
 		foreach (var weapon in character.weapons) {
 			weapon.update();
-			if (character != null && health > 0) {
+			if (character != null && character.alive) {
 				bool alwaysOn = false;
 				if (weapon is GigaCrush && Options.main.gigaCrushSpecial ||
 					weapon is HyperNovaStrike && Options.main.novaStrikeSpecial

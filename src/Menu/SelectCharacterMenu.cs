@@ -24,7 +24,10 @@ public class PlayerCharData {
 }
 
 public enum CharIds {
-	X,
+	// Null stage char.
+	Stage = -1,
+	// Real char.
+	X = 0,
 	Zero,
 	Vile,
 	Axl,
@@ -298,7 +301,7 @@ public class SelectCharacterMenu : IMainMenu {
 
 		// Draw text
 
-		if (Global.frameCount % 60 < 30) {
+		if (Global.flFrameCount % 60 < 30) {
 			Fonts.drawText(
 				FontType.Orange, "<", Global.halfScreenW - 60, Global.halfScreenH + 36,
 				Alignment.Center

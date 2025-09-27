@@ -10,12 +10,33 @@ using static SFML.Window.Keyboard;
 namespace MMXOnline;
 
 public partial class Player {
+	public static Player stagePlayer = new Player(
+		"Stage", 255, -1,
+		new PlayerCharData() { charNum = -1 },
+		false, true, GameMode.neutralAlliance,
+		new Input(false),
+		new ServerPlayer(
+			"Stage", 255, false,
+			-1, GameMode.neutralAlliance, "NULL", null, 0
+		)
+	);
+	public static Player errorPlayer = new Player(
+		"Error", 255, -1,
+		new PlayerCharData() { charNum = -1 },
+		false, false, GameMode.neutralAlliance,
+		new Input(false),
+		new ServerPlayer(
+			"Error", 255, false,
+			-1, GameMode.neutralAlliance, "NULL", null, 0
+		)
+	);
+	
+	
 	public SpawnPoint? firstSpawn;
 	public Input input;
 	public Character? character;
 	public Character lastCharacter;
 	public bool ownedByLocalPlayer;
-	public int? awakenedCurrencyEnd;
 	public float hadoukenAmmo = 1920;
 	public float shoryukenAmmo = 1920;
 	public float fgMoveMaxAmmo = 1920;
@@ -62,19 +83,15 @@ public partial class Player {
 		return ping.Value;
 	}
 
-	public Character preTransformedAxl;
-	public bool isDisguisedAxl {
-		get {
-			return disguise != null;
-		}
-	}
+	public Character? preTransformedChar;
+	public bool isDisguisedAxl => character?.isATrans == true;
 	public List<Weapon> savedDNACoreWeapons = new List<Weapon>();
 	public int axlBulletType;
 	public List<bool> axlBulletTypeBought = new List<bool>() { true, false, false, false, false, false, false };
 	public List<float> axlBulletTypeAmmo = new List<float>() { 0, 0, 0, 0, 0, 0, 0 };
 	public List<float> axlBulletTypeLastAmmo = new List<float>() { 32, 32, 32, 32, 32, 32, 32 };
 	public int lastDNACoreIndex = 4;
-	public DNACore lastDNACore;
+	public DNACore? lastDNACore;
 	
 	public float zoomRange {
 		get {
@@ -82,7 +99,7 @@ public partial class Player {
 			return Global.viewScreenW * 2.5f;
 		}
 	}
-	public RaycastHitData assassinHitPos;
+	public RaycastHitData? assassinHitPos;
 
 	public bool canUpgradeXArmor() {
 		return (realCharNum == 0);
@@ -101,7 +118,6 @@ public partial class Player {
 	public bool lastDeathWasVileMK2;
 	public bool lastDeathWasVileV;
 	public bool lastDeathWasSigmaHyper;
-	public bool lastDeathWasXHyper;
 	public const int zeroHyperCost = 10;
 	public const int zBusterZeroHyperCost = 8;
 	public const int AxlHyperCost = 10;
@@ -121,12 +137,8 @@ public partial class Player {
 	public MaverickAIBehavior currentMaverickCommand;
 
 	public bool isX { get { return charNum == (int)CharIds.X; } }
-	public bool isZero { get { return charNum == (int)CharIds.Zero; } }
-	public bool isVile { get { return charNum == (int)CharIds.Vile; } }
 	public bool isAxl { get { return charNum == (int)CharIds.Axl; } }
 	public bool isSigma { get { return charNum == (int)CharIds.Sigma; } }
-
-	public float healthBackup;
 
 	public float health {
 		get => (float)(character?.health ?? 0);
@@ -154,7 +166,7 @@ public partial class Player {
 
 	public bool isDead {
 		get {
-			if (isSigma && currentMaverick != null) {
+			if (currentMaverick != null) {
 				return false;
 			}
 			if (character == null) return true;
@@ -253,6 +265,14 @@ public partial class Player {
 			charSubTanks[localNum] = value;
 		}
 	}
+
+	public int getHeartTanks(int charId) {
+		if (Global.level.mainPlayer != this || Global.serverClient == null) {
+			return heartTanksMap.quickVal(charId);
+		}
+		return heartTanksMap[charId];
+	}
+
 	public int heartTanks {
 		get {
 			int localNum = charNum;
@@ -283,7 +303,7 @@ public partial class Player {
 	public const int maxCharCurrencyId = 12;
 	public static int curMul = Helpers.randomRange(2, 8);
 
-	public ProtectedArrayInt charCurrency = new ProtectedArrayInt(maxCharCurrencyId);
+	public ProtectedIntMap<int> charCurrency = [];
 	public int currency {
 		get {
 			int localNum = charNum;
@@ -376,7 +396,6 @@ public partial class Player {
 	public bool loadoutSet;
 	public LoadoutData previousLoadout;
 	public LoadoutData? atransLoadout;
-	public AxlLoadout axlLoadout { get { return loadout.axlLoadout; } }
 
 	public bool frozenCastlePurchased;
 	public bool speedDevilPurchased;
@@ -387,18 +406,23 @@ public partial class Player {
 	public bool speedDevil;
 
 	public Disguise? disguise;
-
-	public int newAlliance;     // Not sure what this is useful for, seems like a pointless clone of alliance that needs to be kept in sync
+	
+	// Not sure what this is useful for,
+	// seems like a pointless clone of alliance that needs to be kept in sync.
+	public int newAlliance;
 
 	// Things that ServerPlayer already has
 	public string name;
 	public int id;
-	public int alliance;    // Only set on spawn with data read from ServerPlayer alliance. The ServerPlayer alliance changes earlier on team change/autobalance
 	public int charNum;
+	// Only set on spawn with data read from ServerPlayer alliance.
+	// The ServerPlayer alliance changes earlier on team change/autobalance.
+	public int alliance;
 
 	public int newCharNum;
 	public int? delayedNewCharNum;
 	public int? ping;
+
 	public void syncFromServerPlayer(ServerPlayer serverPlayer) {
 		if (!this.serverPlayer.isHost && serverPlayer.isHost) {
 			promoteToHost();
@@ -417,10 +441,14 @@ public partial class Player {
 				new ChatEntry(
 					name + " was autobalanced to " +
 					GameMode.getTeamName(serverPlayer.autobalanceAlliance.Value), "", null, true
-				), true);
+				), true
+			);
 			forceKill();
-			currency += 5;
-			Global.serverClient?.rpc(RPC.switchTeam, RPCSwitchTeam.getSendMessage(id, serverPlayer.autobalanceAlliance.Value));
+			currency += 5 * Global.customSettings?.currencyGain ?? 1;
+			Global.serverClient?.rpc(
+				RPC.switchTeam,
+				RPCSwitchTeam.getSendMessage(id, serverPlayer.autobalanceAlliance.Value)
+			);
 			newAlliance = serverPlayer.autobalanceAlliance.Value;
 		}
 	}
@@ -471,20 +499,16 @@ public partial class Player {
 
 
 	// Character specific data populated on RPC request
-	public ushort? charNetId;
-	public ushort? charRollingShieldNetId;
-	public float charXPos;
-	public float charYPos;
-	public int charXDir;
+	//public ushort? charNetId;
+	//public ushort? charRollingShieldNetId;
+	//public float charXPos;
+	//public float charYPos;
+	//public int charXDir;
 	public Dictionary<int, int> charNumToKills = new Dictionary<int, int>() {
 	};
 
 	public int hyperChargeSlot;
 	public int xArmor1v1;
-	public float vileAmmo = 32;
-	public float vileMaxAmmo = 32;
-	public float sigmaAmmo = 32;
-	public float sigmaMaxAmmo = 32;
 	public int? maverick1v1;
 	public bool maverick1v1Spawned;
 
@@ -508,10 +532,6 @@ public partial class Player {
 
 	public float lastMashAmount;
 	public int lastMashAmountSetFrame;
-
-	public bool isNon1v1MaverickSigma() {
-		return isSigma && maverick1v1 == null;
-	}
 
 	public bool is1v1MaverickX1() {
 		return maverick1v1 <= 8;
@@ -599,14 +619,23 @@ public partial class Player {
 		newAlliance = alliance;
 		this.isAI = isAI;
 
-		if (getSameCharNum() != -1) charNum = getSameCharNum();
+		// Iterate over each charID and populate.
+		foreach (int i in Enum.GetValues(typeof(CharIds)).Cast<int>()) {
+			heartTanksMap[i] = 0;
+			charCurrency[i] = 0;
+			subTanksMap[i] = [];
+		}
+
+		if (getSameCharNum() != -1) {
+			charNum = getSameCharNum();
+		}
 		if (charNum >= 210) {
 			if (Global.level.is1v1()) {
 				maverick1v1 = charNum - 210;
-				charNum = 4;
+				charNum = (int)CharIds.Sigma;
 			} else {
-				charNum = 4;
-				playerData.charNum = 4;
+				charNum = (int)CharIds.Sigma;
+				playerData.charNum = (int)CharIds.Sigma;
 			}
 		}
 		this.charNum = charNum;
@@ -615,34 +644,32 @@ public partial class Player {
 		this.input = input;
 		this.ownedByLocalPlayer = ownedByLocalPlayer;
 
-		this.xArmor1v1 = playerData?.armorSet ?? 1;
-		if (Global.level.is1v1() && isX) {
+		xArmor1v1 = playerData?.armorSet ?? 1;
+		if (Global.level.is1v1() && charNum == (int)CharIds.X) {
 			legArmorNum = xArmor1v1;
 			bodyArmorNum = xArmor1v1;
 			helmetArmorNum = xArmor1v1;
 			armArmorNum = xArmor1v1;
 		}
 
-		for (int i = 0; i < charCurrency.Length; i++) {
-			charCurrency[i] = getStartCurrency();
+		foreach (int key in charCurrency.Keys) {
+			charCurrency[key] = getStartCurrency();
 		}
-		foreach (var key in charHeartTanks.Keys) {
+		foreach (int key in heartTanksMap.Keys) {
 			int htCount = getStartHeartTanksForChar();
 			int altHtCount = getStartHeartTanks();
 			if (altHtCount > htCount) {
 				htCount = altHtCount;
 			}
-			charHeartTanks[key].value = htCount;
+			heartTanksMap[key] = htCount;
 		}
-		foreach (var key in charSubTanks.Keys) {
+		foreach (int key in subTanksMap.Keys) {
 			int stCount = key == charNum ? getStartSubTanksForChar() : getStartSubTanks();
 			for (int i = 0; i < stCount; i++) {
-				charSubTanks[key].Add(new SubTank());
+				subTanksMap[key].Add(new SubTank());
 			}
 		}
-
-		maxHealth = getMaxHealth();
-		health = maxHealth;
+		_maxHealth = getMaxHealth();
 
 		aiArmorPath = new List<int>() { 1, 2, 3 }.GetRandomItem();
 		aiArmorUpgradeOrder = new List<int>() { 0, 1, 2, 3 }.Shuffle();
@@ -660,15 +687,14 @@ public partial class Player {
 		}
 
 		is1v1Combatant = !isSpectator;
-		maxHealth = getMaxHealth();
 	}
 
-	public int getHeartTankModifier() {
+	public static int getHeartTankModifier() {
 		return Global.level.server?.customMatchSettings?.heartTankHp ?? 1;
 	}
 
-	public float getMaverickMaxHp() {
-		if (!Global.level.is1v1() && isTagTeam()) {
+	public float getMaverickMaxHp(MaverickModeId controlMode) {
+		if (!Global.level.is1v1() && controlMode == MaverickModeId.TagTeam) {
 			return getModifiedHealth(20) + (heartTanks * getHeartTankModifier());
 		}
 		return MathF.Ceiling(getModifiedHealth(24));
@@ -685,29 +711,24 @@ public partial class Player {
 		return 16;
 	}
 
-	public static float getModifiedHealth(float health) {
+	public static int getModifiedHealth(float health) {
 		if (Global.level.server.customMatchSettings != null) {
 			float retHp = getBaseHealth();
 			float extraHP = health - 16;
 
-			float hpMulitiplier = MathF.Ceiling(getBaseHealth() / 16);
-			retHp += MathF.Ceiling(extraHP * hpMulitiplier);
+			//float hpMulitiplier = MathF.Ceiling(getBaseHealth() / 16);
+			//retHp += MathF.Ceiling(extraHP + hpMulitiplier);
+			retHp += MathF.Ceiling(extraHP);
 
 			if (retHp < 1) {
 				retHp = 1;
 			}
-			return retHp;
+			return MathInt.Ceiling(retHp);
 		}
-		return health;
+		return MathInt.Ceiling(health);
 	}
 
 	public float getDamageModifier() {
-		if (Global.level.server.customMatchSettings != null) {
-			/*if (Global.level.gameMode.isTeamMode && alliance == GameMode.redAlliance) {
-				return Global.level.server.customMatchSettings.redDamageModifier;
-			}*/
-			return Global.level.server.customMatchSettings.damageModifier;
-		}
 		return 1;
 	}
 
@@ -717,8 +738,8 @@ public partial class Player {
 			return getModifiedHealth(28);
 		}
 		int bonus = 0;
-		if (isSigma && isPuppeteer()) {
-			bonus = 4;
+		if (isSigma) {
+			bonus = 6;
 		}
 		return MathF.Ceiling(
 			getModifiedHealth(16 + bonus) + (heartTanks * getHeartTankModifier())
@@ -890,12 +911,9 @@ public partial class Player {
 		vileFormToRespawnAs = 0;
 		hyperSigmaRespawn = false;
 
-		if (isVile) {
+		if (character is Vile vile) {
 			if (isSelectingRA()) {
-				int maxRAIndex = 3;
-				if (character is Vile vile && !vile.isVileMK1) {
-					maxRAIndex = 4;
-				}
+				int maxRAIndex = vile.isVileMK1 ? 3 : 4;
 				if (input.isPressedMenu(Control.MenuDown)) {
 					selectedRAIndex--;
 					if (selectedRAIndex < 0) selectedRAIndex = maxRAIndex;
@@ -912,8 +930,9 @@ public partial class Player {
 					reviveVile(true);
 				}
 			}
-		} else if (isSigma) {
-			if (isSelectingCommand()) {
+		}
+		else if (character is BaseSigma) {
+			/*if (isSelectingCommand()) {
 				if (maverickWeapon.selCommandIndexX == 1) {
 					if (input.isPressedMenu(Control.MenuDown)) {
 						maverickWeapon.selCommandIndex--;
@@ -922,22 +941,19 @@ public partial class Player {
 						}
 					} else if (input.isPressedMenu(Control.MenuUp)) {
 						maverickWeapon.selCommandIndex++;
-						if (maverickWeapon.selCommandIndex > MaverickWeapon.maxCommandIndex) maverickWeapon.selCommandIndex = 1;
+						if (maverickWeapon.selCommandIndex > MaverickWeapon.maxCommandIndex) {
+							maverickWeapon.selCommandIndex = 1;
+						}
 					}
 
-					/*
-					if (maverickWeapon.selCommandIndex == 2)
-					{
-						if (input.isPressedMenu(Control.Left))
-						{
+					if (maverickWeapon.selCommandIndex == 2) {
+						if (input.isPressedMenu(Control.Left)) {
 							maverickWeapon.selCommandIndexX--;
 						}
-						else if (input.isPressedMenu(Control.Right))
-						{
+						else if (input.isPressedMenu(Control.Right)) {
 							maverickWeapon.selCommandIndexX++;
 						}
 					}
-					*/
 				} else {
 					if (input.isPressedMenu(Control.Left) && maverickWeapon.selCommandIndexX == 2) {
 						maverickWeapon.selCommandIndexX = 1;
@@ -946,16 +962,16 @@ public partial class Player {
 					}
 				}
 			}
-
+			*/
 			if (canReviveSigma(out var spawnPoint, 2) &&
 				(input.isPressed(Control.Special2, this) ||
 				Global.level.isHyper1v1() ||
 				Global.shouldAiAutoRevive
 			)
 			) {
-				//reviveSigma(2, spawnPoint);
+				reviveSigma(2, spawnPoint);
 			}
-		} else if (isX) {
+		} else if (character is MegamanX) {
 			if (canReviveX() && (input.isPressed(Control.Special2, this) || Global.shouldAiAutoRevive)) {
 				reviveX();
 			}
@@ -984,7 +1000,7 @@ public partial class Player {
 
 				if (Global.level.gameMode is TeamDeathMatch && Global.level.teamNum > 2 && warpedInOnce) {
 					List<Player> spawnPoints = Global.level.players.FindAll(
-						p => p.teamAlliance == teamAlliance && p.health > 0 && p.character != null
+						p => p.teamAlliance == teamAlliance && p.character?.alive == true
 					);
 					if (spawnPoints.Count != 0) {
 						Character randomChar = spawnPoints[Helpers.randomRange(0, spawnPoints.Count - 1)].character!;
@@ -1059,11 +1075,14 @@ public partial class Player {
 	}
 
 	
-	public byte[] getCharSpawnData(int charNum) {
-		if (ownedByLocalPlayer) {
+	public byte[] getCharSpawnData(int charNum, bool sendData = true, LoadoutData? loadout = null) {
+		if (ownedByLocalPlayer && sendData) {
 			applyLoadoutChange();
 			syncLoadout();
 		}
+		// Loadout null check.
+		loadout ??= this.loadout;
+		// Get data.
 		if (charNum == (int)CharIds.X) {
 			return [
 				(byte)loadout.xLoadout.weapon1,
@@ -1076,13 +1095,15 @@ public partial class Player {
 			return [
 				(byte)loadout.axlLoadout.weapon2,
 				(byte)loadout.axlLoadout.weapon3,
+				(byte)loadout.axlLoadout.hyperMode
 			];
 		}
 		if (charNum == (int)CharIds.Sigma) {
 			return [
 				(byte)loadout.sigmaLoadout.sigmaForm,
 				(byte)loadout.sigmaLoadout.maverick1,
-				(byte)loadout.sigmaLoadout.maverick2
+				(byte)loadout.sigmaLoadout.maverick2,
+				(byte)loadout.sigmaLoadout.commandMode
 			];
 		}
 		if (charNum == (int)CharIds.SoulBodyClone) {
@@ -1111,8 +1132,14 @@ public partial class Player {
 		}
 
 		// ONRESPAWN, SPAWN, RESPAWN, ON RESPAWN, ON SPAWN LOGIC, SPAWNLOGIC
-		charNum = spawnCharNum;
 		if (isMainChar) {
+			charNum = (CharIds)spawnCharNum switch {
+				CharIds.RagingChargeX => (int)CharIds.X,
+				CharIds.WolfSigma => (int)CharIds.Sigma,
+				CharIds.ViralSigma => (int)CharIds.Sigma,
+				CharIds.KaiserSigma => (int)CharIds.Sigma,
+				_ => spawnCharNum
+			};
 			if (isMainPlayer) {
 				previousLoadout = loadout;
 				applyLoadoutChange();
@@ -1129,29 +1156,10 @@ public partial class Player {
 				);
 			}
 		}
-		int sigmaForm = 0;
-		if (charNum == (int)CharIds.Sigma) {
-			sigmaForm = extraData[0];
-			loadout.sigmaLoadout.sigmaForm = extraData[0];
-			loadout.sigmaLoadout.maverick1 = extraData[1];
-			loadout.sigmaLoadout.maverick2 = extraData[2];
-			if (sigmaForm == 0) {
-				sigmaMaxAmmo = 20;
-				sigmaAmmo = sigmaMaxAmmo;
-			} else if (sigmaForm == 1) {
-				sigmaMaxAmmo = 28;
-				sigmaAmmo = 0;
-			}
-		}
-		if (charNum == (int)CharIds.Axl) {
-			loadout.axlLoadout.weapon2 = extraData[0];
-			loadout.xLoadout.weapon3 = extraData[1];
-		}
-		maxHealth = getMaxHealth();
-		health = maxHealth;
 		assassinHitPos = null;
 
 		Character newChar;
+		int htCount = getHeartTanks(spawnCharNum);
 		// X
 		if (charNum == (int)CharIds.X) {
 			XLoadout xLoadout = new();
@@ -1170,14 +1178,15 @@ public partial class Player {
 			);
 		}
 		// Saber Zero.
-		else if (charNum == (int)CharIds.Zero) {
+		else if (spawnCharNum == (int)CharIds.Zero) {
 			newChar = new Zero(
 				this, pos.x, pos.y, xDir,
-				false, charNetId, ownedByLocalPlayer
+				false, charNetId, ownedByLocalPlayer,
+				heartTanks: htCount
 			);
 		}
 		// Vile.
-		else if (charNum == (int)CharIds.Vile) {
+		else if (spawnCharNum == (int)CharIds.Vile) {
 			bool mk2VileOverride = Global.level.isHyperMatch();
 
 			newChar = new Vile(
@@ -1186,14 +1195,28 @@ public partial class Player {
 			);
 		}
 		// GM19 Axl.
-		else if (charNum == (int)CharIds.Axl) {
+		else if (spawnCharNum == (int)CharIds.Axl) {
+			AxlLoadout axlLoadout = loadout?.axlLoadout?.clone() ?? new();
+			axlLoadout.weapon2 = extraData[0];
+			axlLoadout.weapon3 = extraData[1];
+			axlLoadout.hyperMode = extraData[2];
+
+			if (isMainChar) {
+				loadout.axlLoadout = axlLoadout;
+			}
 			newChar = new Axl(
 				this, pos.x, pos.y, xDir,
 				false, charNetId, ownedByLocalPlayer
 			);
 		}
 		// Sigma.
-		else if (charNum == (int)CharIds.Sigma) {
+		else if (spawnCharNum == (int)CharIds.Sigma) {
+			int sigmaForm = extraData[0];
+			loadout.sigmaLoadout.sigmaForm = extraData[0];
+			loadout.sigmaLoadout.maverick1 = extraData[1];
+			loadout.sigmaLoadout.maverick2 = extraData[2];
+			loadout.sigmaLoadout.commandMode = extraData[3];
+
 			if (sigmaForm == 2) {
 				newChar = new Doppma(
 					this, pos.x, pos.y, xDir,
@@ -1212,28 +1235,28 @@ public partial class Player {
 			}
 		}
 		// Buster Zero.
-		else if (charNum == (int)CharIds.BusterZero) {
+		else if (spawnCharNum == (int)CharIds.BusterZero) {
 			newChar = new BusterZero(
 				this, pos.x, pos.y, xDir,
 				false, charNetId, ownedByLocalPlayer
 			);
 		}
 		// Punchy Zero.
-		else if (charNum == (int)CharIds.PunchyZero) {
+		else if (spawnCharNum == (int)CharIds.PunchyZero) {
 			newChar = new PunchyZero(
 				this, pos.x, pos.y, xDir,
 				false, charNetId, ownedByLocalPlayer
 			);
 		}
 		// Kaiser Sigma (Hypermode)
-		else if  (charNum == (int)CharIds.KaiserSigma) {
+		else if (spawnCharNum == (int)CharIds.KaiserSigma) {
 			newChar = new KaiserSigma(
 				this, pos.x, pos.y, xDir,
 				false, charNetId, ownedByLocalPlayer
 			);
 		}
 		// Raging Charge X.
-		else if  (charNum == (int)CharIds.RagingChargeX) {
+		else if (spawnCharNum == (int)CharIds.RagingChargeX) {
 			newChar = new RagingChargeX(
 				this, pos.x, pos.y, xDir,
 				false, charNetId, ownedByLocalPlayer
@@ -1241,7 +1264,7 @@ public partial class Player {
 		}
 		// Error out if invalid id.
 		else {
-			throw new Exception("Error: Non-valid char ID: " + charNum);
+			throw new Exception("Error: Non-valid char ID: " + spawnCharNum);
 		}
 		// Do this once char has spawned and is not null.
 		if (isMainChar) {
@@ -1253,6 +1276,9 @@ public partial class Player {
 		if (Global.level.isHyperMatch() && ownedByLocalPlayer) {
 			if (newChar is MegamanX mmx) {
 				mmx.hasUltimateArmor = true;
+				if (!weapons.Any(w => w is HyperNovaStrike)) {
+					weapons.Add(new HyperNovaStrike());
+				}
 			}
 			if (newChar is Zero zero) {
 				if (loadout.zeroLoadout.hyperMode == 0) {
@@ -1272,8 +1298,20 @@ public partial class Player {
 				} else {
 					axl.stingChargeTime = 8;
 					axl.hyperAxlUsed = true;
-					currency = 9999;
+					currency = 9999; //wat
 				}
+			}
+			if (newChar is PunchyZero pzero) {
+				if (pzero.loadout.hyperMode == 0) {
+					pzero.isBlack = true;
+				} else if (pzero.loadout.hyperMode == 1) {
+					pzero.awakenedPhase = 1;
+				} else {
+					pzero.isViral = true;
+				}
+			}
+			if (newChar is BusterZero bzero) {
+				bzero.isBlackZero = true;
 			}
 		}
 		if (isAI) {
@@ -1381,155 +1419,211 @@ public partial class Player {
 		return true;
 	}
 
-	public void transformAxlNet(RPCAxlDisguiseJson data) {
+	public Character startAtransNet(Character? oldChar, RPCAxlDisguiseJson data) {
+		if (oldChar == null) {
+			throw new Exception("Error, A-Trans activated on null character.");
+		}
 		disguise = new Disguise(data.targetName);
 		charNum = data.charNum;
 
-		// We temporally change loadout to populate it.
-		LoadoutData oldLoadout = loadout;
-		// If somehow even after all the safeguards fail we use the default one.
-		if (data.loadout == null) {
-			data.loadout = new();
-		}
-
-		loadout = data.loadout;
-		if (charNum == (int)CharIds.Sigma) {
-			int sigmaForm = data.extraData[0];
-			loadout.sigmaLoadout.sigmaForm = data.extraData[0];
-			loadout.sigmaLoadout.maverick1 = data.extraData[1];
-			loadout.sigmaLoadout.maverick2 = data.extraData[2];
-			if (sigmaForm == 0) {
-				sigmaMaxAmmo = 20;
-				sigmaAmmo = sigmaMaxAmmo;
-			} else if (sigmaForm == 1) {
-				sigmaMaxAmmo = 28;
-				sigmaAmmo = 0;
-			}
-		}
-		if (charNum == (int)CharIds.X) {
-			loadout.xLoadout.weapon1 = data.extraData[0];
-			loadout.xLoadout.weapon2 = data.extraData[1];
-			loadout.xLoadout.weapon3 = data.extraData[2];
-			loadout.xLoadout.melee = data.extraData[3];
-		}
-		if (charNum == (int)CharIds.Axl) {
-			loadout.axlLoadout.weapon2 = data.extraData[0];
-			loadout.xLoadout.weapon3 = data.extraData[1];
-		}
+		// If somehow even after all the safeguards fail we use the default loadout.
+		data.loadout ??= new();
+		// Set up A-Trans loadout.
+		atransLoadout = data.loadout;
+		LoadoutData atLoadout = atransLoadout;
 
 		// Change character.
-		Character? retChar = null;
+		Character? retChar;
+
+		// X.
 		if (data.charNum == (int)CharIds.X) {
+			if (charNum == (int)CharIds.X) {
+				atLoadout.xLoadout.weapon1 = data.extraData[0];
+				atLoadout.xLoadout.weapon2 = data.extraData[1];
+				atLoadout.xLoadout.weapon3 = data.extraData[2];
+				atLoadout.xLoadout.melee = data.extraData[3];
+			}
 			retChar = new MegamanX(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, data.dnaNetId, false, isWarpIn: false
-			);
-		} else if (data.charNum == (int)CharIds.Zero) {
-			retChar = new Zero(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, data.dnaNetId, false, isWarpIn: false
-			);
-		} else if (data.charNum == (int)CharIds.Vile) {
-			retChar = new Vile(
-				this, character.pos.x, character.pos.y, character.xDir,
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
 				true, data.dnaNetId, false, isWarpIn: false,
-				mk2VileOverride: data.extraData[0] == 1, mk5VileOverride: data.extraData[0] == 2
+				loadout: atLoadout.xLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
+			) {
+				hasUltimateArmor = data.extraData[2] == 1
+			};
+		}
+		// Saber Zero.
+		else if (data.charNum == (int)CharIds.Zero) {
+			retChar = new Zero(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, false, isWarpIn: false,
+				loadout: atLoadout.zeroLoadout.clone()
 			);
-		} else if (data.charNum == (int)CharIds.Axl) {
+		}
+		// Vile.
+		else if (data.charNum == (int)CharIds.Vile) {
+			retChar = new Vile(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, false, isWarpIn: false,
+				mk2VileOverride: data.extraData[0] == 1, mk5VileOverride: data.extraData[0] == 2,
+				loadout: atLoadout.vileLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
+		}
+		// Axl.
+		else if (data.charNum == (int)CharIds.Axl) {
+			AxlLoadout axlLoadout = new() {
+				weapon2 = data.extraData[0],
+				weapon3 = data.extraData[1],
+				hyperMode = data.extraData[2],
+			};
 			retChar = new Axl(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, data.dnaNetId, false, isWarpIn: false
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, false, isWarpIn: false,
+				loadout: axlLoadout,
+				heartTanks: oldChar.heartTanks, isATrans: true
 			);
-		} else if (data.charNum == (int)CharIds.Sigma) {
+		}
+		// Sigma.
+		else if (data.charNum == (int)CharIds.Sigma) {
+			SigmaLoadout sigmaLoadout = new() {
+				sigmaForm = data.extraData[0],
+				maverick1 = data.extraData[1],
+				maverick2 = data.extraData[2],
+				commandMode =  data.extraData[3]
+			};
 			if (data.extraData[0] == 2) {
 				retChar = new Doppma(
-					this, character.pos.x, character.pos.y, character.xDir,
-					true, data.dnaNetId, false, isWarpIn: false
+					this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+					true, data.dnaNetId, false, isWarpIn: false,
+					loadout: sigmaLoadout,
+					heartTanks: oldChar.heartTanks, isATrans: true
 				);
 			} else if (data.extraData[0] == 1) {
 				retChar = new NeoSigma(
-					this, character.pos.x, character.pos.y, character.xDir,
-					true, data.dnaNetId, false, isWarpIn: false
+					this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+					true, data.dnaNetId, false, isWarpIn: false,
+					loadout: sigmaLoadout,
+					heartTanks: oldChar.heartTanks, isATrans: true
 				);
 			} else {
 				retChar = new CmdSigma(
-					this, character.pos.x, character.pos.y, character.xDir,
-					true, data.dnaNetId, false, isWarpIn: false
+					this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+					true, data.dnaNetId, false, isWarpIn: false,
+					loadout: sigmaLoadout,
+					heartTanks: oldChar.heartTanks, isATrans: true
 				);
 			}
-		} else if (data.charNum == (int)CharIds.Rock) {
-			retChar = new Rock(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, data.dnaNetId, false, isWarpIn: false
-			);
-		} else if (data.charNum == (int)CharIds.BusterZero) {
+		}
+		// Buster Zero.
+		else if (data.charNum == (int)CharIds.BusterZero) {
 			retChar = new BusterZero(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, data.dnaNetId, false, isWarpIn: false
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, false, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
 			);
-		} else if (data.charNum == (int)CharIds.PunchyZero) {
+		}
+		// Punchy Zero.
+		else if (data.charNum == (int)CharIds.PunchyZero) {
 			retChar = new PunchyZero(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, data.dnaNetId, false, isWarpIn: false
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, oldChar.ownedByLocalPlayer, isWarpIn: false,
+				loadout: atLoadout.pzeroLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
+		}
+		// Kaiser Sigma.
+		else if (data.charNum == (int)CharIds.KaiserSigma) {
+			retChar = new KaiserSigma(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, false, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
+		}
+		else if (data.charNum == (int)CharIds.RagingChargeX) {
+			retChar = new RagingChargeX(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, false, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
 			);
 		} else {
 			throw new Exception("Error: Non-valid char ID: " + data.charNum);
 		}
 
 		// Status effects.
-		retChar.burnTime = character.burnTime;
-		retChar.acidTime = character.acidTime;
-		retChar.oilTime = character.oilTime;
-		retChar.igFreezeProgress = character.igFreezeProgress;
-		retChar.virusTime = character.virusTime;
+		retChar.burnTime = oldChar.burnTime;
+		retChar.acidTime = oldChar.acidTime;
+		retChar.oilTime = oldChar.oilTime;
+		retChar.igFreezeProgress = oldChar.igFreezeProgress;
+		retChar.virusTime = oldChar.virusTime;
 
 		// Hit cooldowns.
-		retChar.projectileCooldown = character.projectileCooldown;
-		retChar.flinchCooldown = character.flinchCooldown;
+		retChar.projectileCooldown = oldChar.projectileCooldown;
+		retChar.flinchCooldown = oldChar.flinchCooldown;
 
 		// Change character.
-		character.cleanupBeforeTransform();
-		preTransformedAxl = character;
-		Global.level.removeGameObject(preTransformedAxl);
-		character = retChar;
-
-		// Armor flags for X.
-		if (data.charNum == (int)CharIds.X) {
-			armorFlag = BitConverter.ToUInt16(
-				new byte[] { data.extraData[0], data.extraData[1] }
-			);
-			if (retChar is MegamanX retX) {
-				retX.hasUltimateArmor = (data.extraData[2] == 1);
-			}
-		}
-		// Restore old loadout and save the transformed one.
-		atransLoadout = loadout;
-		loadout = oldLoadout;
+		oldChar.cleanupBeforeTransform();
+		Global.level.removeGameObject(oldChar);
+		return retChar;
 	}
 
-	public void transformAxl(DNACore dnaCore, ushort dnaNetId) {
+	public void startAtransMain(DNACore dnaCore, ushort dnaNetId) {
+		if (character == null) {
+			return;
+		}
+		character = startAtrans(character, dnaCore, dnaNetId);
+		atransLoadout = dnaCore.loadout;
+		disguise = new Disguise(dnaCore.name);
+	}
+
+	[return: NotNullIfNotNull(nameof(oldChar))]
+	public Character? startAtrans(Character? oldChar, DNACore dnaCore, ushort dnaNetId) {
+		// Return null if we sent a dead char.
+		if (oldChar == null) {
+			return null;
+		}
+		// Flag to enable vanilla A-Trans behaviour.
+		bool oldATrans = Global.level.server?.customMatchSettings?.oldATrans == true;
+
 		// Reload weapons at transform if not used before.
-		if (!dnaCore.usedOnce && weapons != null) {
+		if ((!dnaCore.usedOnce || oldATrans) && weapons != null) {
 			foreach (var weapon in weapons) {
 				if (!weapon.isCmWeapon()) {
 					weapon.ammo = weapon.maxAmmo;
 				}
 			}
 		}
-		// Transform.
-		disguise = new Disguise(dnaCore.name);
-		charNum = dnaCore.charNum;
 
-		bool isVileMK2 = charNum == 2 && dnaCore.hyperMode == DNACoreHyperMode.VileMK2;
-		bool isVileMK5 = charNum == 2 && dnaCore.hyperMode == DNACoreHyperMode.VileMK5;
-
-		// If somehow the DNA core loadout is null we copy current one.
-		if (dnaCore.loadout == null) {
-			dnaCore.loadout = loadout;
+		// Old A-Trans could not copy Raging Charge or Sigma hypermodes.
+		if (oldATrans) {
+			if (dnaCore.charNum == (int)CharIds.RagingChargeX) {
+				dnaCore.charNum = (int)CharIds.X;
+			}
+			else if (dnaCore.charNum == (int)CharIds.KaiserSigma) {
+				dnaCore.charNum = (int)CharIds.Sigma;
+			}
 		}
 
+		// Transform.
+		int spawnCharNum = dnaCore.charNum;
+
+		// Vile
+		bool isVileMK2 = false;
+		bool isVileMK5 = false;
+		if (spawnCharNum == (int)CharIds.Vile) {
+			isVileMK2 = dnaCore.hyperMode == DNACoreHyperMode.VileMK2;
+			isVileMK5 = dnaCore.hyperMode == DNACoreHyperMode.VileMK5;
+		}
+		// Axl transfers hypermode.
+		if (spawnCharNum == (int)CharIds.Axl && oldChar is Axl ownAxl) {
+			dnaCore.loadout.axlLoadout.hyperMode = ownAxl.loadout.hyperMode;
+		}
+		// If somehow the DNA core loadout is null we copy current one.
+		dnaCore.loadout ??= loadout.clone(id);
+
+		// Send data if local.
 		if (ownedByLocalPlayer) {
-			byte[] extraData = getCharSpawnData(dnaCore.charNum);
+			byte[] extraData = getCharSpawnData(dnaCore.charNum, false, dnaCore.loadout);
 			if (dnaCore.charNum == (int)CharIds.Vile) {
 				extraData = new byte[1];
 				if (isVileMK2) {
@@ -1541,153 +1635,197 @@ public partial class Player {
 			}
 			string json = JsonConvert.SerializeObject(
 				new RPCAxlDisguiseJson(
-					id, disguise.targetName, dnaCore.charNum,
+					id, dnaCore.name, dnaCore.charNum,
 					dnaCore.loadout, dnaNetId, extraData
 				)
 			);
 			Global.serverClient?.rpc(RPC.axlDisguise, json);
 		}
-		LoadoutData oldLoadout = loadout;
-		loadout = dnaCore.loadout;
 
+		// Set up backup loadout for netcode.
+		LoadoutData atLoadout = dnaCore.loadout;
+
+		// Spawn character.
 		Character? retChar = null;
-		if (charNum == (int)CharIds.X) {
+		// X
+		if (spawnCharNum == (int)CharIds.X) {
 			retChar = new MegamanX(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, dnaNetId, true, isWarpIn: false
-			);
-		} else if (charNum == (int)CharIds.Zero) {
-			retChar = new Zero(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, dnaNetId, true, isWarpIn: false
-			);
-		} else if (charNum == (int)CharIds.Vile) {
-			retChar = new Vile(
-				this, character.pos.x, character.pos.y, character.xDir,
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
 				true, dnaNetId, true, isWarpIn: false,
-				mk2VileOverride: isVileMK2, mk5VileOverride: isVileMK5
+				loadout: atLoadout.xLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
+		} else if (spawnCharNum == (int)CharIds.Zero) {
+			retChar = new Zero(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, true, isWarpIn: false,
+				loadout: atLoadout.zeroLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
+		} else if (spawnCharNum == (int)CharIds.Vile) {
+			retChar = new Vile(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, true, isWarpIn: false,
+				mk2VileOverride: isVileMK2, mk5VileOverride: isVileMK5,
+				loadout: atLoadout.vileLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
 			) {
 				hasFrozenCastle = dnaCore.frozenCastle,
 				hasSpeedDevil = dnaCore.speedDevil
 			};
-		} else if (charNum == (int)CharIds.Axl) {
+		} else if (spawnCharNum == (int)CharIds.Axl) {
 			retChar = new Axl(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, dnaNetId, true, isWarpIn: false
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, true, isWarpIn: false,
+				loadout: atLoadout.axlLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
 			);
-		} else if (charNum == (int)CharIds.Sigma) {
+		} else if (spawnCharNum == (int)CharIds.Sigma) {
 			if (dnaCore.loadout.sigmaLoadout.sigmaForm == 2) {
 				retChar = new Doppma(
-					this, character.pos.x, character.pos.y, character.xDir,
-					true, dnaNetId, true, isWarpIn: false
+					this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+					true, dnaNetId, true, isWarpIn: false,
+					loadout: atLoadout.sigmaLoadout.clone(),
+					heartTanks: oldChar.heartTanks, isATrans: true
 				);
 			} else if (dnaCore.loadout.sigmaLoadout.sigmaForm == 1) {
 				retChar = new NeoSigma(
-					this, character.pos.x, character.pos.y, character.xDir,
-					true, dnaNetId, true, isWarpIn: false
+					this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+					true, dnaNetId, true, isWarpIn: false,
+					loadout: atLoadout.sigmaLoadout.clone(),
+					heartTanks: oldChar.heartTanks, isATrans: true
 				);
-				sigmaMaxAmmo = 28;
 			} else {
 				retChar = new CmdSigma(
-					this, character.pos.x, character.pos.y, character.xDir,
-					true, dnaNetId, true, isWarpIn: false
+					this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+					true, dnaNetId, true, isWarpIn: false,
+					loadout: atLoadout.sigmaLoadout.clone(),
+					heartTanks: oldChar.heartTanks, isATrans: true
 				);
-				sigmaMaxAmmo = 20;
 			}
-		} else if (charNum == (int)CharIds.Rock) {
-			retChar = new Rock(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, dnaNetId, true, isWarpIn: false
-			);
-		} else if (charNum == (int)CharIds.BusterZero) {
+		} else if (spawnCharNum == (int)CharIds.BusterZero) {
 			retChar = new BusterZero(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, dnaNetId, true, isWarpIn: false
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, true, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
 			);
-		} else if (charNum == (int)CharIds.PunchyZero) {
+		} else if (spawnCharNum == (int)CharIds.PunchyZero) {
 			retChar = new PunchyZero(
-				this, character.pos.x, character.pos.y, character.xDir,
-				true, dnaNetId, true, isWarpIn: false
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, true, isWarpIn: false,
+				loadout: atLoadout.pzeroLoadout.clone(),
+				heartTanks: oldChar.heartTanks, isATrans: true
 			);
-		} else if  (charNum == (int)CharIds.KaiserSigma) {
+		} else if  (spawnCharNum == (int)CharIds.KaiserSigma) {
 			retChar = new KaiserSigma(
-				this, character.pos.x, character.pos.y, character.xDir,
-				false, charNetId, ownedByLocalPlayer, isRevive: false
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, ownedByLocalPlayer,
+				isRevive: false, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
+		} else if (spawnCharNum == (int)CharIds.RagingChargeX) {
+			retChar = new RagingChargeX(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, true, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
 			);
 		} else {
-			throw new Exception("Error: Non-valid char ID: " + charNum);
+			throw new Exception("Error: Non-valid char ID: " + spawnCharNum);
 		}
 		if (retChar is Vile vile) {
 			if (isVileMK5) vile.vileForm = 2;
 			else if (isVileMK2) vile.vileForm = 1;
 		}
 		retChar.addTransformAnim();
+		retChar.linkedDna = dnaCore;
 
-		// Weapon configuration.
-		oldWeapons = weapons;
-
-		if (charNum == (int)CharIds.Zero) {
+		if (spawnCharNum == (int)CharIds.Zero) {
 			retChar.weapons.Add(new ZSaber());
 		}
-		if (charNum == (int)CharIds.BusterZero) {
+		if (spawnCharNum == (int)CharIds.BusterZero) {
 			retChar.weapons.Add(new ZeroBuster());
 		}
-		if (charNum == (int)CharIds.PunchyZero) {
+		if (spawnCharNum == (int)CharIds.PunchyZero) {
 			retChar.weapons.Add(new KKnuckleWeapon());
 		}
-		if (charNum == (int)CharIds.KaiserSigma) {
+		if (spawnCharNum == (int)CharIds.KaiserSigma) {
 			retChar.weapons.Add(new SigmaMenuWeapon());
 		}
-		retChar.weapons.Add(new AssassinBulletChar());
+		if (spawnCharNum == (int)CharIds.Vile) {
+			retChar.weapons.Add((retChar as Vile)?.energy ?? new VileAmmoWeapon());
+		}
+		// Assassination.
+		if (oldATrans || (retChar is Axl && oldChar is Axl)) {
+			retChar.weapons.Add(new AssassinBulletChar());
+		}
+		// Local player stuff.
+		else if (ownedByLocalPlayer) {
+			List<Weapon> mvWeapons = [];
+
+			foreach (Weapon weapon in oldChar.weapons) {
+				// Skip if is not a summoned maverick weapon.
+				if (weapon is not MaverickWeapon { summonedOnce: true }) {
+					continue;
+				}
+				// Check if weapons exist.
+				int index = retChar.weapons.FindIndex(item => item.GetType() == weapon.GetType());
+				// Add if not currently used.
+				if (index == -1) {
+					retChar.weapons.Add(weapon);
+				}
+				// Replace if similar weapon exists.
+				else {
+					retChar.weapons[index] = weapon;
+				}
+			}
+		}
+		// Finally add the de-transform weapon.
 		retChar.weapons.Add(new UndisguiseWeapon());
-
-		sigmaAmmo = dnaCore.rakuhouhaAmmo;
-
 
 		if (isAI) {
 			retChar.addAI();
 		}
 
-		retChar.xDir = character.xDir;
+		retChar.xDir = oldChar.xDir;
 		//retChar.heal(maxHealth);
 
 		// Speed and state.
 		if (retChar.charId != CharIds.KaiserSigma) {
-			if (character.charState.canStopJump && !character.charState.stoppedJump) {
-				retChar.changeState(retChar.getJumpState(), true);
-			} else {
-				retChar.changeToIdleOrFall();
-			}
-			retChar.vel = character.vel;
-			retChar.slideVel = character.slideVel;
-			retChar.xFlinchPushVel = character.xFlinchPushVel;
-			retChar.xIceVel = character.xIceVel;
+			retChar.grounded = oldChar.grounded;
+			retChar.atransStateChange(oldChar);
+			retChar.vel = oldChar.vel;
+			retChar.slideVel = oldChar.slideVel;
+			retChar.xFlinchPushVel = oldChar.xFlinchPushVel;
+			retChar.xIceVel = oldChar.xIceVel;
 		}
-		retChar.health = character.health;
-		retChar.maxHealth = character.maxHealth;
-		retChar.healAmount = character.healAmount;
+		oldChar.changeState(new ATransTransition());
+
+		retChar.health = oldChar.health;
+		retChar.maxHealth = oldChar.maxHealth;
+		retChar.healAmount = oldChar.healAmount;
 
 		// Status effects.
-		retChar.burnTime = character.burnTime;
-		retChar.acidTime = character.acidTime;
-		retChar.oilTime = character.oilTime;
-		retChar.igFreezeProgress = character.igFreezeProgress;
-		retChar.virusTime = character.virusTime;
+		retChar.burnTime = oldChar.burnTime;
+		retChar.acidTime = oldChar.acidTime;
+		retChar.oilTime = oldChar.oilTime;
+		retChar.igFreezeProgress = oldChar.igFreezeProgress;
+		retChar.virusTime = oldChar.virusTime;
 
 		// Hit cooldowns.
-		retChar.projectileCooldown = character.projectileCooldown;
-		retChar.flinchCooldown = character.flinchCooldown;
+		retChar.projectileCooldown = oldChar.projectileCooldown;
+		retChar.flinchCooldown = oldChar.flinchCooldown;
 
-		character.cleanupBeforeTransform();
-		character = retChar;
-		if (weapon != null) {
+		if (weapon != null && oldATrans) {
 			weapon.shootCooldown = 0.25f;
 		}
-
-		if (character is Zero zero) {
-			zero.gigaAttack.ammo = dnaCore.rakuhouhaAmmo;
-			zero.gigaAttack.ammo = dnaCore.rakuhouhaAmmo;
-
+		if (retChar is MegamanX mmx) {
+			if (dnaCore.hyperMode == DNACoreHyperMode.UltimateArmor) {
+				mmx.hasUltimateArmor = true;
+				//retChar.weapons.Add(new HyperNovaStrike());
+			}
+		}
+		if (retChar is Zero zero) {
+			zero.gigaAttack.ammo = dnaCore.altCharAmmo;
 			if (dnaCore.hyperMode == DNACoreHyperMode.BlackZero) {
 				zero.isBlack = true;
 				zero.hyperMode = 0;
@@ -1698,105 +1836,178 @@ public partial class Player {
 				zero.isViral = true;
 				zero.hyperMode = 2;
 			}
-		} else if (charNum == (int)CharIds.Axl && character is Axl axl) {
+		} else if (retChar is PunchyZero pzero) {
+			pzero.gigaAttack.ammo = dnaCore.altCharAmmo;
+			if (dnaCore.hyperMode == DNACoreHyperMode.BlackZero) {
+				pzero.isBlack = true;
+				pzero.hyperMode = 0;
+			} else if (dnaCore.hyperMode == DNACoreHyperMode.AwakenedZero) {
+				pzero.awakenedPhase = 1;
+				pzero.hyperMode = 1;
+			} else if (dnaCore.hyperMode == DNACoreHyperMode.NightmareZero) {
+				pzero.isViral = true;
+				pzero.hyperMode = 2;
+			}
+		} else if (retChar is BusterZero bzero) {
+			if (dnaCore.hyperMode == DNACoreHyperMode.BlackZero) {
+				bzero.isBlackZero = true;
+			}
+		} else if (retChar is Axl axl) {
 			if (dnaCore.hyperMode == DNACoreHyperMode.WhiteAxl) {
 				axl.whiteAxlTime = axl.maxHyperAxlTime;
 			}
 			axl.axlSwapTime = 0.25f;
+		} else if (retChar is CmdSigma sigma) {
+			sigma.ballWeapon.ammo = dnaCore.altCharAmmo;
+		} else if (retChar is NeoSigma neoSigma) {
+			neoSigma.gigaAttack.ammo = dnaCore.altCharAmmo;
+		} else if (retChar is RagingChargeX rcx) {
+			rcx.ragingBuster.ammo = dnaCore.altCharAmmo;
 		}
-		dnaCore.ultimateArmor = false;
+		if (oldATrans) {
+			dnaCore.ultimateArmor = false;
+			dnaCore.hyperMode = DNACoreHyperMode.None;
+		}
 		dnaCore.usedOnce = true;
-		dnaCore.hyperMode = DNACoreHyperMode.None;
 
-		// Restore old loadout and save the transformed one.
-		atransLoadout = loadout;
-		loadout = oldLoadout;
+		// If multiple layers of A-Trans, use the root char.
+		if (oldChar.linkedATransChar != null) {
+			retChar.linkedATransChar = oldChar.linkedATransChar;
+			oldChar.destroySelf();
+		}
+		// Otherwise, use the current one.
+		else {
+			retChar.linkedATransChar = oldChar;
+		}
+		oldChar.cleanupBeforeTransform();
+		Global.level.removeGameObject(oldChar);
+
+		return retChar;
 	}
 
 	// If you change this method change revertToAxlDeath() too
-	public void revertToAxl(ushort? backupNetId = null) {
-		disguise = null;
+	public void revertAtransMain(ushort? backupNetId = null) {
+		character = revertAtrans(
+			character,
+			character.linkedATransChar,
+			backupNetId
+		);
 		atransLoadout = null;
-		Character oldChar = character;
+		disguise = null;
+	}
+
+	[return: NotNullIfNotNull(nameof(oldChar))]
+	public Character? revertAtrans(Character? oldChar, Character? newChar, ushort? backupNetId = null) {
+		if (oldChar?.netId == null) {
+			throw new Exception("Cannot use ATrans on objects without netID");
+		}
+		// Flag to enable vanilla A-Trans behaviour.
+		bool oldATrans = Global.level.server?.customMatchSettings?.oldATrans == true;
 
 		if (ownedByLocalPlayer) {
+			if (newChar?.netId == null) {
+				throw new Exception("Error: Null newChar.netId on atrans tranform.");
+			}
 			string json = JsonConvert.SerializeObject(
-				new RPCAxlDisguiseJson(id, "", -1, loadout, preTransformedAxl.netId.Value)
+				new RPCAxlDisguiseJson(id, "", -1, loadout, newChar.netId.Value)
 			);
 			Global.serverClient?.rpc(RPC.axlDisguise, json);
 
-			if (character is Zero zero) {
-				lastDNACore.rakuhouhaAmmo = zero.gigaAttack.ammo;
-			} else if (character is PunchyZero pzero) {
-				lastDNACore.rakuhouhaAmmo = pzero.gigaAttack.ammo;
-			} else if (isSigma) {
-				lastDNACore.rakuhouhaAmmo = sigmaAmmo;
+			if (oldChar.linkedDna != null) {
+				if (oldChar is Zero zero) {
+					oldChar.linkedDna.altCharAmmo = zero.gigaAttack.ammo;
+				} else if (oldChar is PunchyZero pzero) {
+					oldChar.linkedDna.altCharAmmo = pzero.gigaAttack.ammo;
+				} else if (oldChar is CmdSigma sigma) {
+					oldChar.linkedDna.altCharAmmo = sigma.ballWeapon.ammo;
+				} else if (oldChar is NeoSigma neoSigma) {
+					oldChar.linkedDna.altCharAmmo = neoSigma.gigaAttack.ammo;
+				} else if (oldChar is RagingChargeX rcx) {
+					oldChar.linkedDna.altCharAmmo = rcx.ragingBuster.ammo;
+				}
 			}
 		}
-		var oldPos = character.pos;
-		var oldDir = character.xDir;
-		character.destroySelf();
 		// For if joined late and not locally owned.
-		if (!ownedByLocalPlayer && preTransformedAxl == null) {
+		if (!ownedByLocalPlayer && newChar == null) {
 			if (backupNetId == null) {
 				throw new Exception("Error: Missing NetID on Axl trasform RPC.");
 			}
-			preTransformedAxl = new Axl(
-				this, oldPos.x, oldPos.y, oldDir, true, backupNetId, ownedByLocalPlayer, false
+			newChar = new Axl(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, backupNetId, ownedByLocalPlayer, false
 			);
-		} else {
-			Global.level.addGameObject(preTransformedAxl);
 		}
-		character = preTransformedAxl;
-		character.addTransformAnim();
-		preTransformedAxl = null;
-		charNum = 3;
-		character.pos = oldPos;
-		character.xDir = oldDir;
-		maxHealth = getMaxHealth();
-		health = Math.Min(health, maxHealth);
+		else if (newChar == null) {
+			throw new Exception("Error: Null newChar on ATrans tranform.");
+		}
+		else {
+			Global.level.addGameObject(newChar);
+		}
+		newChar.pos = oldChar.pos;
+		newChar.xDir = oldChar.xDir;
 
 		if (ownedByLocalPlayer) {
-			character.weaponSlot = 0;
+			newChar.weaponSlot = 0;
 			lastDNACore = null;
 			lastDNACoreIndex = 4;
 
-			character.weapons.AddRange(oldChar.weapons.Where(
-				(Weapon w) => w is MaverickWeapon { summonedOnce: true } && !character.weapons.Contains(w)
-			));
-
-			character.grounded = oldChar.grounded;
-			if (oldChar.charState.canStopJump && !oldChar.grounded) {
-				character.changeState(character.getJumpState(), true);
-			} else {
-				character.changeToIdleOrFall();
+			if (!oldATrans) {
+				newChar.weapons.AddRange(oldChar.weapons.Where(
+					(Weapon w) => w is MaverickWeapon { summonedOnce: true } && !newChar.weapons.Contains(w)
+				));
 			}
+
 			// Speed
-			character.vel = oldChar.vel;
-			character.slideVel = oldChar.slideVel;
-			character.xFlinchPushVel = oldChar.xFlinchPushVel;
-			character.xIceVel = oldChar.xIceVel;
+			newChar.vel = oldChar.vel;
+			newChar.slideVel = oldChar.slideVel;
+			newChar.xFlinchPushVel = oldChar.xFlinchPushVel;
+			newChar.xIceVel = oldChar.xIceVel;
 
 			// Status effects.
-			character.burnTime = oldChar.burnTime;
-			character.acidTime = oldChar.acidTime;
-			character.oilTime = oldChar.oilTime;
-			character.igFreezeProgress = oldChar.igFreezeProgress;
-			character.virusTime = oldChar.virusTime;
+			newChar.burnTime = oldChar.burnTime;
+			newChar.acidTime = oldChar.acidTime;
+			newChar.oilTime = oldChar.oilTime;
+			newChar.igFreezeProgress = oldChar.igFreezeProgress;
+			newChar.virusTime = oldChar.virusTime;
 
 			// Hit cooldowns.
-			character.projectileCooldown = oldChar.projectileCooldown;
-			character.flinchCooldown = oldChar.flinchCooldown;
+			newChar.projectileCooldown = oldChar.projectileCooldown;
+			newChar.flinchCooldown = oldChar.flinchCooldown;
+
+			// Etc.
+			newChar.undisguiseTime = 6;
+			newChar.assassinTime = oldChar.assassinTime;
+
+			// State data.
+			if (newChar.charState is ATransTransition atState) {
+				atState.allowChange = true;
+			}
+			newChar.grounded = oldChar.grounded;
+			newChar.atransStateChange(oldChar);
+			oldChar.changeState(new ATransTransition());
 		}
+
+		// HP Data.
+		newChar.heartTanks = oldChar.heartTanks;
+		newChar.maxHealth = newChar.getMaxHealth();
+		newChar.health = Math.Min(oldChar.health, oldChar.maxHealth);
+
+		oldChar.destroySelf();
+		newChar.addTransformAnim();
+
+		return newChar;
 	}
 
 	// If you change this method change revertToAxl() too
-	public void revertToAxlDeath() {
+	public void revertAtransDeath() {
 		disguise = null;
 		atransLoadout = null;
-		preTransformedAxl = null;
-		charNum = (int)CharIds.Axl;
-
+		if (character == null) {
+			return;
+		}
+		if (character?.netId == null) {
+			throw new Exception("Cannot use ATrans on objects without netID");
+		}
 		if (ownedByLocalPlayer) {
 			string json = JsonConvert.SerializeObject(
 				new RPCAxlDisguiseJson(id, "", -2, loadout, character.netId.Value)
@@ -1804,19 +2015,20 @@ public partial class Player {
 			Global.serverClient?.rpc(RPC.axlDisguise, json);
 
 			if (character is Zero zero) {
-				lastDNACore.rakuhouhaAmmo = zero.gigaAttack.ammo;
+				lastDNACore.altCharAmmo = zero.gigaAttack.ammo;
 			} else if (character is PunchyZero pzero) {
-				lastDNACore.rakuhouhaAmmo = pzero.gigaAttack.ammo;
-			} else if (isSigma) {
-				lastDNACore.rakuhouhaAmmo = sigmaAmmo;
+				lastDNACore.altCharAmmo = pzero.gigaAttack.ammo;
+			} else if (character is CmdSigma sigma) {
+				lastDNACore.altCharAmmo = sigma.ballWeapon.ammo;
+			} else if (character is NeoSigma neoSigma) {
+				lastDNACore.altCharAmmo = neoSigma.gigaAttack.ammo;
 			}
 		}
 		if (character == null) {
 			return;
 		}
 		if (ownedByLocalPlayer) {
-			maxHealth = getMaxHealth();
-			health = 0;
+			character.health = 0;
 			configureWeapons(character);
 			character.weaponSlot = 0;
 			lastDNACore = null;
@@ -1918,7 +2130,7 @@ public partial class Player {
 				return false;
 			}
 			if (character != null && currentMaverick == null) {
-				InRideArmor inRideArmor = character.charState as InRideArmor;
+				InRideArmor? inRideArmor = character.charState as InRideArmor;
 				if (inRideArmor != null &&
 					(inRideArmor.frozenTime > 0 || inRideArmor.stunTime > 0 || inRideArmor.crystalizeTime > 0)
 				) {
@@ -1952,20 +2164,14 @@ public partial class Player {
 
 	public void awardCurrency() {
 		// Cannot gain scrap or ST.
-		if (Global.level.is1v1()) return;
-		if (axlBulletType == (int)AxlBulletWeaponType.AncientGun && isAxl) return;
-
+		if (Global.level.is1v1()) {
+			return;
+		}
 		// First we fill ST.
 		if (Global.level?.server?.customMatchSettings != null) {
-			fillSubtank(Global.level.server.customMatchSettings.SubtankGain);
+			fillSubtank(Global.level.server.customMatchSettings.subtankGain);
 		} else {
-			if (isVile) {
-				fillSubtank(2);
-			} else if (isAxl) {
-				fillSubtank(3);
-			} else {
-				fillSubtank(4);
-			}
+			fillSubtank(4);
 		}
 		if (character is Zero zero && zero.isViral) {
 			zero.freeBusterShots++;
@@ -1976,12 +2182,18 @@ public partial class Player {
 			return;
 		}
 		// Check for stuff that cannot gain scraps.
-		if (character is RagingChargeX or KaiserSigma or ViralSigma or WolfSigma) return;
-		if (character?.rideArmor?.raNum == 4 && character.charState is InRideArmor) return;
+		if (axlBulletType == (int)AxlBulletWeaponType.AncientGun && character is Axl) {
+			return;
+		}
+		if (character is RagingChargeX or KaiserSigma or ViralSigma or WolfSigma) {
+			return;
+		}
+		if (character?.rideArmor?.raNum == 4 && character.charState is InRideArmor) {
+			return;
+		}
 		if (character is MegamanX mmx && mmx.hasUltimateArmor) {
 			return;
 		}
-
 		if (Global.level?.server?.customMatchSettings != null) {
 			currency += Global.level.server.customMatchSettings.currencyGain;
 		} else {
@@ -2024,7 +2236,13 @@ public partial class Player {
 		) {
 			return false;
 		}
+		if (character.isATrans) {
+			return false;
+		}
 		if (character?.charState is not Die) {
+			return false;
+		}
+		if (character is Vile vile2 && vile2.isVileMK5) {
 			return false;
 		}
 		if (character is not Vile vile || vile.summonedGoliath) {
@@ -2041,18 +2259,21 @@ public partial class Player {
 		spawnPoint = character.pos;
 		if (Global.level.isHyper1v1() &&
 			!lastDeathWasSigmaHyper &&
-			character is BaseSigma &&
+			character is BaseSigma { isATrans: false } &&
 			newCharNum == (int)CharIds.Sigma
 		) {
 			return true;
 		}
 		if (character == null ||
 			!lastDeathCanRevive ||
-			!isSigma ||
+			character is not BaseSigma { isATrans: false } ||
 			newCharNum != (int)CharIds.Sigma ||
 			currency < reviveSigmaCost ||
 			lastDeathWasSigmaHyper
 		) {
+			return false;
+		}
+		if (character.isATrans) {
 			return false;
 		}
 
@@ -2098,6 +2319,7 @@ public partial class Player {
 	public bool canReviveX() {
 		return (
 			character is MegamanX mmx &&
+			!mmx.isATrans &&
 			!mmx.hasAnyArmor &&
 			mmx.charState is Die &&
 			lastDeathCanRevive &&
@@ -2299,7 +2521,7 @@ public partial class Player {
 			return;
 		}
 
-		if (currentMaverick != null && isTagTeam()) {
+		if (currentMaverick != null && currentMaverick.controlMode == MaverickModeId.TagTeam) {
 			destroyCharacter(true);
 		} else {
 			character?.applyDamage(Damager.forceKillDamage, this, character, null, null);
@@ -2523,7 +2745,7 @@ public partial class Player {
 		assists++;
 	}
 
-	public void addDeath(bool isSuicide) {
+	public void addDeath() {
 		if (isSigma && maverick1v1 == null && Global.level.isHyper1v1() && !lastDeathWasSigmaHyper) {
 			return;
 		}
@@ -2549,66 +2771,27 @@ public partial class Player {
 		float healthPercent = 0.3333f + ((health / maxHealth) * 0.6666f);
 		float mashAmount = (healthPercent * mashCount * 0.25f);
 
-		if (Global.frameCount - lastMashAmountSetFrame > 10) {
+		if (Global.floorFrameCount - lastMashAmountSetFrame > 10) {
 			lastMashAmount = 0;
 		}
 
 		float prevLastMashAmount = lastMashAmount;
 		lastMashAmount += mashAmount;
 		if (mashAmount > 0 && prevLastMashAmount == 0) {
-			lastMashAmountSetFrame = Global.frameCount;
+			lastMashAmountSetFrame = Global.floorFrameCount;
 		}
 
 		return (Global.spf + mashAmount);
 	}
 
-	// Sigma helper functions
-	public bool isSigma2() {
-		return loadout?.sigmaLoadout?.sigmaForm == 1;
-	}
-
-	public bool isSigma3() {
-		return loadout?.sigmaLoadout?.sigmaForm == 2;
-	}
-
-	public bool isKaiserSigma() {
-		return character is KaiserSigma;
-	}
-
-	public bool isKaiserViralSigma() {
-		return character != null && character.sprite.name.StartsWith("kaisersigma_virus");
-	}
-
-	public bool isKaiserNonViralSigma() {
-		return isKaiserSigma() && !isKaiserViralSigma();
-	}
-
-	public bool isSummoner() {
-		return isAI || loadout?.sigmaLoadout != null && loadout.sigmaLoadout.commandMode == 0;
-	}
-
-	public bool isPuppeteer() {
-		return !isAI && loadout?.sigmaLoadout != null && loadout.sigmaLoadout.commandMode == 1;
-	}
-
-	public bool isStriker() {
-		return !isAI && loadout?.sigmaLoadout != null && loadout.sigmaLoadout.commandMode == 2;
-	}
-
-	public bool isTagTeam() {
-		return !isAI && loadout?.sigmaLoadout != null && loadout.sigmaLoadout.commandMode == 3;
-	}
-
-	public bool isRefundableMode() {
-		return isSummoner() || isPuppeteer() || isTagTeam();
-	}
-
 	public bool isAlivePuppeteer() {
-		return isPuppeteer() && health > 0;
-	}
-
-	public bool isControllingPuppet() {
-		return isSigma && isPuppeteer() && currentMaverick != null && weapon is MaverickWeapon;
+		return (
+			!isAI &&
+			character is BaseSigma {
+				loadout.commandMode: (int)MaverickModeId.Puppeteer,
+				alive: true
+			}
+		);
 	}
 
 	public bool hasSubtankCapacity() {

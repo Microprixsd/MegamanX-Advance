@@ -19,18 +19,19 @@ public class FireWave : Weapon {
 		isStream = true;
 		switchCooldown = 15;
 		damage = "1/1";
-		ammousage = 0.5;
 		effect = "Inflicts burn to enemies. DOT: 0.5/2 seconds.\nBurn won't give assists.";
 		hitcooldown = "12/20";
-		maxAmmo = 32;
+
+		ammoDisplayScale = 7;
+		maxAmmo = 196;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3) {
-			return 4;
+			return 49;
 		}
-		return 0.1f;
+		return 1;
 	}
 
 	public override void shoot(Character character, int[] args) {

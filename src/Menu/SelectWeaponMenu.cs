@@ -231,7 +231,7 @@ public class SelectWeaponMenu : IMainMenu {
 
 			Fonts.drawText(FontType.Blue, (i + 1).ToString(), 30, yPos + 2, selected: selCursorIndex == i);
 
-			if (Global.frameCount % 60 < 30) {
+			if (Global.flFrameCount % 60 < 30) {
 				Fonts.drawText(
 					FontType.Blue, ">", cursors[i].index < 9 ? rightArrowPos : rightArrowPos - 20, yPos + 2,
 					Alignment.Center, selected: selCursorIndex == i
@@ -315,8 +315,8 @@ public class SelectWeaponMenu : IMainMenu {
 			string maxAmmo = weapon.maxAmmo.ToString();
 			string effect = weapon.effect;
 			string hitcooldown = weapon.hitcooldown;
-			string Flinch = weapon.Flinch;
-			string FlinchCD = weapon.FlinchCD;
+			string flinch = weapon.flinch;
+			string flinchCD = weapon.flinchCD;
 
 
 			Fonts.drawText(

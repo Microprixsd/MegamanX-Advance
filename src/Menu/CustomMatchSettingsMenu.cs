@@ -20,7 +20,23 @@ public class CustomMatchSettings {
 	[ProtoMember(12)] public int currencyGain;
 	[ProtoMember(13)] public int respawnTime;
 	[ProtoMember(14)] public bool pickupItems;
-	[ProtoMember(15)] public int SubtankGain;
+	[ProtoMember(15)] public int subtankGain;
+	[ProtoMember(16)] public int assistTime;
+	[ProtoMember(16)] public bool assistable;
+	[ProtoMember(17)] public int largeHealthPickup;
+	[ProtoMember(18)] public int smallHealthPickup;
+	[ProtoMember(19)] public int largeAmmoPickup;
+	[ProtoMember(20)] public int smallAmmoPickup;
+	[ProtoMember(21)] public int subTankCost;
+	[ProtoMember(22)] public bool frostShieldNerf;
+	[ProtoMember(23)] public bool frostShieldChargedNerf;
+	[ProtoMember(24)] public bool axlBackwardsDebuff;
+	[ProtoMember(25)] public float axlDodgerollCooldown;
+	[ProtoMember(26)] public bool axlCustomReload;
+	[ProtoMember(27)] public bool oldATrans;
+	[ProtoMember(28)] public bool flinchairDashReset;
+	[ProtoMember(29)] public bool ComboFlinch;
+
 
 	public CustomMatchSettings() {
 	}
@@ -42,22 +58,48 @@ public class CustomMatchSettings {
 			currencyGain = 1,
 			respawnTime = 5,
 			pickupItems = true,
-			SubtankGain = 3,
+			subtankGain = 4,
+			assistTime = 2,
+			assistable = true,
+			largeHealthPickup = 8,
+			smallHealthPickup = 4,
+			largeAmmoPickup = 50,
+			smallAmmoPickup = 25,
+			subTankCost = 4,
+			frostShieldNerf = true,
+			frostShieldChargedNerf = false,
+			axlBackwardsDebuff = true,
+			axlDodgerollCooldown = 1.25f,
+			axlCustomReload = false,
+			oldATrans = false,
+			flinchairDashReset = false,
+			ComboFlinch = true,
 		};
 	}
 }
 
 public class CustomMatchSettingsMenu : IMainMenu {
 	public int selectArrowPosY;
+	public int selectArrowPosY2;
+	public int selectArrowPosY3;
 	public const int startX = 30;
 	public int startY = 40;
 	public const int lineH = 10;
+	public const int startX2 = 30;
+	public int startY2 = 40;
+	public const int lineH2 = 10;
+	public const int startX3 = 30;
+	public int startY3 = 40;
+	public const int lineH3 = 10;
 	public const uint fontSize = 24;
 	public IMainMenu prevMenu;
 	public bool inGame;
-	public int Page;
+	public int Page = 1;
 	public bool isOffline;
 	public List<MenuOption> menuOptions = new List<MenuOption>();
+	public List<MenuOption> menuOptions2 = new List<MenuOption>();
+	public List<MenuOption> menuOptions3 = new List<MenuOption>();
+
 
 	SavedMatchSettings savedMatchSettings { get { return isOffline ? SavedMatchSettings.mainOffline : SavedMatchSettings.mainOnline; } }
 
@@ -65,36 +107,66 @@ public class CustomMatchSettingsMenu : IMainMenu {
 		this.prevMenu = prevMenu;
 		this.inGame = inGame;
 		int currentY = startY;
+		int currentY2 = startY2;
+		int currentY3 = startY3;
 		this.isOffline = isOffline;
+		#region  Page 1
 		menuOptions.Add(
-			new MenuOption(
-				startX, currentY,
+			new MenuOption(startX, currentY,
 				() => {
-					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.hyperModeMatch);
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.healthModifier, 8, 32);
 				},
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"1v1 or Hypermode Match : " +
-						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.hyperModeMatch),
+						"Base Health: " +
+						(savedMatchSettings.customMatchSettings.healthModifier).ToString(),
 						pos.x, pos.y, selected: selectArrowPosY == 0
 					);
 				}
 			)
 		);
-
 		menuOptions.Add(
-			new MenuOption(
-				startX, currentY += lineH,
+			new MenuOption(startX, currentY += lineH,
 				() => {
-					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.startCurrency, 0, 9999, true);
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.heartTankCost, 0, 4, true);
 				},
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"Start " + Global.nameCoins + ": " +
-						savedMatchSettings.customMatchSettings.startCurrency.ToString(),
+						"Heart Tanks Cost: " +
+						savedMatchSettings.customMatchSettings.heartTankCost.ToString(),
 						pos.x, pos.y, selected: selectArrowPosY == 1
+					);
+				}
+			)
+		);
+		menuOptions.Add(
+			new MenuOption(startX, currentY += lineH,
+				() => {
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.startHeartTanks, 0, 32, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Start Heart Tanks: " +
+						savedMatchSettings.customMatchSettings.startHeartTanks.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY == 2
+					);
+				}
+			)
+		);
+		menuOptions.Add(
+			new MenuOption(startX, currentY += lineH,
+				() => {
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.maxHeartTanks, 0, 32, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Max Heart Tanks: " +
+						savedMatchSettings.customMatchSettings.maxHeartTanks.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY == 3
 					);
 				}
 			)
@@ -107,40 +179,8 @@ public class CustomMatchSettingsMenu : IMainMenu {
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"Heart tank HP: " +
+						"Heart Tank HP: " +
 						savedMatchSettings.customMatchSettings.heartTankHp.ToString(),
-						pos.x, pos.y, selected: selectArrowPosY == 2
-					);
-				}
-			)
-		);
-
-		menuOptions.Add(
-			new MenuOption(startX, currentY += lineH,
-				() => {
-					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.startHeartTanks, 0, 32, true);
-				},
-				(Point pos, int index) => {
-					Fonts.drawText(
-						FontType.Blue,
-						"Start heart tanks: " +
-						savedMatchSettings.customMatchSettings.startHeartTanks.ToString(),
-						pos.x, pos.y, selected: selectArrowPosY == 3
-					);
-				}
-			)
-		);
-
-		menuOptions.Add(
-			new MenuOption(startX, currentY += lineH,
-				() => {
-					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.heartTankCost, 0, 4, true);
-				},
-				(Point pos, int index) => {
-					Fonts.drawText(
-						FontType.Blue,
-						"Heart tanks cost: " +
-						savedMatchSettings.customMatchSettings.heartTankCost.ToString(),
 						pos.x, pos.y, selected: selectArrowPosY == 4
 					);
 				}
@@ -150,19 +190,18 @@ public class CustomMatchSettingsMenu : IMainMenu {
 		menuOptions.Add(
 			new MenuOption(startX, currentY += lineH,
 				() => {
-					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.maxHeartTanks, 0, 32, true);
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.subTankCost, 0, 8, true);
 				},
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"Max heart tanks: " +
-						savedMatchSettings.customMatchSettings.maxHeartTanks.ToString(),
+						"Sub Tanks Cost: " +
+						savedMatchSettings.customMatchSettings.subTankCost.ToString(),
 						pos.x, pos.y, selected: selectArrowPosY == 5
 					);
 				}
 			)
 		);
-
 		menuOptions.Add(
 			new MenuOption(startX, currentY += lineH,
 				() => {
@@ -171,7 +210,7 @@ public class CustomMatchSettingsMenu : IMainMenu {
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"Start subtanks: " +
+						"Start Sub Tanks: " +
 						savedMatchSettings.customMatchSettings.startSubTanks.ToString(),
 						pos.x, pos.y, selected: selectArrowPosY == 6
 					);
@@ -187,7 +226,7 @@ public class CustomMatchSettingsMenu : IMainMenu {
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"Max subtanks: " +
+						"Max Sub Tanks: " +
 						savedMatchSettings.customMatchSettings.maxSubTanks.ToString(),
 						pos.x, pos.y, selected: selectArrowPosY == 7
 					);
@@ -196,38 +235,40 @@ public class CustomMatchSettingsMenu : IMainMenu {
 		);
 
 		menuOptions.Add(
-			new MenuOption(startX, currentY += lineH,
+				new MenuOption(
+					startX, currentY += lineH,
+					() => {
+						Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.subtankGain, 1, 4, true);
+					},
+					(Point pos, int index) => {
+						Fonts.drawText(
+							FontType.Blue,
+							"Sub Tank Gain: " +
+							savedMatchSettings.customMatchSettings.subtankGain.ToString(),
+							pos.x, pos.y, selected: selectArrowPosY == 8
+						);
+					}
+				)
+		);
+
+		menuOptions.Add(
+			new MenuOption(
+				startX, currentY += lineH,
 				() => {
-					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.healthModifier, 8, 32);
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.hyperModeMatch);
 				},
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"Base Health: " +
-						(savedMatchSettings.customMatchSettings.healthModifier).ToString(),
-						pos.x, pos.y, selected: selectArrowPosY == 8
+						"Hypermode Match : " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.hyperModeMatch),
+						pos.x, pos.y, selected: selectArrowPosY == 9
 					);
 				}
 			)
 		);
 		/*
-		menuOptions.Add(
-			new MenuOption(startX, currentY += lineH,
-				() => {
-					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.redHealthModifier, 1, 4);
-				},
-				(Point pos, int index) => {
-					Fonts.drawText(
-						FontType.Blue,
-						"Red health modifier: " +
-						(savedMatchSettings.customMatchSettings.redHealthModifier * 100).ToString() + "%",
-						pos.x, pos.y, selected: selectArrowPosY == 8
-					);
-				}
-			)
-		);
-		*/
-		menuOptions.Add(
+			menuOptions.Add(
 			new MenuOption(startX, currentY += lineH,
 				() => {
 					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.damageModifier, 1, 4, true);
@@ -242,23 +283,6 @@ public class CustomMatchSettingsMenu : IMainMenu {
 				}
 			)
 		);
-		/*
-		menuOptions.Add(
-			new MenuOption(startX, currentY += lineH,
-				() => {
-					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.redDamageModifier, 1, 4, true);
-				},
-				(Point pos, int index) => {
-					Fonts.drawText(
-						FontType.Blue,
-						"Red damage modifier: " +
-						(savedMatchSettings.customMatchSettings.redDamageModifier * 100).ToString() + "%",
-						pos.x, pos.y, selected: selectArrowPosY == 10
-					);
-				}
-			)
-		);
-		*/
 		menuOptions.Add(
 			new MenuOption(startX, currentY += lineH,
 				() => {
@@ -269,7 +293,7 @@ public class CustomMatchSettingsMenu : IMainMenu {
 						FontType.Blue,
 						"Mono character: " +
 						getSameCharString(savedMatchSettings.customMatchSettings.sameCharNum),
-						pos.x, pos.y, selected: selectArrowPosY == 10
+						pos.x, pos.y, selected: selectArrowPosY == 9
 					);
 				}
 			)
@@ -285,14 +309,34 @@ public class CustomMatchSettingsMenu : IMainMenu {
 						FontType.Blue,
 						"Red mono character: " +
 						getSameCharString(savedMatchSettings.customMatchSettings.redSameCharNum),
-						pos.x, pos.y, selected: selectArrowPosY == 11
+						pos.x, pos.y, selected: selectArrowPosY == 10
+					);
+				}
+			)
+		);
+		*/
+		#endregion
+		#region  Page 2
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2,
+				() => {
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.startCurrency, 0, 9999, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Start " + Global.nameCoins + ": " +
+						savedMatchSettings.customMatchSettings.startCurrency.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY2 == 0
 					);
 				}
 			)
 		);
 		//Currency Gain Custom Setting
-		menuOptions.Add(
-			new MenuOption(startX, currentY += lineH,
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2 += lineH2,
 				() => {
 					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.currencyGain, 1, 10, true);
 				},
@@ -301,14 +345,15 @@ public class CustomMatchSettingsMenu : IMainMenu {
 						FontType.Blue,
 						"Currency Gain modifier: " +
 						savedMatchSettings.customMatchSettings.currencyGain.ToString(),
-						pos.x, pos.y, selected: selectArrowPosY == 12
+						pos.x, pos.y, selected: selectArrowPosY2 == 1
 					);
 				}
 			)
 		);
 		//Respawn Time Custom Setting
-		menuOptions.Add(
-			new MenuOption(startX, currentY += lineH,
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2 += lineH2,
 				() => {
 					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.respawnTime, 1, 8, true);
 				},
@@ -317,43 +362,254 @@ public class CustomMatchSettingsMenu : IMainMenu {
 						FontType.Blue,
 						"Respawn Time modifier: " +
 						savedMatchSettings.customMatchSettings.respawnTime.ToString(),
-						pos.x, pos.y, selected: selectArrowPosY == 13
+						pos.x, pos.y, selected: selectArrowPosY2 == 2
 					);
 				}
 			)
 		);
-		//
-		menuOptions.Add(
+		menuOptions2.Add(
+				new MenuOption(
+					startX2, currentY2 += lineH2,
+					() => {
+						Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.assistTime, 0, 5, true);
+					},
+					(Point pos, int index) => {
+						Fonts.drawText(
+							FontType.Blue,
+							"Assist Time: " +
+							savedMatchSettings.customMatchSettings.assistTime.ToString(),
+							pos.x, pos.y, selected: selectArrowPosY2 == 3
+						);
+					}
+				)
+			);
+		menuOptions2.Add(
 			new MenuOption(
-				startX, currentY += lineH,
+				startX2, currentY2 += lineH2,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.assistable);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Unassistable List: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.assistable),
+						pos.x, pos.y, selected: selectArrowPosY2 == 4
+					);
+				}
+			)
+		);
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2 += lineH2,
 				() => {
 					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.pickupItems);
 				},
 				(Point pos, int index) => {
 					Fonts.drawText(
 						FontType.Blue,
-						"Pick up items: " +
+						"Pick Up Items: " +
 						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.pickupItems),
-						pos.x, pos.y, selected: selectArrowPosY == 14
+						pos.x, pos.y, selected: selectArrowPosY2 == 5
 					);
 				}
 			)
 		);
-		menuOptions.Add(
-				new MenuOption(startX, currentY += lineH,
-					() => {
-						Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.SubtankGain, 1, 4, true);
-					},
-					(Point pos, int index) => {
-						Fonts.drawText(
-							FontType.Blue,
-							"SubTank Gain: " +
-							savedMatchSettings.customMatchSettings.SubtankGain.ToString(),
-							pos.x, pos.y, selected: selectArrowPosY == 15
-						);
-					}
-				)
-			);
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2 += lineH2,
+				() => {
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.largeHealthPickup, 0, 32, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Large Health Recovery: " +
+						savedMatchSettings.customMatchSettings.largeHealthPickup.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY2 == 6
+					);
+				}
+			)
+		);
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2 += lineH2,
+				() => {
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.smallHealthPickup, 0, 32, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Small Health Recovery: " +
+						savedMatchSettings.customMatchSettings.smallHealthPickup.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY2 == 7
+					);
+				}
+			)
+		);
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2 += lineH2,
+				() => {
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.largeAmmoPickup, 0, 100, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Large Ammo Recovery: " +
+						savedMatchSettings.customMatchSettings.largeAmmoPickup.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY2 == 8
+					);
+				}
+			)
+		);
+		menuOptions2.Add(
+			new MenuOption(
+				startX2, currentY2 += lineH2,
+				() => {
+					Helpers.menuLeftRightInc(ref savedMatchSettings.customMatchSettings.smallAmmoPickup, 0, 100, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue,
+						"Small Ammo Recovery: " +
+						savedMatchSettings.customMatchSettings.smallAmmoPickup.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY2 == 9
+					);
+				}
+			)
+		);
+		#endregion
+		#region Page 3
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.frostShieldNerf, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Frost Shield Uncharged 'Shield' Nerf: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.frostShieldNerf),
+						pos.x, pos.y, selected: selectArrowPosY3 == 0
+					);
+				}
+			)
+		);
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3 += lineH3,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.frostShieldChargedNerf, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Frost Shield Charged 'Shield' Nerf: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.frostShieldChargedNerf),
+						pos.x, pos.y, selected: selectArrowPosY3 == 1
+					);
+				}
+			)
+		);
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3 += lineH3,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.axlBackwardsDebuff, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Axl Shooting Backwards Debuff: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.axlBackwardsDebuff),
+						pos.x, pos.y, selected: selectArrowPosY3 == 2
+					);
+				}
+			)
+		);
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3 += lineH3,
+				() => {
+					Helpers.menuLeftRightIncFloat(ref savedMatchSettings.customMatchSettings.axlDodgerollCooldown, 1.25f, 3, true, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Axl Dodge Roll Cooldown: " +
+						savedMatchSettings.customMatchSettings.axlDodgerollCooldown.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY3 == 3
+					);
+				}
+			)
+		);
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3 += lineH3,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.axlCustomReload, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Axl Weapons Capable to Reload: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.axlCustomReload),
+						pos.x, pos.y, selected: selectArrowPosY3 == 4
+					);
+				}
+			)
+		);
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3 += lineH3,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.oldATrans, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Axl Vanilla DNA: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.oldATrans),
+						pos.x, pos.y, selected: selectArrowPosY3 == 5
+					);
+				}
+			)
+		);
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3 += lineH3,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.flinchairDashReset, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Flinch resets Air Dash: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.flinchairDashReset),
+						pos.x, pos.y, selected: selectArrowPosY3 == 6
+					);
+				}
+			)
+		);
+		menuOptions3.Add(
+			new MenuOption(
+				startX3, currentY3 += lineH3,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.ComboFlinch, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Purple,
+						"Flinch stack: " +
+						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.ComboFlinch),
+						pos.x, pos.y, selected: selectArrowPosY3 == 7
+					);
+				}
+			)
+		);
+		#endregion
 	}
 
 	public string getSameCharString(int charNum) {
@@ -362,7 +618,22 @@ public class CustomMatchSettingsMenu : IMainMenu {
 	}
 
 	public void update() {
-		Helpers.menuUpDown(ref selectArrowPosY, 0, menuOptions.Count - 1);
+		if (Global.input.isPressedMenu(Control.Special1)) {
+			Page++;
+			if (Page > 3) Page = 1;
+		}
+		if (Page == 1) {
+			menuOptions[selectArrowPosY].update();
+			Helpers.menuUpDown(ref selectArrowPosY, 0, menuOptions.Count - 1);
+		} else if (Page == 2) {
+			menuOptions2[selectArrowPosY2].update();
+			Helpers.menuUpDown(ref selectArrowPosY2, 0, menuOptions2.Count - 1);
+		}
+		else if (Page == 3) {
+			menuOptions3[selectArrowPosY3].update();
+			Helpers.menuUpDown(ref selectArrowPosY3, 0, menuOptions3.Count - 1);
+		}
+
 		if (Global.input.isPressedMenu(Control.MenuBack)) {
 			if (savedMatchSettings.customMatchSettings.maxHeartTanks < savedMatchSettings.customMatchSettings.startHeartTanks) {
 				Menu.change(new ErrorMenu(new string[] { "Error: Max heart tanks can't be", "less than start heart tanks." }, this));
@@ -376,38 +647,83 @@ public class CustomMatchSettingsMenu : IMainMenu {
 
 			Menu.change(prevMenu);
 		}
-
-		menuOptions[selectArrowPosY].update();
 	}
 
 	public void render() {
-		if (!inGame) {
-			DrawWrappers.DrawTextureHUD(Global.textures["severbrowser"], 0, 0);
-			DrawWrappers.DrawTextureHUD(
-				Global.textures["cursor"], menuOptions[selectArrowPosY].pos.x - 8,
-				menuOptions[selectArrowPosY].pos.y - 1
-			);
-		} else {
-			DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
-			Global.sprites["cursor"].drawToHUD(
-				0, menuOptions[selectArrowPosY].pos.x - 8, menuOptions[selectArrowPosY].pos.y + 5
-			);
-		}
-
-		Fonts.drawText(
-			FontType.Yellow, "Custom Match Options",
-			Global.halfScreenW, 20, alignment: Alignment.Center
-		);
-
+		Cursor();
+		drawText();
 		int i = 0;
+		if (Page == 1)
 		foreach (var menuOption in menuOptions) {
 			menuOption.render(menuOption.pos, i);
 			i++;
 		}
-
-		Fonts.drawTextEX(
-			FontType.Grey, "[MLEFT]/[MRIGHT]: Change setting, [BACK]: Back",
-			Global.halfScreenW+60, Global.screenH - 26, Alignment.Center
+		if (Page == 2)
+		foreach (var menuOption2 in menuOptions2) {
+			menuOption2.render(menuOption2.pos, i);
+			i++;
+		}
+		if (Page == 3)
+		foreach (var menuOption3 in menuOptions3) {
+			menuOption3.render(menuOption3.pos, i);
+			i++;
+		}
+	}
+	public void drawText() {
+		Fonts.drawText(
+			FontType.Yellow, "Custom Match Options",
+			Global.halfScreenW, 20, alignment: Alignment.Center
 		);
+		Fonts.drawText(
+			FontType.Yellow, "Page: " + Page,
+			Global.halfScreenW+150, 20, alignment: Alignment.Center
+		);
+		Fonts.drawTextEX(
+			FontType.Grey, "[MLEFT]/[MRIGHT]: Change setting, [SPC]: Change Page, [BACK]: Back",
+			Global.halfScreenW-6, Global.screenH - 26, Alignment.Center
+		);
+	}
+	public void Cursor() {
+		if (Page == 1) {
+			if (!inGame) {
+				DrawWrappers.DrawTextureHUD(Global.textures["severbrowser"], 0, 0);
+				DrawWrappers.DrawTextureHUD(
+					Global.textures["cursor"], menuOptions[selectArrowPosY].pos.x - 8,
+					menuOptions[selectArrowPosY].pos.y - 1
+				);
+			} else {
+				DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
+				Global.sprites["cursor"].drawToHUD(
+					0, menuOptions[selectArrowPosY].pos.x - 8, menuOptions[selectArrowPosY].pos.y + 5
+				);
+			}
+		} else if (Page == 2) {
+			if (!inGame) {
+				DrawWrappers.DrawTextureHUD(Global.textures["severbrowser"], 0, 0);
+				DrawWrappers.DrawTextureHUD(
+					Global.textures["cursor"], menuOptions2[selectArrowPosY2].pos.x - 8,
+					menuOptions2[selectArrowPosY2].pos.y - 1
+				);
+			} else {
+				DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
+				Global.sprites["cursor"].drawToHUD(
+					0, menuOptions2[selectArrowPosY2].pos.x - 8, menuOptions2[selectArrowPosY2].pos.y + 5
+				);
+			}
+		}
+		else if (Page == 3) {
+			if (!inGame) {
+				DrawWrappers.DrawTextureHUD(Global.textures["severbrowser"], 0, 0);
+				DrawWrappers.DrawTextureHUD(
+					Global.textures["cursor"], menuOptions3[selectArrowPosY3].pos.x - 8,
+					menuOptions3[selectArrowPosY3].pos.y - 1
+				);
+			} else {
+				DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
+				Global.sprites["cursor"].drawToHUD(
+					0, menuOptions3[selectArrowPosY3].pos.x - 8, menuOptions3[selectArrowPosY3].pos.y + 5
+				);
+			}
+		}
 	}
 }

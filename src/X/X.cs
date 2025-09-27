@@ -7,9 +7,8 @@ namespace MMXOnline;
 public class MegamanX : Character {
 	// Shoot variables.
 	public float shootCooldown;
-	public int lastShootPressed;
-	public bool bufferedShotPressed => lastShootPressed < 6 || player.input.isPressed(Control.Shoot, player);
-	public int lastChargeHeld;
+	public float lastShootPressed;
+	public bool bufferedShotPressed => lastShootPressed <= 5 || player.input.isPressed(Control.Shoot, player);
 	public float specialSaberCooldown;
 	public XBuster specialBuster;
 	public int specialButtonMode;
@@ -42,6 +41,13 @@ public class MegamanX : Character {
 	public List<AimingLaserProj?> aLasers = new();
 	public AimingLaserChargedProj? aLaserChargedProj;
 	public DoubleCycloneChargedSpawn? dCycloneSpawn;
+
+	public bool anyFullArmor => (
+		chestArmor > 0 &&
+		armArmor > 0 &&
+		legArmor > 0 &&
+		helmetArmor > 0
+	);
 
 	public bool hyperChestActive;
 	public bool hyperArmActive;
@@ -87,7 +93,8 @@ public class MegamanX : Character {
 	// Giga-attacks and armor weapons.
 	public Weapon? gigaWeapon;
 	public HyperNovaStrike? hyperNovaStrike;
-	public HyperCharge hyperCharge = new HyperCharge();
+	public GigaCrush? gigaCrush;
+	public HyperCharge? hyperBuster;
 	public ItemTracer itemTracer = new();
 	public float barrierCooldown;
 	public float barrierActiveTime;
@@ -97,8 +104,8 @@ public class MegamanX : Character {
 	public float barrierAnimTime;
 	public bool stockedSaber;
 	public bool hyperChargeActive;
-	public bool stockedBuster;
-	public bool stockedMaxBuster;
+	public int stockedBusterLv;
+	public int stockedMaxBusterLv;
 
 	// Weapon-specific.
 	public RollingShieldProjCharged? chargedRollingShieldProj;
@@ -121,6 +128,11 @@ public class MegamanX : Character {
 	public float stingPaletteTime;
 	public float chargePalleteTime;
 
+	// RaySplasher
+	public float raySplasherCooldown;
+	public float raySplasherCooldown2;
+	public int raySplasherFrameIndex;
+
 	// X3 Helmet.
 	public bool isHealingWithChip;
 	public decimal lastChipBaseHP;
@@ -129,6 +141,7 @@ public class MegamanX : Character {
 	// Other.
 	public float weaknessCooldown;
 	public float aiAttackCooldown;
+	public float jumpTimeAI;
 	public float stockedTime;
 	public XLoadout loadout;
 	float hyperChargeAnimTime;
@@ -143,25 +156,20 @@ public class MegamanX : Character {
 	public MegamanX(
 		Player player, float x, float y, int xDir,
 		bool isVisible, ushort? netId, bool ownedByLocalPlayer,
-		bool isWarpIn = true, XLoadout? xLoadout = null
+		bool isWarpIn = true, XLoadout? loadout = null,
+		int? heartTanks = null, bool isATrans = false
 	) : base(
-		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn
+		player, x, y, xDir, isVisible,
+		netId, ownedByLocalPlayer, isWarpIn,
+		heartTanks, isATrans
 	) {
 		charId = CharIds.X;
-		// Configure loadout.
-		if (xLoadout == null) {
-			// Copy if null;
-			XLoadout playerLoadout = player.loadout.xLoadout;
-			xLoadout = new XLoadout();
-			xLoadout.weapon1 = playerLoadout.weapon1;
-			xLoadout.weapon2 = playerLoadout.weapon2;
-			xLoadout.weapon3 = playerLoadout.weapon3;
-			xLoadout.melee = playerLoadout.melee;
-		}
+		// Configure loadout. Copy if null;
+		loadout ??= player.loadout.xLoadout.clone();
 		// Set up final loadout.
-		loadout = xLoadout;
-		weapons = XLoadoutSetup.getLoadout(player, xLoadout);
-		specialButtonMode = xLoadout.melee;
+		this.loadout = loadout;
+		weapons = XLoadoutSetup.getLoadout(player, loadout);
+		specialButtonMode = loadout.melee;
 		// Link X-Buster or create one.
 		XBuster? tempBuster = weapons.Find((Weapon w) => w is XBuster) as XBuster;
 		if (tempBuster != null) {
@@ -174,6 +182,9 @@ public class MegamanX : Character {
 		armArmor = (ArmorId)player.armArmorNum;
 		legArmor = (ArmorId)player.legArmorNum;
 		helmetArmor = (ArmorId)player.helmetArmorNum;
+	}
+	public override CharState getTauntState() {
+		return new XTaunt();
 	}
 
 	// Updates at the start of the frame.
@@ -211,7 +222,7 @@ public class MegamanX : Character {
 		Helpers.decrementFrames(ref stingActiveTime);
 
 		if (lastShootPressed < 100) {
-			lastShootPressed++;
+			lastShootPressed += Global.gameSpeed;
 		}
 		player.hadoukenAmmo += Global.speedMul;
 		if (player.hadoukenAmmo > player.fgMoveMaxAmmo) player.hadoukenAmmo = player.fgMoveMaxAmmo;
@@ -236,15 +247,24 @@ public class MegamanX : Character {
 				}
 			}
 		}
-		if (stockedSaber || stockedMaxBuster || stockedBuster) {
+		if (stockedSaber || stockedMaxBusterLv >= 1 || stockedBusterLv >= 1) {
 			stockedTime += speedMul;
 			if (stockedTime >= 62f) {
 				stockedTime = 0;
 				playSound("stockedSaber");
 			}
 		}
+		if (stingActiveTime > 0 && currentWeapon is ChameleonSting) {
+			currentWeapon.ammo -= Global.spf * 3 * (hyperArmArmor == ArmorId.Max ? 0.5f : 1);
+			if (currentWeapon.ammo < 0) {
+				currentWeapon.ammo = 0;
+				stingActiveTime = 0;
+			}
+			player.delaySubtank();
+			enterCombat();
+		}
 
-		if (hyperHelmetArmor == ArmorId.Max && health > 0) {
+		if (hyperHelmetArmor == ArmorId.Max && alive) {
 			if (health >= lastChipBaseHP) {
 				lastChipBaseHP = health;
 			}
@@ -365,6 +385,12 @@ public class MegamanX : Character {
 	}
 
 	public override bool attackCtrl() {
+		if (player.input.isPressed(Control.Special1, player) && helmetArmor == ArmorId.Giga &&
+			itemTracer.shootCooldown == 0
+		) {
+			itemTracer.shoot(this, [0, hyperHelmetArmor == ArmorId.Giga ? 1 : 0]);
+			itemTracer.shootCooldown = itemTracer.fireRate;
+		}
 		if (stockedSaber && player.input.isPressed(Control.Special1, player)) {
 			changeState(new XMaxWaveSaberState(), true);
 			return true;
@@ -372,7 +398,7 @@ public class MegamanX : Character {
 		if (player.input.isPressed(Control.Special1, player) && !hasAnyArmor &&
 			stingActiveTime <= 0
 		) {
-			if (specialButtonMode == 1 && specialSaberCooldown <= 0) {
+			if (specialButtonMode == 1 && specialSaberCooldown <= 0 && !hasLockingProj()) {
 				changeState(new X6SaberState(grounded), true);
 				specialSaberCooldown = 60;
 				return true;
@@ -396,11 +422,11 @@ public class MegamanX : Character {
 		if (gigaAttackSpecialOption()) {
 			return true;
 		}
-		if (bufferedShotPressed && stockedMaxBuster) {
+		if (bufferedShotPressed && stockedMaxBusterLv >= 1) {
 			shoot(1, specialBuster, false);
 			return true;
 		}
-		if (bufferedShotPressed && stockedBuster) {
+		if (bufferedShotPressed && stockedBusterLv >= 1) {
 			shoot(1, currentWeapon ?? specialBuster, true);
 			return true;
 		}
@@ -427,21 +453,21 @@ public class MegamanX : Character {
 		if (Options.main.gigaCrushSpecial &&
 			player.input.isPressed(Control.Special1, player) &&
 			player.input.isHeld(Control.Down, player) &&
-			player.weapons.Any(w => w is GigaCrush)
+			weapons.Any(w => w is GigaCrush)
 		) {
-			oldSlot = player.weaponSlot;
-			newSlot = player.weapons.FindIndex(w => w is GigaCrush);
+			oldSlot = weaponSlot;
+			newSlot = weapons.FindIndex(w => w is GigaCrush);
 			player.changeWeaponSlot(newSlot);
 			shoot(getChargeLevel());
 			player.changeWeaponSlot(oldSlot);
 			return true;
 		} else if (Options.main.novaStrikeSpecial &&
 			  player.input.isPressed(Control.Special1, player) &&
-			  player.weapons.Any(w => w is HyperNovaStrike) &&
+			  weapons.Any(w => w is HyperNovaStrike) &&
 			  !inputDir.isZero()
 		  ) {
-			oldSlot = player.weaponSlot;
-			newSlot = player.weapons.FindIndex(w => w is HyperNovaStrike);
+			oldSlot = weaponSlot;
+			newSlot = weapons.FindIndex(w => w is HyperNovaStrike);
 			player.changeWeaponSlot(newSlot);
 			shoot(getChargeLevel());
 			player.changeWeaponSlot(oldSlot);
@@ -497,11 +523,11 @@ public class MegamanX : Character {
 		}
 		// Calls the weapon shoot function.
 		bool useCrossShotAnim = false;
+		bool isStockActive = busterStock;
 		if (chargeLevel >= 3 && armArmor == ArmorId.Giga || busterStock) {
 			if (!busterStock) {
-				stockedBuster = true;
-			} else if (chargeLevel < 3) {
-				stockedBuster = false;
+				stockedBusterLv = 2;
+				isStockActive = true;
 			}
 			if (!weapon.hasCustomChargeAnim && charState.normalCtrl && charState.attackCtrl) {
 				useCrossShotAnim = true;
@@ -513,22 +539,25 @@ public class MegamanX : Character {
 			stockedSaber = true;
 		}
 		// Changes to shoot animation and gets sound.
-		if (chargeLevel < 3 || !weapon.hasCustomChargeAnim) {
+		if (!useCrossShotAnim && (chargeLevel < 3 || !weapon.hasCustomChargeAnim)) {
 			setShootAnim();
 			shootAnimTime = DefaultShootAnimTime;
 		}
 		string shootSound = weapon.shootSounds[chargeLevel];
 		// Shoot.
 		if (useCrossShotAnim) {
-			changeState(new X2ChargeShot(null, busterStock ? 1 : 0), true);
+			changeState(new X2ChargeShot(null, stockedBusterLv), true);
 			stopCharge();
 			return;
 		} else {
 			weapon.shoot(this, [chargeLevel, busterStock ? 1 : 0]);
+			if (isStockActive && stockedBusterLv > 0) {
+				stockedBusterLv--;
+			}
 		}
 		// Sets up global shoot cooldown to the weapon shootCooldown.
 		float baseCooldown = weapon.getFireRate(this, chargeLevel, [busterStock ? 1 : 0]);
-		if (!stockedBuster || busterStock || weapon.fireRate <= 10) {
+		if (stockedBusterLv == 0 || busterStock || weapon.fireRate <= 10) {
 			weapon.shootCooldown = baseCooldown;
 		} else {
 			weapon.shootCooldown = 10;
@@ -557,7 +586,7 @@ public class MegamanX : Character {
 			hyperProgress = 0;
 			return;
 		}
-		if (player.health <= 0 || hasUltimateArmor) {
+		if (health <= 0 || hasUltimateArmor) {
 			hyperProgress = 0;
 			return;
 		}
@@ -570,7 +599,7 @@ public class MegamanX : Character {
 			hyperProgress = 0;
 			return;
 		}
-		if (charState is not WarpIn && fullArmor != ArmorId.None) {
+		if (charState is not WarpIn && anyFullArmor) {
 			hyperProgress += Global.spf;
 		}
 		if (hyperProgress < 1) {
@@ -604,18 +633,15 @@ public class MegamanX : Character {
 			if (player.input.isHeld(Control.Down, player)) {
 				fastChipActive(false, false, false, true);
 				fastChipMessage("Foot");
-			}
-			else if (player.input.isHeld(Control.Up, player)) {
+			} else if (player.input.isHeld(Control.Up, player)) {
 				fastChipActive(true, false, false, false);
 				fastChipMessage("Head");
-			}
-			else if (player.input.isHeld(Control.Left, player) ||
-				player.input.isHeld(Control.Right, player)
-			) {
+			} else if (player.input.isHeld(Control.Left, player) ||
+				  player.input.isHeld(Control.Right, player)
+			  ) {
 				fastChipActive(false, false, true, false);
 				fastChipMessage("Arm");
-			}
-			else {
+			} else {
 				fastChipActive(false, true, false, false);
 				fastChipMessage("Body");
 			}
@@ -716,7 +742,7 @@ public class MegamanX : Character {
 	}
 
 	public override bool canShootCharge() {
-		bool hasStockCharge = stockedBuster && stockedMaxBuster && stockedSaber;
+		bool hasStockCharge = stockedBusterLv >= 1 && stockedMaxBusterLv >= 1 && stockedSaber;
 		if (isInvulnerableAttack() ||
 			hasLastingProj() && !hasStockCharge ||
 			hasLockingProj() ||
@@ -842,13 +868,23 @@ public class MegamanX : Character {
 		bool damaged = base.canBeDamaged(damagerAlliance, damagerPlayerId, projId);
 
 		// Bommerang can go thru invisibility check
+		if (player.alliance != damagerAlliance && projId != null && Damager.isBoomerang(projId)) {
+			return damaged;
+		}
 		if (stingActiveTime > 0) {
-			if (player.alliance != damagerAlliance && projId != null && Damager.isBoomerang(projId)) {
-				return damaged;
-			}
 			return false;
 		}
 		return damaged;
+	}
+	public override bool isInvulnerable(bool ignoreRideArmorHide = false, bool factorHyperMode = false) {
+		bool invul = base.isInvulnerable(ignoreRideArmorHide, factorHyperMode);
+		if (stingActiveTime > 0) {
+			return !factorHyperMode;
+		}
+		return invul;
+	}
+	public override bool isStealthy(int alliance) {
+		return player.alliance != alliance && stingActiveTime > 0;
 	}
 
 	public bool hasHadoukenEquipped() {
@@ -880,7 +916,8 @@ public class MegamanX : Character {
 			chargedSpinningBlade?.destroyed == false ||
 			chargedFrostShield?.destroyed == false ||
 			chargedTornadoFang?.destroyed == false ||
-			strikeChainProj?.destroyed == false
+			strikeChainProj?.destroyed == false ||
+			shootingRaySplasher != null
 		);
 	}
 
@@ -889,7 +926,8 @@ public class MegamanX : Character {
 			chargedFrostShield?.destroyed == false ||
 			chargedTornadoFang?.destroyed == false ||
 			chargedSpinningBlade?.destroyed == false ||
-			linkedTriadThunder?.destroyed == false
+			linkedTriadThunder?.destroyed == false ||
+			shootingRaySplasher != null
 		);
 	}
 
@@ -994,7 +1032,7 @@ public class MegamanX : Character {
 		base.onFlinchOrStun(newState);
 	}
 
-	public override bool changeState(CharState newState, bool forceChange = false) {
+	public override bool changeState(CharState newState, bool forceChange = true) {
 		bool hasChanged = base.changeState(newState, forceChange);
 		if (!hasChanged || !ownedByLocalPlayer) {
 			return hasChanged;
@@ -1053,8 +1091,7 @@ public class MegamanX : Character {
 				barrierAnim.drawSimple(
 					getCenterPos().addxy(x, y), xDir, zIndex + 10, alpha: barrierAnimTime, actor: this
 				);
-			}
-			else if (hyperChestArmor == ArmorId.Max) {
+			} else if (hyperChestArmor == ArmorId.Max) {
 				barrierAnimRed.drawSimple(
 					getCenterPos().addxy(x, y), xDir, zIndex + 10, alpha: bAlpha, actor: this
 				);
@@ -1176,7 +1213,7 @@ public class MegamanX : Character {
 			index = 0;
 		}
 		if (index == (int)WeaponIds.HyperCharge && ownedByLocalPlayer) {
-			index = player.weapons[player.hyperChargeSlot].index;
+			index = weapons[player.hyperChargeSlot].index;
 		}
 		if (hasFullHyperMaxArmor) {
 			index = 25;
@@ -1224,9 +1261,9 @@ public class MegamanX : Character {
 	public List<ShaderWrapper> getChargeShaders() {
 		List<ShaderWrapper> chargePalletes = new();
 		ShaderWrapper? defaultChargePallete = null;
-		int chargeLevel = getChargeLevel();
+		int chargeLevel = getDisplayChargeLevel();
 		if (chargeLevel > 0) {
-			defaultChargePallete = getChargeLevel() switch {
+			defaultChargePallete = getDisplayChargeLevel() switch {
 				1 => Player.XBlueC,
 				2 => Player.XYellowC,
 				3 when hasFullHyperMaxArmor => Player.XGreenC,
@@ -1235,14 +1272,14 @@ public class MegamanX : Character {
 			};
 			chargePalletes.Add(defaultChargePallete);
 		}
-		if (stockedMaxBuster) {
+		if (stockedMaxBusterLv >= 1) {
 			if (defaultChargePallete != Player.XOrangeC) {
 				chargePalletes.Add(Player.XOrangeC);
 			} else {
 				chargePalletes.Add(Player.XPinkC);
 			}
 		}
-		if (stockedBuster) {
+		if (stockedBusterLv >= 1) {
 			if (!chargePalletes.Contains(Player.XPinkC)) {
 				chargePalletes.Add(Player.XPinkC);
 			} else if (!chargePalletes.Contains(Player.XOrangeC)) {
@@ -1257,7 +1294,9 @@ public class MegamanX : Character {
 			}
 		}
 		if (hyperChargeActive) {
-			if (!hasFullHyperMaxArmor && !stockedMaxBuster && !chargePalletes.Contains(Player.XOrangeC)) {
+			if (!hasFullHyperMaxArmor && stockedMaxBusterLv == 0 &&
+				!chargePalletes.Contains(Player.XOrangeC)
+			) {
 				chargePalletes.Add(Player.XOrangeC);
 			} else if (!stockedSaber && !chargePalletes.Contains(Player.XPinkC)) {
 				chargePalletes.Add(Player.XPinkC);
@@ -1266,13 +1305,13 @@ public class MegamanX : Character {
 		return chargePalletes;
 	}
 
-	public int getArmorByte() {
+	public ushort getArmorByte() {
 		int armorByte = (byte)chestArmor;
 		armorByte += (byte)armArmor << 4;
 		armorByte += (byte)legArmor << 8;
 		armorByte += (byte)helmetArmor << 12;
 
-		return armorByte;
+		return (ushort)armorByte;
 	}
 
 	public void setArmorByte(int armorByte) {
@@ -1333,8 +1372,8 @@ public class MegamanX : Character {
 		// Stocked charge flags.
 		customData.Add(Helpers.boolArrayToByte([
 			stingActiveTime > 0,
-			stockedBuster,
-			stockedMaxBuster,
+			stockedBusterLv >= 1,
+			stockedMaxBusterLv >= 1,
 			stockedSaber,
 			hyperChargeActive,
 		]));
@@ -1366,9 +1405,9 @@ public class MegamanX : Character {
 
 		// Stocked charge and weapon flags.
 		bool[] boolData = Helpers.byteToBoolArray(data[4]);
-		stingActiveTime = boolData[0] ? 60 : 0;
-		stockedBuster = boolData[1];
-		stockedMaxBuster = boolData[2];
+		stingActiveTime = boolData[0] ? 20 : 0;
+		stockedBusterLv = boolData[1] ? 1 : 0;
+		stockedMaxBusterLv = boolData[2] ? 1 : 0;
 		stockedSaber = boolData[3];
 		hyperChargeActive = boolData[4];
 
@@ -1382,62 +1421,83 @@ public class MegamanX : Character {
 	}
 
 	public override void aiAttack(Actor? target) {
-		bool isTargetInAir = pos.y < target?.pos.y - 20;
-		bool isTargetClose = pos.x < target?.pos.x - 10;
+		Helpers.decrementTime(ref jumpTimeAI);
+		float enemyDist = 300;
+		float enemyDistY = 30;
+		if (target != null) {
+			enemyDist = MathF.Abs(target.pos.x - pos.x);
+			enemyDistY = MathF.Abs(target.pos.y - pos.y);
+		}
+		int novaStrikeSlot = weapons.FindIndex(w => w is HyperNovaStrike);
+		int gCrushSlot = weapons.FindIndex(w => w is GigaCrush);
+		int hyperbuster = weapons.FindIndex(w => w is HyperCharge);
+		bool isTargetClose = enemyDist <= 40;
+		bool isTargetInAir = enemyDistY >= 20;
 		bool isFacingTarget = (pos.x < target?.pos.x && xDir == 1) || (pos.x >= target?.pos.x && xDir == -1);
-		int Xattack = Helpers.randomRange(0, 7);
+		int Xattack = Helpers.randomRange(1, 7);
 		if (charState.normalCtrl) {
 			player.press(Control.Shoot);
 		}
-		if (canShoot() && canChangeWeapons() && player != null &&
-		 charState is not LadderClimb && player.weapon != null && aiAttackCooldown <= 0) {
+		if (isTargetInAir) {
+			doJumpAI();
+		}
+		if (stockedSaber && charState.attackCtrl && isFacingTarget) {
+			stockedSaber = false;
+			changeState(new XMaxWaveSaberState(), true);
+			return;
+		}
+		if (getChargeLevel() >= 3 && isFacingTarget) {
+			player.release(Control.Shoot);
+		}
+		if (currentWeapon?.ammo <= 0) {
+			player.changeWeaponSlot(getRandomWeaponIndex());
+		}
+		if (canShoot() && canChangeWeapons() && charState is not LadderClimb && currentWeapon != null && aiAttackCooldown <= 0) {
 			switch (Xattack) {
-				case 0 when getMaxChargeLevel() >= 3 && isFacingTarget:
-					player.release(Control.Shoot);
-					break;
-				case 1 when target is MegamanX or Axl or Vile or NeoSigma && hasHadoukenEquipped()
-					&& canUseFgMove() && isTargetClose:
+				case 1 when target is MegamanX or Axl or Vile or NeoSigma && hasHadoukenEquipped() && canUseFgMove() &&
+					isTargetClose && player.hadoukenAmmo >= player.fgMoveMaxAmmo && hadoukenCooldownTime == 0:
 					player.currency -= 3;
+					player.hadoukenAmmo = 0;
+					hadoukenCooldownTime = maxHadoukenCooldownTime;
 					changeState(new Hadouken(), true);
 					break;
-				case 2 when isTargetInAir && isTargetClose && hasShoryukenEquipped() && canUseFgMove():
+				case 2 when isTargetInAir && isTargetClose && hasShoryukenEquipped() && canUseFgMove() &&
+					player.shoryukenAmmo >= player.fgMoveMaxAmmo && shoryukenCooldownTime == 0:
 					player.currency -= 3;
+					player.shoryukenAmmo = 0;
+					shoryukenCooldownTime = maxShoryukenCooldownTime;
 					changeState(new Shoryuken(isUnderwater()), true);
 					break;
-				case 3 when !hasAnyArmor && specialSaberCooldown <= 0:
+				case 3 when !hasAnyArmor && specialSaberCooldown <= 0 && isTargetClose:
 					specialSaberCooldown = 60;
 					changeState(new X6SaberState(grounded), true);
 					break;
-				case 4 when hasUltimateArmor:
-					int novaStrikeSlot = player.weapons.FindIndex(w => w is HyperNovaStrike);
+				case 4 when hyperNovaStrike?.ammo >= hyperNovaStrike?.getAmmoUsage(0) &&
+					isFacingTarget && hasUltimateArmor:
 					player.changeWeaponSlot(novaStrikeSlot);
-					if (player.weapon.ammo >= 16) {
-						player.press(Control.Shoot);
-					} else { player.changeWeaponSlot(getRandomWeaponIndex()); }
+					player.press(Control.Shoot);
+					player.release(Control.Shoot);
 					break;
-				case 5 when player.hasBodyArmor(2):
-					int gCrushSlot = player.weapons.FindIndex(w => w is GigaCrush);
+				case 5 when gigaCrush?.ammo >= gigaCrush?.getAmmoUsage(0) &&
+				 	isFacingTarget && player.hasBodyArmor(2):
 					player.changeWeaponSlot(gCrushSlot);
-					if (player.weapon.ammo >= 28)
-						player.press(Control.Shoot);
-					else {
-						player.changeWeaponSlot(getRandomWeaponIndex());
-					}
+					player.press(Control.Shoot);
+					player.release(Control.Shoot);
 					break;
-				case 6 when armArmor == ArmorId.Max:
-					int hyperbuster = player.weapons.FindIndex(w => w is HyperCharge);
+				case 6 when hyperBuster?.ammo >= hyperBuster?.getAmmoUsage(0) &&
+					isFacingTarget && armArmor == ArmorId.Max:
 					player.changeWeaponSlot(hyperbuster);
-					if (player.weapon.ammo >= 16) {
-						player.press(Control.Shoot);
-						player.release(Control.Shoot);
-					} else { player.changeWeaponSlot(getRandomWeaponIndex()); }
+					player.press(Control.Shoot);
+					player.release(Control.Shoot);
 					break;
-				case 7 when stockedBuster || stockedMaxBuster || stockedSaber:
+				case 7 when (
+					stockedBusterLv >= 1 || stockedMaxBusterLv >= 1 || stockedSaber
+				) && isFacingTarget:
 					player.press(Control.Shoot);
 					player.release(Control.Shoot);
 					break;
 				default:
-					player.release(Control.Shoot);
+					player.press(Control.Shoot);
 					break;
 			}
 			aiAttackCooldown = 10;
@@ -1445,29 +1505,53 @@ public class MegamanX : Character {
 		base.aiAttack(target);
 	}
 	public override void aiDodge(Actor? target) {
-		int RollingShield = player.weapons.FindIndex(w => w is RollingShield);
-		int novaStrikeSlot = player.weapons.FindIndex(w => w is HyperNovaStrike);
-		foreach (GameObject gameObject in getCloseActors(64, true, false, false)) {
-			if (player != null && player.weapon != null &&
-			aiAttackCooldown <= 0 && gameObject is Projectile proj &&
-			proj.damager.owner.alliance != player.alliance) {
-				if (player.weapon.ammo > 0) {
-					player.changeWeaponSlot(RollingShield);
-					player.press(Control.Shoot);
-					player.release(Control.Shoot);
-				} else if (hasUltimateArmor) {
-					player.changeWeaponSlot(novaStrikeSlot);
-					if (player.weapon.ammo >= 16) {
-						player.press(Control.Shoot);
-					} else { player.changeWeaponSlot(getRandomWeaponIndex()); }
-				}
-			}
-		}
+		
 		base.aiDodge(target);
 	}
 
-	public override void aiUpdate() {
-		//Buying UAX and Golden Armor goes here
-		base.aiUpdate();
+	public override void aiUpdate(Actor? target) {
+		if (!player.isMainPlayer && !Global.level.is1v1()) {
+			if (player.aiArmorUpgradeIndex < player.aiArmorUpgradeOrder.Count) {
+				var upgradeNumber = player.aiArmorUpgradeOrder[player.aiArmorUpgradeIndex];
+				if (upgradeNumber == 0 && player.currency >= MegamanX.bootsArmorCost) {
+					UpgradeArmorMenu.upgradeBootsArmor(player, player.aiArmorPath);
+					player.aiArmorUpgradeIndex++;
+				} else if (upgradeNumber == 1 && player.currency >= MegamanX.chestArmorCost) {
+					UpgradeArmorMenu.upgradeBodyArmor(player, player.aiArmorPath);
+					player.aiArmorUpgradeIndex++;
+				} else if (upgradeNumber == 2 && player.currency >= MegamanX.headArmorCost) {
+					UpgradeArmorMenu.upgradeHelmetArmor(player, player.aiArmorPath);
+					player.aiArmorUpgradeIndex++;
+				} else if (upgradeNumber == 3 && player.currency >= MegamanX.armArmorCost) {
+					UpgradeArmorMenu.upgradeArmArmor(player, player.aiArmorPath);
+					player.aiArmorUpgradeIndex++;
+				}
+			}
+			if (health >= maxHealth) {
+				if (!hasUltimateArmor && player.currency >= Player.ultimateArmorCost) {
+					player.currency -= Player.ultimateArmorCost;
+					hasUltimateArmor = true;
+					if (!weapons.Any(w => w is HyperNovaStrike)) {
+						weapons.Add(new HyperNovaStrike());
+					}
+				}
+				if (fullArmor == ArmorId.Max && !hasFullHyperMaxArmor &&
+					player.currency >= Player.goldenArmorCost
+				) {
+					player.currency -= Player.goldenArmorCost;
+					hyperChestActive = true;
+					hyperArmActive = true;
+					hyperLegActive = true;
+					hyperHelmetActive = true;
+				}
+			}
+		}
+		base.aiUpdate(target);
 	}
+	public void doJumpAI(float jumpTimeAI = 0.75f) {
+		if (jumpTimeAI > 0) {
+			player.press(Control.Jump);
+		}
+	}
+	
 }

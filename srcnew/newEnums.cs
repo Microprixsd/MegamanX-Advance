@@ -1,4 +1,4 @@
-namespace MMXOnline;
+﻿namespace MMXOnline;
 
 public enum ArmorId {
 	None = 0,
@@ -21,7 +21,8 @@ public enum SpecialStateIds {
 	AxlRoll,
 	HyorogaStart,
 	XTeleport,
-	PZeroParry
+	PZeroParry,
+	WarpIdle
 }
 
 public static class ArmorParts {

@@ -23,7 +23,7 @@ public class RyuenjinWeapon : Weapon {
 		description = new string[] { "A fiery uppercut that burns enemies." };
 		damage = "4";
 		hitcooldown = "0.2";
-		Flinch = "0";
+		flinch = "0";
 		effect = "Burn DOT: 2 Seconds.";
 	}
 
@@ -49,7 +49,7 @@ public class DenjinWeapon : Weapon {
 		description = new string[] { "An electrical uppercut that flinches enemies", "and can hit multiple times." };
 		damage = "3";
 		hitcooldown = "0.1";
-		Flinch = "26";
+		flinch = "26";
 		effect = "None.";
 	}
 }
@@ -68,19 +68,18 @@ public class RisingFangWeapon : Weapon {
 		description = new string[] { "A fast, element-neutral uppercut.", "Can be used in the air to gain height." };
 		damage = "2";
 		hitcooldown = "0.5";
-		Flinch = "0";
+		flinch = "0";
 		effect = "Can be used in the air to gain height.";
 	}
 }
 
-public class ZeroUppercut : CharState {
+public class ZeroUppercut : ZeroState {
 	bool jumpedYet;
 	float timeInWall;
 	bool isUnderwater;
 	public bool isHeld = true;
 	public float holdTime;
 	public RisingType type;
-	public Zero zero = null!;
 	int jumpFrame;
 
 	public ZeroUppercut(RisingType type, bool isUnderwater) : base(getSprite(type, isUnderwater)) {
@@ -98,8 +97,8 @@ public class ZeroUppercut : CharState {
 	public void setStartupFrame(RisingType type) {
 		jumpFrame = type switch {
 			RisingType.Ryuenjin => 5,
-			RisingType.Denjin => 4,
-			RisingType.RisingFang => 3,
+			RisingType.Denjin => 6,
+			RisingType.RisingFang => 6,
 			_ => 4
 		};
 	}
@@ -137,18 +136,25 @@ public class ZeroUppercut : CharState {
 		if (!player.input.isHeld(Control.Special1, player) && !player.input.isHeld(Control.Shoot, player)) {
 			isHeld = false;
 		}
-		if (character.sprite.frameIndex == 6 && type == RisingType.RisingFang) {
-			if (isHeld && holdTime < 0.4f) {
-				holdTime += Global.spf;
-				character.frameSpeed = 0;
-				character.frameIndex = 6;
-			} else {
-				character.frameSpeed = 1;
-				character.frameIndex = 6;
+		if (type == RisingType.RisingFang) {
+			if (character.sprite.frameIndex == 8) {
+				if (isHeld && holdTime < 0.2f) {
+					holdTime += Global.spf;
+					character.frameSpeed = 0;
+					character.frameIndex = 8;
+				} else {
+					character.frameSpeed = 1;
+					character.frameIndex = 8;
+				}
+			}
+			if (character.sprite.frameIndex >= 9) {
+				if (!isHeld) {
+					character.vel.y = character.vel.y/1.25f;
+					character.changeToIdleOrFall();
+				}
 			}
 		}
-
-		if (character.sprite.frameIndex >= 3 && character.sprite.frameIndex < 6) {
+		if (character.sprite.frameIndex >= 4 && character.sprite.frameIndex < 7) {
 			float speed = 100;
 			if (type == RisingType.Denjin) {
 				speed = 120;
@@ -160,7 +166,7 @@ public class ZeroUppercut : CharState {
 		if (wallAbove != null && wallAbove.gameObject is Wall) {
 			timeInWall += Global.spf;
 			if (timeInWall > 0.1f) {
-				character.changeState(character.getFallState());
+				character.changeState(character.getFallState(), true);
 				return;
 			}
 		}
@@ -200,11 +206,14 @@ public class ZeroUppercut : CharState {
 		if (!character.grounded && type == RisingType.RisingFang) {
 			character.sprite.frameIndex = 4;
 		}
-		zero = character as Zero ?? throw new NullReferenceException();
+		zero.airRisingUses++;
 	}
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
-		zero.airRisingUses++;	
+	}
+	public override bool canEnter(Character character) {
+		if (character.charState is WallSlide) return false;
+		return base.canEnter(character);
 	}
 }

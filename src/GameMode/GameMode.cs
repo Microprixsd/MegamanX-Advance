@@ -8,14 +8,14 @@ using SFML.System;
 namespace MMXOnline;
 
 public class GameMode {
-	public const string Deathmatch = "deathmatch";
-	public const string TeamDeathmatch = "team deathmatch";
-	public const string CTF = "ctf";
-	public const string ControlPoint = "control point";
-	public const string Elimination = "elimination";
-	public const string TeamElimination = "team elimination";
-	public const string KingOfTheHill = "king of the hill";
-	public const string Race = "race";
+	public const string Deathmatch = "Deathmatch";
+	public const string TeamDeathmatch = "Team Deathmatch";
+	public const string CTF = "Capture The Flag";
+	public const string ControlPoint = "Control Point";
+	public const string Elimination = "Elimination";
+	public const string TeamElimination = "Team Elimination";
+	public const string KingOfTheHill = "King Of The Hill";
+	public const string Race = "Race";
 	public static List<string> allGameModes = new List<string>() {
 		Deathmatch, TeamDeathmatch, CTF, KingOfTheHill,
 		ControlPoint, Elimination, TeamElimination
@@ -325,7 +325,7 @@ public class GameMode {
 		if (!isOver) {
 			if (setupTime == 0 && Global.isHost) {
 				// Just in case packets were dropped, keep syncing "0" time
-				if (Global.frameCount % 30 == 0) {
+				if (Global.flFrameCount % 30 == 0) {
 					Global.serverClient?.rpc(RPC.syncSetupTime, 0, 0);
 				}
 			}
@@ -633,13 +633,24 @@ public class GameMode {
 					"x" + drawPlayer.currency.ToString(), 16, 140, Alignment.Left
 				);
 			}
-			if (drawPlayer.character is RagingChargeX mmx && mmx.shotCount > 0) {
+			if (drawPlayer.character is RagingChargeX mmx) {
+				/*
 				int x = 10, y = 156;
 				int count = mmx.shotCount;
 				if (count >= 1) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x, y);
 				if (count >= 2) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y);
 				if (count >= 3) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x, y + 11);
 				if (count >= 4) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y + 11);
+				*/
+				float decayCooldown = Helpers.progress(
+					mmx.selfDamageCooldown,
+					mmx.selfDamageMaxCooldown
+				);
+				drawGigaWeaponCooldown(122, decayCooldown, (int)Global.halfScreenW / 17, 160);
+				if (mmx.parryCooldown > 0) {
+					float cooldown = 1 - Helpers.progress(mmx.parryCooldown, 30);
+					drawGigaWeaponCooldown(51, cooldown, (int)Global.halfScreenW / 17, 178);
+				}
 			}
 			if (drawPlayer.character is Zero zero) {
 				int yStart = 159;
@@ -703,14 +714,51 @@ public class GameMode {
 				float cooldown = 1 - Helpers.progress(axl2.dodgeRollCooldown, Axl.maxDodgeRollCooldown);
 				drawGigaWeaponCooldown(50, cooldown, y: 170);
 			}
+			if (drawPlayer.character is Axl && Global.level.server?.customMatchSettings?.axlCustomReload == true) {
+				if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl > 0 ||
+					drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 > 0) {
+					Fonts.drawText(
+						FontType.RedishOrange, "Reloading :",
+						Global.halfScreenW - 157, 5, Alignment.Center
+					);
+				}
+				if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 <= 0 && drawPlayer.weapon?.rechargeAmmoCustomSettingAxl > 0) {
+					Fonts.drawText(
+							FontType.RedishOrange, drawPlayer.weapon.rechargeAmmoCustomSettingAxl.ToString(),
+							Global.halfScreenW - 120, 5, Alignment.Left
+						);
+					}
+				if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 > 0) {
+					Fonts.drawText(
+						FontType.RedishOrange, drawPlayer.weapon.rechargeAmmoCustomSettingAxl2.ToString(),
+						Global.halfScreenW - 120, 5, Alignment.Left
+					);
+				}
+			}
 			if (drawPlayer.character is CmdSigma cmdSigma) {
-				int xStart = 11;
+				//int xStart = 11;
 				if (cmdSigma.leapSlashCooldown > 0) {
 					float cooldown = 1 - Helpers.progress(
 						cmdSigma.leapSlashCooldown, BaseSigma.maxLeapSlashCooldown
 					);
 					drawGigaWeaponCooldown(102, cooldown);
 				}
+			}
+			if (drawPlayer.character is Vile vilePilot &&
+			vilePilot.rideArmor != null &&
+			vilePilot.rideArmor == vilePilot.linkedRideArmor
+			&& vilePilot.rideArmor.raNum == 2
+			) {
+				int x = 13, y = 155;
+				int napalmNum = drawPlayer.loadout.vileLoadout.napalm;
+				if (napalmNum < 0) napalmNum = 0;
+				if (napalmNum > 2) napalmNum = 0;
+				Global.sprites["hud_hawk_bombs"].drawToHUD(
+					napalmNum, x, y, alpha: vilePilot.napalmWeapon.shootCooldown == 0 ? 1 : 0.5f
+				);
+				Fonts.drawText(
+					FontType.Grey, "x" + vilePilot.rideArmor.hawkBombCount.ToString(), x + 10, y - 4
+				);
 			}
 			if (drawPlayer.weapons == null) {
 				return;
@@ -780,7 +828,7 @@ public class GameMode {
 				FontType.BlueMenu, hudErrorMsg,
 				Global.halfScreenW, 50, Alignment.Center
 			);
-		} else if (mainPlayer?.isKaiserViralSigma() == true) {
+		} else if (mainPlayer.character is KaiserSigma) {
 			string msg = "";
 			if (KaiserSigma.canKaiserSpawn(mainPlayer.character, out _)) msg += "[JUMP]: Relocate";
 			if (msg != "") {
@@ -834,7 +882,7 @@ public class GameMode {
 				Global.halfScreenW, 8, Alignment.Center
 			);
 		} else if (
-			level.mainPlayer.isPuppeteer() && level.mainPlayer.currentMaverick != null &&
+			level.mainPlayer.currentMaverick?.controlMode == MaverickModeId.Puppeteer &&
 			level.mainPlayer.weapon is MaverickWeapon mw
 		) {
 			if (level.mainPlayer.currentMaverick.isPuppeteerTooFar()) {
@@ -924,7 +972,10 @@ public class GameMode {
 		}
 	}
 
-	public void setHUDErrorMessage(Player player, string message, bool playSound = true, bool resetCooldown = false) {
+	public void setHUDErrorMessage(
+		Player player, string message,
+		bool playSound = true, bool resetCooldown = false
+	) {
 		if (player != level.mainPlayer) return;
 		if (resetCooldown) hudErrorMsgTime = 0;
 		if (hudErrorMsgTime == 0) {
@@ -934,6 +985,10 @@ public class GameMode {
 				Global.playSound("error");
 			}
 		}
+	}
+
+	public void setDebugMessage(string message) {
+		setHUDErrorMessage(Global.level.mainPlayer, message, false, true);
 	}
 
 	public bool shouldDrawRadar() {
@@ -946,15 +1001,16 @@ public class GameMode {
 		if (level.mainPlayer.isAxl && level.boundBlasterAltProjs.Any(b => b.state == 1)) {
 			return true;
 		}
-		if (level.mainPlayer.isSigma && level.mainPlayer.currentMaverick == null) {
-			if (level.mainPlayer.isPuppeteer() || level.mainPlayer.isSummoner()) {
+		if (level.mainPlayer.currentMaverick != null) {
+			if (level.mainPlayer.currentMaverick.controlMode is MaverickModeId.Puppeteer or MaverickModeId.Summoner) {
 				return level.mainPlayer.mavericks.Count > 0;
 			}
 		}
-		if (level.mainPlayer.isSigma && level.mainPlayer.currentMaverick != null) {
-			if (level.mainPlayer.isPuppeteer()) {
-				return level.mainPlayer.health > 0;
-			} else if (level.mainPlayer.isSummoner()) {
+		if (level.mainPlayer.currentMaverick != null) {
+			if (level.mainPlayer.currentMaverick.controlMode == MaverickModeId.Puppeteer) {
+				return level.mainPlayer.character?.alive == true;
+			}
+			else if (level.mainPlayer.currentMaverick.controlMode == MaverickModeId.Summoner) {
 				return level.mainPlayer.mavericks.Count > 1;
 			}
 		}
@@ -963,22 +1019,26 @@ public class GameMode {
 
 	void drawRadar() {
 		List<Point> revealedSpots = new List<Point>();
-		float revealedRadius;
-
-		if (level.mainPlayer.isX) {
-			revealedSpots.Add(new Point(level.camX + Global.viewScreenW / 2, level.camY + Global.viewScreenH / 2));
-			revealedRadius = Global.viewScreenW * 1.5f;
-		} else if (level.mainPlayer.isSigma) {
+		float revealedRadius = Global.viewScreenW * 0.5f;
+		
+		if (level.mainPlayer.mavericks.Count > 0) {
 			foreach (var maverick in level.mainPlayer.mavericks) {
-				if (maverick == level.mainPlayer.currentMaverick && !level.mainPlayer.isAlivePuppeteer()) continue;
+				if (maverick == level.mainPlayer.currentMaverick) {
+					continue;
+				}
 				revealedSpots.Add(maverick.pos);
 			}
 			revealedRadius = Global.viewScreenW * 0.5f;
-		} else {
+		} 
+		if (level.boundBlasterAltProjs.Count > 0) {
 			foreach (var bbAltProj in level.boundBlasterAltProjs) {
 				revealedSpots.Add(bbAltProj.pos);
 			}
 			revealedRadius = Global.viewScreenW;
+		}
+		if (level.mainPlayer.isX || level.mainPlayer.character is MegamanX) {
+			revealedSpots.Add(new Point(level.camX + Global.viewScreenW / 2, level.camY + Global.viewScreenH / 2));
+			revealedRadius = Global.viewScreenW * 1.5f;
 		}
 
 		//float borderThickness = 1;
@@ -1097,7 +1157,7 @@ public class GameMode {
 		sprite.Dispose();
 		sprite2.Dispose();
 
-		if (level.mainPlayer.isSigma) {
+		if (level.mainPlayer.mavericks.Count > 0) {
 			foreach (Maverick maverick in level.mainPlayer.mavericks) {
 				if (maverick == level.mainPlayer.currentMaverick && !level.mainPlayer.isAlivePuppeteer()) continue;
 				float xPos = maverick.pos.x * scaleW;
@@ -1299,11 +1359,22 @@ public class GameMode {
 		if (level.is1v1() && player.deaths >= playingTo) return;
 
 		//Health
-		renderHealth(player, position, false);
-		bool mechBarExists = renderHealth(player, position, true);
+		Point pos = getHUDHealthPosition(position, true);
+		int dir = 1;
+		if (position is HUDHealthPosition.Right or HUDHealthPosition.TopRight or HUDHealthPosition.BotRight) {
+			dir = -1;
+		}
+		renderHealth(player, pos, false, false);
+		if (renderHealth(player, pos.addxy(6 * dir, 0), true, false)) {
+			pos.x += dir * 6;
+		};
+		if (renderHealth(player, pos.addxy(6 * dir, 0), false, true)) {
+			pos.x += dir * 6;
+		};
+		pos.x += dir * 16;
 
 		//Weapon
-		if (!mechBarExists) renderWeapon(player, position);
+		renderWeapon(player, pos);
 	}
 
 	public Point getHUDHealthPosition(HUDHealthPosition position, bool isHealth) {
@@ -1323,7 +1394,7 @@ public class GameMode {
 		return new Point(x, y);
 	}
 
-	public bool renderHealth(Player player, HUDHealthPosition position, bool isMech) {
+	public bool renderHealth(Player player, Point position, bool isMech, bool isMaverick) {
 		bool mechBarExists = false;
 
 		string spriteName = "hud_health_base";
@@ -1332,20 +1403,23 @@ public class GameMode {
 		float damageSavings = 0;
 		float greyHp = 0;
 
-		if (player.currentMaverick != null) {
-			health = player.currentMaverick.health;
-			maxHealth = player.currentMaverick.maxHealth;
-			damageSavings = 0;
+		if (isMaverick) {
+			if (player.currentMaverick != null) {
+				health = player.currentMaverick.health;
+				maxHealth = player.currentMaverick.maxHealth;
+				damageSavings = 0;
+			} else {
+				return false;
+			}
 		}
 		else if (player.character != null) {
-			if (player.health > 0 && player.health < player.maxHealth) {
+			if (player.character.alive && player.health < player.maxHealth) {
 				damageSavings = MathInt.Floor(player.character.damageSavings);
 			}
 			if (player.character is MegamanX rmx && rmx.hyperHelmetArmor == ArmorId.Max) {
 				greyHp = (float)rmx.lastChipBaseHP;
 			}
 		}
-
 
 		int frameIndex = player.charNum;
 		if (player.charNum == (int)CharIds.PunchyZero) {
@@ -1356,9 +1430,8 @@ public class GameMode {
 		}
 		if (player.isDisguisedAxl) frameIndex = 3;
 
-		var hudHealthPosition = getHUDHealthPosition(position, true);
-		float baseX = hudHealthPosition.x;
-		float baseY = hudHealthPosition.y;
+		float baseX = position.x;
+		float baseY = position.y;
 
 		float twoLayerHealth = 0;
 		if (isMech && player.character?.rideArmor != null && player.character.rideArmor.raNum != 5) {
@@ -1367,11 +1440,7 @@ public class GameMode {
 			maxHealth = player.character.rideArmor.maxHealth;
 			twoLayerHealth = player.character.rideArmor.goliathHealth;
 			frameIndex = player.character.rideArmor.raNum;
-			baseX = getHUDHealthPosition(position, false).x;
-			mechBarExists = false;
-			if (player?.weapon?.drawAmmo == true) {
-				baseX += 15;
-			}
+			mechBarExists = true;
 			damageSavings = 0;
 		}
 		if (isMech && player?.character?.rideArmorPlatform != null) {
@@ -1380,11 +1449,7 @@ public class GameMode {
 			maxHealth = player.character.rideArmorPlatform.maxHealth;
 			twoLayerHealth = player.character.rideArmorPlatform.goliathHealth;
 			frameIndex = player.character.rideArmorPlatform.raNum;
-			baseX = getHUDHealthPosition(position, false).x;
-			if (player?.weapon?.drawAmmo == true) {
-				baseX += 15;
-			}
-			mechBarExists = false;
+			mechBarExists = true;
 			damageSavings = 0;
 		}
 
@@ -1393,9 +1458,12 @@ public class GameMode {
 			health = player.character.rideChaser.health;
 			maxHealth = player.character.rideChaser.maxHealth;
 			frameIndex = 0;
-			baseX = getHUDHealthPosition(position, false).x;
 			mechBarExists = true;
 			damageSavings = 0;
+		}
+
+		if (isMech && !mechBarExists) {
+			return false;
 		}
 
 		//maxHealth /= player.getHealthModifier();
@@ -1437,7 +1505,7 @@ public class GameMode {
 		}
 		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
 
-		return mechBarExists;
+		return true;
 	}
 
 	const int grayAmmoIndex = 30;
@@ -1475,29 +1543,29 @@ public class GameMode {
 
 	public bool shouldDrawWeaponAmmo(Player player, Weapon weapon) {
 		if (weapon == null) return false;
-		if (weapon.weaponSlotIndex == 0) return false;
 		if (!weapon.drawAmmo) return false;
 		if (weapon is HyperNovaStrike && level.isHyper1v1()) return false;
 
 		return true;
 	}
 
-	public void renderWeapon(Player player, HUDHealthPosition position) {
-		var hudHealthPosition = getHUDHealthPosition(position, false);
-		float baseX = hudHealthPosition.x;
-		float baseY = hudHealthPosition.y;
+	public void renderWeapon(Player player, Point position) {
+		float baseX = position.x;
+		float baseY = position.y;
 		bool forceSmallBarsOff = false;
 
 		// This runs once per character.
 		Weapon? weapon = player.lastHudWeapon;
 		if (player.character != null) {
-			weapon = player.weapon;
-			if (player.character is Zero zero) {
-				weapon = zero.gigaAttack;
-			}
-			if (player.character is PunchyZero punchyZero) {
-				weapon = punchyZero.gigaAttack;
-			}
+			weapon = player.character switch {
+				Zero zero => zero.gigaAttack,
+				Vile vile => vile.energy,
+				CmdSigma sigma => sigma.ballWeapon,
+				NeoSigma neoSigma => neoSigma.gigaAttack,
+				PunchyZero punchyZero => punchyZero.gigaAttack,
+				ViralSigma viralSigma => viralSigma.mainWeapon,
+				_ => player.character?.currentWeapon ?? player.weapon,
+			};
 			player.lastHudWeapon = weapon;
 		}
 		// Small Bars option.
@@ -1506,75 +1574,28 @@ public class GameMode {
 			ammoDisplayMultiplier = 0.5f;
 		}
 
-		if (player.isSigma) {
-			if (player.character == null ||
-				(player.character is KaiserSigma && player.currentMaverick == null)
-			) {
-				return;
-			}
-			if (player.currentMaverick != null && player.isMainPlayer &&
-				player.currentMaverick.canFly && player.currentMaverick.flyBar < player.currentMaverick.maxFlyBar
-			) {
+		if (player.character?.currentMaverick != null) {
+			Maverick currentMaverick = player.character.currentMaverick;
+
+			if (currentMaverick.canFly && currentMaverick.flyBar < currentMaverick.maxFlyBar) {
 				renderAmmo(
 					baseX, ref baseY,
-					player.currentMaverick.flyBarIndexes.icon,
-					player.currentMaverick.flyBarIndexes.units,
-					MathF.Ceiling((player.currentMaverick.flyBar / player.currentMaverick.maxFlyBar) * 28),
+					currentMaverick.flyBarIndexes.icon,
+					currentMaverick.flyBarIndexes.units,
+					MathF.Ceiling(currentMaverick.flyBar / currentMaverick.maxFlyBar * 28),
 					maxAmmo: 28, allowSmall: false
 				);
 			}
-			if (player.currentMaverick != null && player.isMainPlayer && player.currentMaverick.usesAmmo) {
+			if (currentMaverick.usesAmmo) {
 				renderAmmo(
 					baseX, ref baseY,
-					player.currentMaverick.barIndexes.icon,
-					player.currentMaverick.barIndexes.units,
-					player.currentMaverick.ammo,
-					player.currentMaverick.grayAmmoLevel,
-					player.currentMaverick.maxAmmo
+					currentMaverick.barIndexes.icon,
+					currentMaverick.barIndexes.units,
+					currentMaverick.ammo,
+					currentMaverick.grayAmmoLevel,
+					currentMaverick.maxAmmo
 				);
 			}
-			if (player.character is ViralSigma) {
-				renderAmmo(baseX, ref baseY, 61, 50, player.sigmaAmmo, grayAmmo: player.weapon.getAmmoUsage(0));
-			} else if (player.isMainPlayer && player.currentMaverick == null && !player.isSigma3()) {
-				int hudWeaponBaseIndex = 50;
-				int hudWeaponFullIndex = 39;
-				ammoDisplayMultiplier = 1;
-				int floorOrCeil = MathInt.Ceiling(player.sigmaMaxAmmo * ammoDisplayMultiplier);
-				if (player.isSigma2()) {
-					hudWeaponBaseIndex = 51;
-					hudWeaponFullIndex = player.sigmaAmmo < 16 ? 30 : 40;
-					floorOrCeil = MathInt.Floor(player.sigmaMaxAmmo * ammoDisplayMultiplier);
-				}
-				baseY += 25;
-				Global.sprites["hud_weapon_base"].drawToHUD(hudWeaponBaseIndex, baseX, baseY);
-				baseY -= 16;
-				for (var i = 0; i < floorOrCeil; i++) {
-					if (i < Math.Ceiling(player.sigmaAmmo * ammoDisplayMultiplier)) {
-						Global.sprites["hud_weapon_full"].drawToHUD(hudWeaponFullIndex, baseX, baseY);
-					} else {
-						Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
-					}
-					baseY -= 2;
-				}
-				Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
-				return;
-			}
-			return;
-		}
-
-		if (player.isVile) {
-			baseY += 25;
-			Global.sprites["hud_weapon_base"].drawToHUD(39, baseX, baseY);
-			baseY -= 16;
-			for (var i = 0; i < MathF.Ceiling(player.vileMaxAmmo * ammoDisplayMultiplier); i++) {
-				if (i < Math.Ceiling(player.vileAmmo * ammoDisplayMultiplier)) {
-					Global.sprites["hud_weapon_full"].drawToHUD(32, baseX, baseY);
-				} else {
-					Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
-				}
-				baseY -= 2;
-			}
-			Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
 			return;
 		}
 
@@ -1583,38 +1604,38 @@ public class GameMode {
 			return;
 		}
 
-		if (shouldDrawWeaponAmmo(player, weapon)) {
-			baseY += 25;
-			Global.sprites["hud_weapon_base"].drawToHUD(weapon.weaponBarBaseIndex, baseX, baseY);
-			baseY -= 16;
-			for (var i = 0; i < MathF.Ceiling(weapon.maxAmmo * ammoDisplayMultiplier); i++) {
-				var floorOrCeiling = Math.Ceiling(weapon.ammo * ammoDisplayMultiplier);
-				// Weapons that cost the whole bar go here, so they don't show up as full but still grayed out
-				if (weapon.drawRoundedDown || weapon is RekkohaWeapon || weapon is GigaCrush) {
-					floorOrCeiling = Math.Floor(weapon.ammo * ammoDisplayMultiplier);
-				}
-				if (i < floorOrCeiling) {
-					int spriteIndex = weapon.weaponBarIndex;
-					if (weapon.drawGrayOnLowAmmo && weapon.ammo < weapon.getAmmoUsage(0) ||
-						(weapon is GigaCrush && !weapon.canShoot(0, player)) ||
-						(weapon is HyperNovaStrike && !weapon.canShoot(0, player)) ||
-						(weapon is HyperCharge hb && !hb.canShootIncludeCooldown(level.mainPlayer))) {
-						spriteIndex = grayAmmoIndex;
-					}
-					if (spriteIndex >= Global.sprites["hud_weapon_full"].frames.Length) {
-						spriteIndex = 0;
-					}
-					Global.sprites["hud_weapon_full"].drawToHUD(spriteIndex, baseX, baseY);	
-				} else {
-					Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
-				}
-				baseY -= 2;
-			}
-			Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
+		if (!shouldDrawWeaponAmmo(player, weapon)) {
+			return;
 		}
-		//if (shouldDrawWeaponAmmo(player, weapon) && player.isIris) {
-		//	Global.sprites["iris_hud"].drawToHUD(0, 25, 125);
-		//}
+		ammoDisplayMultiplier /= weapon.ammoDisplayScale;
+		baseY += 25;
+		Global.sprites["hud_weapon_base"].drawToHUD(weapon.weaponBarBaseIndex, baseX, baseY);
+		baseY -= 16;
+
+		for (var i = 0; i < MathF.Ceiling(weapon.maxAmmo * ammoDisplayMultiplier); i++) {
+			var floorOrCeiling = Math.Ceiling(weapon.ammo * ammoDisplayMultiplier);
+			// Weapons that cost the whole bar go here, so they don't show up as full but still grayed out
+			if (weapon.drawRoundedDown || weapon is RekkohaWeapon || weapon is GigaCrush) {
+				floorOrCeiling = Math.Floor(weapon.ammo * ammoDisplayMultiplier);
+			}
+			if (i < floorOrCeiling) {
+				int spriteIndex = weapon.weaponBarIndex;
+				if (weapon.drawGrayOnLowAmmo && weapon.ammo < weapon.getAmmoUsage(0) ||
+					(weapon is GigaCrush && !weapon.canShoot(0, player)) ||
+					(weapon is HyperNovaStrike && !weapon.canShoot(0, player)) ||
+					(weapon is HyperCharge hb && !hb.canShootIncludeCooldown(level.mainPlayer))) {
+					spriteIndex = grayAmmoIndex;
+				}
+				if (spriteIndex >= Global.sprites["hud_weapon_full"].frames.Length) {
+					spriteIndex = 0;
+				}
+				Global.sprites["hud_weapon_full"].drawToHUD(spriteIndex, baseX, baseY);
+			} else {
+				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
+			}
+			baseY -= 2;
+		}
+		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
 	}
 
 	public void addKillFeedEntry(KillFeedEntry killFeed, bool sendRpc = false) {
@@ -1848,28 +1869,10 @@ public class GameMode {
 	}
 
 	public void drawWeaponSwitchHUD(Player player) {
-		if (player.isZero && !player.isDisguisedAxl) return;
-
 		if (player.isSelectingRA()) {
 			drawRideArmorIcons();
 		}
 
-		if (player.character is Vile vilePilot &&
-			vilePilot.rideArmor != null &&
-			vilePilot.rideArmor == vilePilot.linkedRideArmor
-			&& vilePilot.rideArmor.raNum == 2
-		) {
-			int x = 10, y = 155;
-			int napalmNum = player.loadout.vileLoadout.napalm;
-			if (napalmNum < 0) napalmNum = 0;
-			if (napalmNum > 2) napalmNum = 0;
-			Global.sprites["hud_hawk_bombs"].drawToHUD(
-				napalmNum, x, y, alpha: vilePilot.napalmWeapon.shootCooldown == 0 ? 1 : 0.5f
-			);
-			Fonts.drawText(
-				FontType.Grey, "x" + vilePilot.rideArmor.hawkBombCount.ToString(), x + 10, y - 4
-			);
-		}
 
 		if (player.character?.rideArmor != null || player.character?.rideChaser != null) {
 			return;
@@ -2105,7 +2108,10 @@ public class GameMode {
 		}
 
 
-		if (weapon is BlastLauncher && level.mainPlayer.axlLoadout.blastLauncherAlt == 1 && level.mainPlayer.grenades.Count > 0) {
+		if (weapon is BlastLauncher &&
+			level.mainPlayer.character is Axl { loadout.blastLauncherAlt: 1 } &&
+			level.mainPlayer.grenades.Count > 0
+		) {
 			drawWeaponText(x, y, level.mainPlayer.grenades.Count.ToString());
 		}
 
@@ -2124,28 +2130,24 @@ public class GameMode {
 
 		MaverickWeapon? mw = weapon as MaverickWeapon;
 		if (mw != null) {
-			float maxHealth = level.mainPlayer.getMaverickMaxHp();
-			if (level.mainPlayer.isSummoner()) {
+			float maxHealth = level.mainPlayer.getMaverickMaxHp(mw.controlMode);
+			if (mw.controlMode == MaverickModeId.Summoner) {
 				float mHealth = mw.maverick?.health ?? mw.lastHealth;
 				float mMaxHealth = mw.maverick?.maxHealth ?? maxHealth;
 				if (!mw.summonedOnce) mHealth = 0;
 				drawWeaponSlotAmmo(x, y, mHealth / mMaxHealth);
 				drawWeaponSlotCooldown(x, y, mw.shootCooldown / MaverickWeapon.summonerCooldown);
-			} else if (level.mainPlayer.isPuppeteer()) {
+			} else if (mw.controlMode == MaverickModeId.Puppeteer) {
 				float mHealth = mw.maverick?.health ?? mw.lastHealth;
 				float mMaxHealth = mw.maverick?.maxHealth ?? maxHealth;
 				if (!mw.summonedOnce) mHealth = 0;
 				drawWeaponSlotAmmo(x, y, mHealth / mMaxHealth);
-			} else if (level.mainPlayer.isStriker()) {
+			} else if (mw.controlMode == MaverickModeId.Striker) {
 				float mHealth = mw.maverick?.health ?? mw.lastHealth;
 				float mMaxHealth = mw.maverick?.maxHealth ?? maxHealth;
-				if (level.mainPlayer.isStriker() && level.mainPlayer.mavericks.Count > 0 && mw.maverick == null) {
-					mHealth = 0;
-				}
-
 				drawWeaponSlotAmmo(x, y, mHealth / mMaxHealth);
 				drawWeaponSlotCooldown(x, y, mw.cooldown / MaverickWeapon.strikerCooldown);
-			} else if (level.mainPlayer.isTagTeam()) {
+			} else if (mw.controlMode == MaverickModeId.TagTeam) {
 				float mHealth = mw.maverick?.health ?? mw.lastHealth;
 				float mMaxHealth = mw.maverick?.maxHealth ?? maxHealth;
 				if (!mw.summonedOnce) mHealth = 0;
@@ -2180,11 +2182,14 @@ public class GameMode {
 			//Helpers.drawWeaponSlotSymbol(x - 8, y - 8, "²");
 		}
 
-		if (weapon is SigmaMenuWeapon) {
-			if ((level.mainPlayer.isPuppeteer() || level.mainPlayer.isSummoner()) && level.mainPlayer.currentMaverickCommand == MaverickAIBehavior.Follow) {
+		if (weapon is SigmaMenuWeapon && level.mainPlayer.character is BaseSigma baseSigma) {
+			if (baseSigma.currentMaverickCommand == MaverickAIBehavior.Follow &&
+				level.mainPlayer.weapons.First(
+					wp => wp is MaverickWeapon mw && mw.controlMode is MaverickModeId.Summoner or MaverickModeId.Puppeteer
+				) != null
+			) {
 				Helpers.drawWeaponSlotSymbol(x - 8, y - 8, "ª");
 			}
-
 			/*
 			string commandModeSymbol = null;
 			//if (level.mainPlayer.isSummoner()) commandModeSymbol = "SUM";
@@ -2205,6 +2210,9 @@ public class GameMode {
 				float alpha = Helpers.clamp01(1 - animProgress);
 				Global.sprites["hud_scrap"].drawToHUD(0, x - 6, y - yOff - 10, alpha);
 				//DrawWrappers.DrawText("+1", x - 6, y - yOff - 10, Alignment.Center, )
+				if (Global.level.isHyperMatch()) {
+					Fonts.drawText(FontType.RedishOrange, "+5", x - 4, y - yOff - 15, Alignment.Left);	
+				} else 
 				Fonts.drawText(FontType.RedishOrange, "+1", x - 4, y - yOff - 15, Alignment.Left);
 			}
 		}
@@ -2390,7 +2398,7 @@ public class GameMode {
 		}
 		if (dnaCore.charNum == (int)CharIds.Zero) {
 			if (dnaCore.hyperMode == DNACoreHyperMode.NightmareZero) {
-				weapons.Add(new DarkHoldWeapon() { ammo = dnaCore.rakuhouhaAmmo });
+				weapons.Add(new DarkHoldWeapon() { ammo = dnaCore.altCharAmmo });
 			} else {
 				weapons.Add(RakuhouhaWeapon.getWeaponFromIndex(dnaCore.loadout?.zeroLoadout.gigaAttack ?? 0));
 			}
@@ -2398,12 +2406,12 @@ public class GameMode {
 		if (dnaCore.charNum == (int)CharIds.Sigma) {
 			if (sigmaForm == 0) weapons.Add(new Weapon() {
 				weaponSlotIndex = 111,
-				ammo = dnaCore.rakuhouhaAmmo,
+				ammo = dnaCore.altCharAmmo,
 				maxAmmo = 20,
 			});
 			if (sigmaForm == 1) weapons.Add(new Weapon() {
 				weaponSlotIndex = 110,
-				ammo = dnaCore.rakuhouhaAmmo,
+				ammo = dnaCore.altCharAmmo,
 				maxAmmo = 28,
 			});
 		}
@@ -2414,7 +2422,7 @@ public class GameMode {
 			float slotY = sy;
 			Global.sprites["hud_weapon_icon"].drawToHUD(weapon.weaponSlotIndex, slotX, slotY);
 			float ammo = weapon.ammo;
-			if (weapon is RakuhouhaWeapon || weapon is RekkohaWeapon || weapon is Messenkou || weapon is DarkHoldWeapon) ammo = dnaCore.rakuhouhaAmmo;
+			if (weapon is RakuhouhaWeapon || weapon is RekkohaWeapon || weapon is Messenkou || weapon is DarkHoldWeapon) ammo = dnaCore.altCharAmmo;
 			if (weapon is not MechMenuWeapon) {
 				DrawWrappers.DrawRectWH(slotX - 8, slotY - 8, 16, 16 - MathF.Floor(16 * (ammo / weapon.maxAmmo)), true, new Color(0, 0, 0, 128), 1, ZIndex.HUD, false);
 			}
@@ -2497,12 +2505,28 @@ public class GameMode {
 
 		float startY = Global.screenH - 12;
 		float height = 15;
-		Vile vile = level.mainPlayer?.character as Vile;
+		Vile? vile = level.mainPlayer?.character as Vile;
 		bool isMK2 = vile?.isVileMK2 == true;
 		bool isMK5 = vile?.isVileMK5 == true;
 		bool isMK2Or5 = isMK2 || isMK5;
 		int maxIndex = isMK2Or5 ? 5 : 4;
+		int selected = level.mainPlayer.selectedRAIndex;
 
+		// B, K, H, F
+		List<int> baseIcons = new List<int> { 0, 1, 2, 3 };
+		if (isMK2) baseIcons.Add(4); // G
+		if (isMK5) baseIcons.Add(5); // D
+
+		int count = baseIcons.Count;
+		int current = selected % count;
+		int previous = (current - 1 + count) % count;
+		int next = (current + 1) % count;
+
+		DrawWrappers.DrawTextureHUD(Global.textures["vileRidesHUD2"], Global.halfScreenW - 189, startY-26);
+		Global.sprites["hud_vile_rides"].drawToHUD(baseIcons[current], startX + 25, startY-6);
+		Global.sprites["hud_vile_rides_off"].drawToHUD(baseIcons[previous], startX + 9, startY-6);
+		Global.sprites["hud_vile_rides_off"].drawToHUD(baseIcons[next], startX + 41, startY-6);
+		/*
 		for (int i = 0; i < maxIndex; i++) {
 			float x = startX;
 			float y = startY - (i * height);
@@ -2526,6 +2550,7 @@ public class GameMode {
 				DrawWrappers.DrawRectWH(x - 7, y - 7, 14, 14, false, new Color(0, 224, 0), 1, ZIndex.HUD, false);
 			}
 		}
+		*/
 	}
 
 	public Color getPingColor(Player player) {
@@ -2536,6 +2561,14 @@ public class GameMode {
 
 	public void drawNetcodeData() {
 		int top2 = -3;
+		string netcodePingStr = "";
+		int iconXPos = 280;
+		if (level.server.netcodeModel == NetcodeModel.FavorAttacker) {
+			netcodePingStr = " < " + level.server.netcodeModelPing.ToString();
+			if (level.server.netcodeModelPing < 100) iconXPos = 260;
+			else iconXPos = 253;
+		}
+
 		if (!Global.level.server.isP2P) {
 			Fonts.drawText(
 				FontType.DarkPurple, Global.level.server.region.name,
@@ -2543,23 +2576,11 @@ public class GameMode {
 			);
 		} else {
 			Fonts.drawText(
-				FontType.DarkPurple, "P2P Server",
-				Global.screenW - 12, top2 + 12, Alignment.Right
+				FontType.DarkPurple, "P2P Server" + netcodePingStr,
+				261, top2 + 14, Alignment.Left
 			);
 		}
-
-		string netcodePingStr = "";
-		int iconXPos = 280;
-		if (level.server.netcodeModel == NetcodeModel.FavorAttacker) {
-			netcodePingStr = "<" + level.server.netcodeModelPing.ToString();
-			if (level.server.netcodeModelPing < 100) iconXPos = 260;
-			else iconXPos = 253;
-		}
-		Fonts.drawText(
-			FontType.DarkPurple, netcodePingStr,
-			Global.screenW - 12, top2 + 22, Alignment.Right
-		);
-		Global.sprites["hud_netcode"].drawToHUD((int)level.server.netcodeModel, iconXPos, top2 + 26);
+		Global.sprites["hud_netcode"].drawToHUD((int)level.server.netcodeModel, 364, top2 + 30);
 		if (Global.level.server.isLAN) {
 			Fonts.drawText(
 				FontType.DarkPurple, "IP: " + Global.level.server.ip,
@@ -2592,7 +2613,7 @@ public class GameMode {
 		drawMapName(padding, top + 10);
 		if (Global.serverClient != null) {
 			Fonts.drawText(
-				FontType.BlueMenu, "Match: " + Global.level.server.name, padding + 100, top + 10
+				FontType.BlueMenu, "Match: " + Global.level.server.name, padding + 245, top + 10
 			);
 			drawNetcodeData();
 		}
@@ -2622,7 +2643,7 @@ public class GameMode {
 
 			if (Global.serverClient != null && player.serverPlayer.isHost) {
 				Fonts.drawText(
-					FontType.Yellow, "H", col1x - 8, 3 + topPlayerY + i * rowH
+					FontType.Yellow, "H", col1x - 8, 1 + topPlayerY + i * rowH
 				);
 			} else if (Global.serverClient != null && player.serverPlayer.isBot) {
 				Fonts.drawText(
@@ -2676,7 +2697,7 @@ public class GameMode {
 
 		if (Global.serverClient != null) {
 			Fonts.drawText(
-				FontType.BlueMenu, "Match: " + Global.level.server.name, padding + 100, top + 10
+				FontType.BlueMenu, "Match: " + Global.level.server.name, padding + 245, top + 10
 			);
 			drawNetcodeData();
 		}
@@ -2795,22 +2816,20 @@ public class GameMode {
 	}
 
 	public FontType getCharFont(Player player) {
-		if (player.isDead && !isOver) {
-			return FontType.Grey;
-		} else if (player.eliminated()) {
+		//if (player.isDead && !isOver) {
+		//	return FontType.Grey;
+		//}
+		if (player.eliminated()) {
 			return FontType.DarkOrange;
-		} else if (player.isX) {
-			return FontType.Blue;
-		} else if (player.isZero) {
-			return FontType.Red;
-		} else if (player.isAxl) {
-			return FontType.Yellow;
-		} else if (player.isVile) {
-			return FontType.Pink;
-		} else if (player.isSigma) {
-			return FontType.Green;
 		}
-		return FontType.Grey;
+		return (CharIds)player.charNum switch {
+			CharIds.X => FontType.Blue,
+			CharIds.Zero => FontType.Red,
+			CharIds.Axl => FontType.Yellow,
+			CharIds.Vile => FontType.Pink,
+			CharIds.Sigma => FontType.Green,
+			_ => FontType.Grey
+		};
 	}
 
 	public string getCharIcon(Player player) {
@@ -2947,38 +2966,21 @@ public class GameMode {
 	}
 
 	public void drawRespawnHUD() {
-		if (level.mainPlayer.character != null && level.mainPlayer.readyTextOver && level.mainPlayer.canReviveX()) {
-			Fonts.drawTextEX(
-				FontType.Blue, Helpers.controlText("[CMD]: Activate Raging Charge"),
-				Global.screenW / 2, 10 + Global.screenH / 2, Alignment.Center
-			);
-		}
-
-		if (level.mainPlayer.randomTip == null) return;
-		if (level.mainPlayer.isSpectator) return;
-
-		if (level.mainPlayer.character == null && level.mainPlayer.readyTextOver) {
-			string respawnStr = (
+		string respawnStr = (
 				(level.mainPlayer.respawnTime > 0) ?
 				"Respawn in " + Math.Round(level.mainPlayer.respawnTime).ToString() :
 				Helpers.controlText("Press [OK] to respawn")
 			);
-
-			if (level.mainPlayer.eliminated()) {
-				Fonts.drawText(
-					FontType.Red, "You were eliminated!",
-					Global.screenW / 2, -15 + Global.screenH / 2, Alignment.Center
+		if (level.mainPlayer.character != null && level.mainPlayer.readyTextOver) {
+			if (level.mainPlayer.canReviveX()) {
+				Fonts.drawTextEX(
+					FontType.Blue, Helpers.controlText("[CMD]: Activate Raging Charge"),
+					Global.screenW / 2, 10 + Global.screenH / 2, Alignment.Center
 				);
-				Fonts.drawText(
-					FontType.BlueMenu, "Spectating in " + Math.Round(level.mainPlayer.respawnTime).ToString(),
-					Global.screenW / 2, Global.screenH / 2, Alignment.Center
-				);
-			} else if (level.mainPlayer.canReviveVile()) {
+			}
+			#region  ReviveVile HUD
+			if (level.mainPlayer.canReviveVile()) {
 				if (level.mainPlayer.lastDeathWasVileMK2) {
-					Fonts.drawText(
-						FontType.BlueMenu, respawnStr,
-						Global.screenW / 2, -10 + Global.screenH / 2, Alignment.Center
-					);
 					string reviveText = Helpers.controlText(
 						$"[SPC]: Revive as Vile V (5 {Global.nameCoins})"
 					);
@@ -2987,10 +2989,6 @@ public class GameMode {
 						Global.screenW / 2, 10 + Global.screenH / 2, Alignment.Center
 					);
 				} else {
-					Fonts.drawText(
-						FontType.BlueMenu, respawnStr,
-						Global.screenW / 2, -10 + Global.screenH / 2, Alignment.Center
-					);
 					string reviveText = Helpers.controlText(
 						$"[SPC]: Revive as MK-II (5 {Global.nameCoins})"
 					);
@@ -3006,11 +3004,9 @@ public class GameMode {
 						Global.screenW / 2, 22 + Global.screenH / 2, Alignment.Center
 					);
 				}
+				#endregion
+				#region  ReviveSigma HUD
 			} else if (level.mainPlayer.canReviveSigma(out _, 2)) {
-				Fonts.drawText(
-					FontType.BlueMenu, respawnStr,
-					Global.screenW / 2, -10 + Global.screenH / 2, Alignment.Center
-				);
 				string hyperType = "Kaiser";
 				string reviveText = (
 					$"[CMD]: Revive as {hyperType} Sigma ({Player.reviveSigmaCost.ToString()} {Global.nameCoins})"
@@ -3019,12 +3015,28 @@ public class GameMode {
 					FontType.Green, reviveText,
 					Global.screenW / 2, 10 + Global.screenH / 2, Alignment.Center
 				);
-			} else {
+                #endregion
+			} 
+		}
+
+		if (level.mainPlayer.randomTip == null) return;
+		if (level.mainPlayer.isSpectator) return;
+
+		if (level.mainPlayer.character == null && level.mainPlayer.readyTextOver) {
+			if (level.mainPlayer.eliminated()) {
 				Fonts.drawText(
-					FontType.BlueMenu, respawnStr,
+					FontType.Red, "You were eliminated!",
+					Global.screenW / 2, -15 + Global.screenH / 2, Alignment.Center
+				);
+				Fonts.drawText(
+					FontType.BlueMenu, "Spectating in " + Math.Round(level.mainPlayer.respawnTime).ToString(),
 					Global.screenW / 2, Global.screenH / 2, Alignment.Center
 				);
-			}
+			}  
+			Fonts.drawText(
+				FontType.BlueMenu, respawnStr,
+				Global.screenW / 2, -10 + Global.screenH / 2, Alignment.Center
+			);
 
 			if (!Menu.inMenu) {
 				DrawWrappers.DrawRect(0, Global.halfScreenH + 40, Global.screenW, Global.halfScreenH + 40 + (14 * level.mainPlayer.randomTip.Length), true, new Color(0, 0, 0, 224), 0, ZIndex.HUD, false);

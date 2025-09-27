@@ -17,20 +17,20 @@ namespace MMXOnline;
 public partial class Global {
 	public static decimal version = 20m;
 	public static string versionName = "Revision 20";
-	public static string subVersionName = "Alpha 13 [RELEASE CANDIDATE 1]";
-	public static string subVersionShortName = "A13 RC1-T3";
+	public static string subVersionName = "Alpha 14";
+	public static string subVersionShortName = "A14";
 
 	// THIS VALUE MUST ALWAYS MANUALLY BE SET AFTER UPDATING ASSETS BEFORE BUILDING A RELEASE BUILD.
 	// Obtain it by pressing F1 in main menu.
 	// This step could be automated as future improvement in build scripts.
-	private const string assetChecksum = "86B00C17076AD59E94D34BEF561B5719";
+	private const string assetChecksum = "86B00C17076AD59E94D34BEF561B5715";
 
 	// For forks/mods of the game, add a prefix here so that different forks
 	// don't conflict with each other or the base game
 	public const string checksumPrefix = "[Community Edition]";
 	// Use this to make sure the checksum varies.
 	// Better to use together with "checksumPrefix" and be diferent from it.
-	public const string checksumPrefix2 = "CE-A13-RC1-T3";
+	public const string checksumPrefix2 = "CE-A14-V0";
 	// Final checksum key.
 	public const string checksumKey = checksumPrefix + " " + checksumPrefix2;
 	// For displaying the name of the mod in the version string.
@@ -156,7 +156,7 @@ public partial class Global {
 	public static bool debugDNACores = false;
 	// Generic global that can be used for quick conditional breakpoints in low-level physics methods
 	public static bool breakpoint = false;
-	public static int? overrideFPS = 60;
+	//public static int? overrideFPS = 60;
 	public static bool disableShaderOverride = false;
 	public static bool? useOptimizedAssetsOverride = false;
 	public static bool useLocalIp = false;
@@ -190,7 +190,7 @@ public partial class Global {
 			overrideFullscreen = null;
 			overrideAimMode = null;
 			autoFire = null;
-			overrideFPS = null;
+			//overrideFPS = null;
 			quickStartMechNum = null;
 			quickStartVileMK2 = null;
 			spawnTrainingHealth = true;
@@ -502,12 +502,14 @@ public partial class Global {
 	}
 	public static float time;
 	public static int frameCount = 0;
+	public static float flFrameCount = 0;
+	public static int floorFrameCount => MathInt.Floor(flFrameCount);
+
 	public static int normalizeFrames(int frames) {
-		/*
-		float fpsRatio = 1;
-		frames = MathInt.Round(frames * fpsRatio);
-		*/
-		if (frames <= 0) frames = 1;
+		frames = MathInt.Round(frames * gameSpeed);
+		if (frames <= 0) {
+			frames = 1;
+		}
 		return frames;
 	}
 	public static bool isOnFrame(int frame) {
@@ -515,8 +517,7 @@ public partial class Global {
 	}
 	// cycle = 2: 2 frames show visible, 2 frames hide, for a blink/flash effect
 	public static bool isOnFrameCycle(int cycle) {
-		int frames = normalizeFrames(cycle);
-		return frameCount % frames * 2 < frames;
+		return floorFrameCount % cycle * 2 < cycle;
 	}
 
 	public static bool isSkippingFrames = false;
@@ -537,8 +538,10 @@ public partial class Global {
 
 	public static int defaultThresholdPing = 300;
 	public static Level level;
+	public static Character.CurrentState currentState;
 	public static ServerClient? serverClient;
 	public static Server? localServer;
+	public static CustomMatchSettings? customSettings => level?.server?.customMatchSettings;
 	public static bool isOffline { get { return serverClient == null; } }
 	public static bool isHost { get { return level != null && level.isHost; } }
 	public static bool canControlKillscore { get { return level != null && (isOffline || level.isHost); } }

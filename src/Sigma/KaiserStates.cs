@@ -435,7 +435,7 @@ public class KaiserSigmaVirusState : CharState {
 		base.update();
 
 		stateTime += Global.spf;
-		character.stopMoving();
+		character.stopMovingS();
 
 		if (!startAnimOver) {
 			character.xScale += Global.spf * 2.5f;
@@ -765,17 +765,17 @@ public class KaiserSigmaMissileProj : Projectile {
 					var dTo = pos.directionTo(target.getCenterPos()).normalize();
 					var destAngle = MathF.Atan2(dTo.y, dTo.x) * 180 / MathF.PI;
 					destAngle = Helpers.to360(destAngle);
-					if (angle != null) angle = Helpers.lerpAngle((float)angle, destAngle, Global.spf * 3);
+					angle = Helpers.lerpAngle(angle, destAngle, Global.spf * 3);
 				}
 			}
 			if (time >= 0.1 && target == null) {
 				target = Global.level.getClosestTarget(pos, damager.owner.alliance, false, aMaxDist: Global.screenW);
 			}
 
-			if (angle != null) {
+			if (angleSet) {
 				forceNetUpdateNextFrame = true;
-				vel.x = Helpers.cosd((float)angle) * maxSpeed;
-				vel.y = Helpers.sind((float)angle) * maxSpeed;
+				vel.x = Helpers.cosd(angle) * maxSpeed;
+				vel.y = Helpers.sind(angle) * maxSpeed;
 			}
 
 		}
@@ -957,19 +957,19 @@ public class KaiserSigmaRevive : CharState {
 			}
 		} else if (state == 3) {
 			if (stateTime > 0.5f) {
-				player.health = 1;
-				character.addHealth(player.maxHealth);
+				character.health = 1;
+				character.addHealth(character.maxHealth);
 				state = 4;
 			}
 		} else if (state == 4) {
 			if (Global.debug && player.input.isPressed(Control.Special1, player)) {
-				player.health = player.maxHealth;
+				character.health = character.maxHealth;
 			}
 
-			if (player.health >= player.maxHealth) {
+			if (character.health >= character.maxHealth) {
 				character.invulnTime = 0.5f;
 				character.useGravity = true;
-				character.stopMoving();
+				character.stopMovingS();
 				character.grounded = false;
 				character.canBeGrounded = false;
 
@@ -986,7 +986,6 @@ public class KaiserSigmaRevive : CharState {
 		character.frameSpeed = 0;
 		//character.immuneToKnockback = true;
 		character.alpha = 0;
-		player.sigmaAmmo = player.sigmaMaxAmmo;
 		KaiserSigma kaiserSigma = (character as KaiserSigma)!;
 	}
 }

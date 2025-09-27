@@ -110,6 +110,7 @@ public class PZeroKick : PZeroGenericMeleeState {
 		airMove = true;
 		exitOnLanding = true;
 		useDashJumpSpeed = true;
+		canStopJump = true;
 	}
 }
 
@@ -121,7 +122,7 @@ public class PZeroYoudantotsu : PZeroGenericMeleeState {
 	}
 }
 
-public class PZeroSpinKick : CharState {
+public class PZeroSpinKick : PZeroGenericMeleeState {
 	public float dashTime = 0;
 	public float soundTime = 0;
 
@@ -228,7 +229,7 @@ public class PZeroDiveKickState : PZeroState {
 }
 
 
-public class ZeroDropkickLand : CharState {
+public class ZeroDropkickLand : PZeroGenericMeleeState {
 	public ZeroDropkickLand() : base("land") {
 		exitOnAirborne = true;
 	}
@@ -460,7 +461,7 @@ public class PZeroShoryuken : PZeroState {
 	public bool canDownSpecial() {
 		return (
 			zero.diveKickCooldown == 0 &&
-			character.sprite.frameIndex >= character.sprite.totalFrameNum- 3
+			character.sprite.frameIndex >= character.sprite.totalFrameNum - 3
 		);
 	}
 
@@ -725,14 +726,16 @@ public abstract class PunchyZeroGigaAttack : PZeroState {
 			character.changeToIdleOrFall();
 		}
 	}
+
 	public void GigaAttackAnim(string sprite) {
 		int xDir = character.getShootXDir();
 		Anim = new Anim(
-			character.getCenterPos().addxy(4*xDir, 24),
+			character.getCenterPos().addxy(4 * xDir, 24),
 			sprite, xDir, player.getNextActorNetId(),
 			destroyOnEnd: true, sendRpc: true
 		);
 	}
+
 	public void LoopSprite(int firstFrame, int secondFrame, int frameloop) {
 		if (character.frameIndex == firstFrame && loop < frameloop) {
 			character.frameIndex = secondFrame;
@@ -740,6 +743,7 @@ public abstract class PunchyZeroGigaAttack : PZeroState {
 			loop++;
 		}
 	}
+
 	public void playSound(string sound) {
 		character.playSound(sound, forcePlay: false, sendRpc: true);
 	}
@@ -786,7 +790,7 @@ public class PunchyZeroRakuhouhaState : PunchyZeroGigaAttack {
 
 public class PunchyZeroCFlasherState : PunchyZeroGigaAttack {
 	public PunchyZeroCFlasherState(Weapon weapon) : base(weapon, "cflasher") {
-		this.weapon = weapon;	
+		this.weapon = weapon;
 	}
 
 	public override void update() {
@@ -816,22 +820,22 @@ public class PunchyZeroCFlasherState : PunchyZeroGigaAttack {
 }
 
 public class PunchyZeroRekkohaState : PunchyZeroGigaAttack {
-	public float[] StateTime = { 36f/60f, 48f/60f, 60f/60f, 72f/60f, 84f/60f };
+	public float[] StateTime = { 36f / 60f, 48f / 60f, 60f / 60f, 72f / 60f, 84f / 60f };
 	public bool[] fired = { false, false, false, false, false };
 	public int[] Space = { 0, 35, 70, 110, 150 };
 	public bool sound;
 	public RekkohaEffect? effect;
 	public PunchyZeroRekkohaState(Weapon weapon) : base(weapon, "rekkoha") {
-		this.weapon = weapon;	
+		this.weapon = weapon;
 		immuneToWind = true;
 	}
 
 	public override void update() {
-		base.update();	
+		base.update();
 		for (int i = 0; i < StateTime.Length; i++) {
 			if (stateTime > StateTime[i] && !fired[i]) {
 				fired[i] = true;
-		        RekkohaProj(i == 0 ? false : true, Space[i]);
+				RekkohaProj(i == 0 ? false : true, Space[i]);
 			}
 		}
 		LoopSprite(11, 9, 11);
@@ -867,7 +871,7 @@ public class PunchyZeroRekkohaState : PunchyZeroGigaAttack {
 }
 
 public class PunchyZeroShinMessenkouState : PunchyZeroGigaAttack {
-	public float[] AnimSeconds = { 20f/60f, 28f/60f, 36f/60f };
+	public float[] AnimSeconds = { 20f / 60f, 28f / 60f, 36f / 60f };
 	public bool[] fired = { false, false, false };
 	public const float shinMessenkouWidth = 40;
 	public PunchyZeroShinMessenkouState(Weapon weapon) : base(weapon, "rakuhouha") {
@@ -895,10 +899,10 @@ public class PunchyZeroShinMessenkouState : PunchyZeroGigaAttack {
 		for (int i = 0; i < AnimSeconds.Length; i++) {
 			if (stateTime > AnimSeconds[i] && !fired[i]) {
 				fired[i] = true;
-		        ShinMessenkouProj(i+1);
+				ShinMessenkouProj(i + 1);
 				if (i == 0) {
 					GigaAttackAnim("zero_rakuanim");
-      				playSound("crash");
+					playSound("crash");
 				}
 			}
 		}
@@ -909,7 +913,7 @@ public class PunchyZeroShinMessenkouState : PunchyZeroGigaAttack {
 public class PunchyZeroDarkHoldShootState : PunchyZeroGigaAttack {
 	public DarkHoldProj? darkHoldProj;
 	public PunchyZeroDarkHoldShootState(Weapon weapon) : base(weapon, "darkhold") {
-		this.weapon = weapon;	
+		this.weapon = weapon;
 	}
 	public override void update() {
 		base.update();
@@ -925,7 +929,7 @@ public class PunchyZeroDarkHoldShootState : PunchyZeroGigaAttack {
 				new Point(x, y - 20), xDir, zero,
 				player, player.getNextActorNetId(), rpc: true
 			);
-			playSound("darkhold");	
+			playSound("darkhold");
 		}
 	}
 }
@@ -949,11 +953,12 @@ public class AwakenedPunchyZeroHadangeki : PZeroState {
 			character.playSound("zerosaberx3", sendRpc: true);
 			fired = true;
 			new ZSaberProj(
-				character.pos.addxy(30 * character.xDir, -20), character.xDir, 
-				isAZ: zero.isAwakened ? true : false, zero,
+				character.pos.addxy(30 * character.xDir, -20), character.xDir,
+				isAZ: zero.isAwakened, zero,
 				player, player.getNextActorNetId(), rpc: true
 			);
 		}
+
 		if (character.isAnimOver()) {
 			character.changeToIdleOrFall();
 		} else {
@@ -990,12 +995,12 @@ public class PunchyZeroGenmureiState : PZeroState {
 			fired = true;
 			character.playSound("genmureix5", sendRpc: true);
 			new GenmuProj(
-				character.pos.addxy(30 * character.xDir, -25), character.xDir, 0, 
+				character.pos.addxy(30 * character.xDir, -25), character.xDir, 0,
 				isAZ: zero.isAwakened ? true : false,
 				zero, player, player.getNextActorNetId(), rpc: true
 			);
 			new GenmuProj(
-				character.pos.addxy(30 * character.xDir, -25), character.xDir, 1, 
+				character.pos.addxy(30 * character.xDir, -25), character.xDir, 1,
 				isAZ: zero.isAwakened ? true : false,
 				zero, player, player.getNextActorNetId(), rpc: true
 			);

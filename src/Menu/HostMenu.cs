@@ -34,13 +34,11 @@ public class HostMenu : IMainMenu {
 	public List<MenuOption> menuOptions;
 	public int selectArrowPosY;
 	public static int startX = 20;
-	public static int startY = 40;
+	public static int startY = 34;
 	public static int lineH = 10;
-
-	public MainMenu previous;
+	public IMainMenu previous;
 	public bool listenForKey = false;
 	public Point mapPos = new Point(178, 43);
-
 	public string serverName;
 	public bool isOffline;
 	public bool isLAN;
@@ -65,7 +63,7 @@ public class HostMenu : IMainMenu {
 	}
 	public int mapIndex {
 		get {
-			return savedMatchSettings.hostMenuSettings.mapIndex.Value;
+			return savedMatchSettings.hostMenuSettings.mapIndex ?? 0;
 		}
 		set {
 			savedMatchSettings.hostMenuSettings.mapIndex = value;
@@ -232,7 +230,7 @@ public class HostMenu : IMainMenu {
 	}
 
 	public HostMenu(
-		MainMenu mainMenu, Server inGameServer,
+		IMainMenu mainMenu, Server inGameServer,
 		bool isOffline, bool isLAN, bool isP2P = false
 	) {
 		inGame = (inGameServer != null);
@@ -456,34 +454,65 @@ public class HostMenu : IMainMenu {
 				},
 				(Point pos, int index) => {
 					Fonts.drawText(
-						FontType.Blue, "Map: " + (isMapSelected ? selectedLevel.displayName : "[Select]"),
+						FontType.Blue, "Stage: " + (isMapSelected ? selectedLevel.displayName : "[Select]"),
 						pos.x, pos.y, selected: index == selectArrowPosY
 					);
 				},
 				"Random Map"
 			)
 		);
-		if (isTraining) {
+		if (selectedLevel.twoDisplayNames) {
 			menuOptions.Add(
 				new MenuOption(startX, startY,
 					() => {
+						if (currentMapSizePool.Count == 0) {
+							return;
+						}
 						if (Global.input.isPressedMenu(Control.MenuLeft)) {
-							useLoadout = false;
+							mapIndex--;
+							if (mapIndex < 0) mapIndex = currentMapSizePool.Count - 1;
+							onMapChange();
 						} else if (Global.input.isPressedMenu(Control.MenuRight)) {
-							useLoadout = true;
+							mapIndex++;
+							if (mapIndex >= currentMapSizePool.Count) mapIndex = 0;
+							onMapChange();
+						} else if (Global.input.isPressedMenu(Control.MenuAlt)) {
+							mapIndex = Helpers.randomRange(0, currentMapSizePool.Count - 1);
+							onMapChange();
 						}
 					},
 					(Point pos, int index) => {
-						Fonts.drawText(
-							FontType.Blue, "Use loadout: " + Helpers.boolYesNo(useLoadout),
-							pos.x, pos.y, selected: index == selectArrowPosY
-						);
-					}
+						if (selectedLevel.twoDisplayNames) {
+							Fonts.drawText(
+								FontType.Blue, isMapSelected ? selectedLevel.displayName2 : "[Select]",
+								pos.x, pos.y, selected: index == selectArrowPosY
+							);
+						}
+					},
+					"Random Map"
 				)
 			);
 		}
+		if (isTraining) {
+				menuOptions.Add(
+					new MenuOption(startX, startY,
+						() => {
+							if (Global.input.isPressedMenu(Control.MenuLeft)) {
+								useLoadout = false;
+							} else if (Global.input.isPressedMenu(Control.MenuRight)) {
+								useLoadout = true;
+							}
+						},
+						(Point pos, int index) => {
+							Fonts.drawText(
+								FontType.Blue, "Use loadout: " + Helpers.boolYesNo(useLoadout),
+								pos.x, pos.y, selected: index == selectArrowPosY
+							);
+						}
+					)
+				);
+			}
 		// Mode
-		if (!isTraining) {
 			menuOptions.Add(
 				new MenuOption(startX, startY,
 					() => {
@@ -506,7 +535,6 @@ public class HostMenu : IMainMenu {
 					}
 				)
 			);
-		}
 		// Team number.
 		if (GameMode.isStringTeamMode(selectedGameMode)) {
 			menuOptions.Add(
@@ -728,6 +756,7 @@ public class HostMenu : IMainMenu {
 				)
 			);
 		}
+		/*
 		// Private match
 		if (!isOffline && !isLAN) {
 			menuOptions.Add(
@@ -752,6 +781,7 @@ public class HostMenu : IMainMenu {
 				)
 			);
 		}
+		*/
 		// Netcode model
 		if (!isOffline) {
 			menuOptions.Add(
@@ -806,26 +836,23 @@ public class HostMenu : IMainMenu {
 				)
 			);
 		}
-		// Custom match settings
-		if (isOffline || isP2P || isHiddenOrLan()) {
-			menuOptions.Add(
-				new MenuOption(startX, startY,
-					() => {
-						Helpers.menuLeftRightBool(ref savedMatchSettings.hostMenuSettings.useCustomMatchSettings);
-						if (Global.input.isPressedMenu(Control.MenuAlt)) {
-							Menu.change(new CustomMatchSettingsMenu(this, inGame, isOffline));
-						}
-					},
-					(Point pos, int index) => {
-						Fonts.drawText(
-							FontType.Blue, "Custom settings: " + Helpers.boolYesNo(useCustomMatchSettings),
-							pos.x, pos.y, selected: index == selectArrowPosY
-						);
-					},
-					"Configure Custom Settings"
-				)
-			);
-		}
+		menuOptions.Add(
+			new MenuOption(startX, startY,
+				() => {
+					Helpers.menuLeftRightBool(ref savedMatchSettings.hostMenuSettings.useCustomMatchSettings);
+					if (Global.input.isPressedMenu(Control.MenuAlt)) {
+						Menu.change(new CustomMatchSettingsMenu(this, inGame, isOffline));
+					}
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Blue, "Custom settings: " + Helpers.boolYesNo(useCustomMatchSettings),
+						pos.x, pos.y, selected: index == selectArrowPosY
+					);
+				},
+				"Configure Custom Settings"
+			)
+		);
 		for (int i = 0; i < menuOptions.Count; i++) {
 			menuOptions[i].pos.y = startY + lineH * i;
 		}
@@ -873,7 +900,6 @@ public class HostMenu : IMainMenu {
 		return "match" + Helpers.randomRange(1, 999).ToString();
 	}
 	public void update() {
-		TimeUpdate();
 		if (Global.leaveMatchSignal != null) return;
 
 		if (inGame) {
@@ -922,19 +948,15 @@ public class HostMenu : IMainMenu {
 
 		if (string.IsNullOrEmpty(errorMessage)) {
 			menuOptions[selectArrowPosY].update();
+			if (Global.input.isPressedMenu(Control.MenuBack) && !inGame) {
+				Menu.change(previous);
+				Global.serverClient = null;
+			}
 			/*
 			if (Global.input.isPressedMenu(Control.MenuBack) && !inGame) {
 				Global.serverClient = null;
 				Menu.change(previous);
 			} */
-			if (Time2 >= 1 && !inGame) {
-				Menu.change(previous);
-				Global.serverClient = null;
-				previous.Time = 0;
-				previous.Time2 = 1;
-				previous.Confirm = false;
-				previous.Confirm2 = false;
-			}
 			/*
 			else if (Global.input.isPressedMenu(Control.MenuEnter) && inGame)
 			{
@@ -1055,7 +1077,7 @@ public class HostMenu : IMainMenu {
 		string gameMode = selectedGameMode;
 		if (selectedLevel.isTraining()) {
 			playTo = 9999;
-			gameMode = GameMode.Deathmatch;
+			//gameMode = GameMode.Deathmatch;
 		}
 
 		var localServer = new Server(
@@ -1084,7 +1106,7 @@ public class HostMenu : IMainMenu {
 		string gameMode = selectedGameMode;
 		if (selectedLevel.isTraining()) {
 			playTo = 9999;
-			gameMode = GameMode.Deathmatch;
+			//gameMode = GameMode.Deathmatch;
 		}
 		if (Global.localServer != null && Global.localServer.s_server.Status == NetPeerStatus.Running) {
 			Global.localServer.shutdown("Host left the match.");
@@ -1364,13 +1386,13 @@ public class HostMenu : IMainMenu {
 			DrawWrappers.DrawTextureHUD(
 				Global.textures["cursor"],
 				menuOptions[selectArrowPosY].pos.x,
-				menuOptions[selectArrowPosY].pos.y - 2
+				menuOptions[selectArrowPosY].pos.y + 3
 			);
 		} else {
 			DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
 			Global.sprites["cursor"].drawToHUD(
 				0, menuOptions[selectArrowPosY].pos.x,
-				menuOptions[selectArrowPosY].pos.y - 2
+				menuOptions[selectArrowPosY].pos.y + 3
 			);
 		}
 		DrawWrappers.DrawTextureHUD(selectedLevel.getMapThumbnail(), 254, 38);
@@ -1401,7 +1423,7 @@ public class HostMenu : IMainMenu {
 		msg = "[OK]: Next, [BACK]: Back" + extraMsg;
 		Fonts.drawTextEX(
 			FontType.Grey, msg + "\nLeft/Right: Change setting",
-			Global.screenW * 0.5f, 178, Alignment.Center
+			Global.screenW * 0.5f, 182, Alignment.Center
 		);
 
 		if (errorMessage != null) {
@@ -1418,17 +1440,5 @@ public class HostMenu : IMainMenu {
 				Global.screenW * 0.5f, 20 + top, alignment: Alignment.Center
 			);
 		}
-		DrawWrappers.DrawTextureHUD(Global.textures["menubackground"], 0, 0, 384, 216, 0, 0, Time);
-		DrawWrappers.DrawTextureHUD(Global.textures["menubackground"], 0, 0, 384, 216, 0, 0, Time2);		
-
-	}
-	public void TimeUpdate() {
-		if (Confirm == false) Time -= Global.spf * 2;
-		if (Time <= 0) {
-			Confirm = true;
-			Time = 0;
-		}
-		if (Global.input.isPressedMenu(Control.MenuBack)) Confirm2 = true;
-		if (Confirm2 == true) Time2 += Global.spf * 2;
 	}
 }
