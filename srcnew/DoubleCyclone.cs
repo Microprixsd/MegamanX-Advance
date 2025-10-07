@@ -11,10 +11,11 @@ public class DoubleCyclone : Weapon {
 		index = (int)WeaponIds.DoubleCyclone;
 		displayName = "Double Cyclone";
 		fireRate = 60;
+		switchCooldown = 30;
 		weaponSlotIndex = 129;
 		weaponBarBaseIndex = 78;
-        weaponBarIndex = 67;
-		shootSounds = new string[] {"fakeDoubleCyclone","fakeDoubleCyclone","fakeDoubleCyclone","fakeDoubleCyclone"};
+		weaponBarIndex = 67;
+		shootSounds = new string[] { "fakeDoubleCyclone", "fakeDoubleCyclone", "fakeDoubleCyclone", "fakeDoubleCyclone" };
 		weaknessIndex = (int)WeaponIds.AimingLaser;
 		hasCustomAnim = true;
 		/* damage = "1";
@@ -22,6 +23,20 @@ public class DoubleCyclone : Weapon {
 		Flinch = "0";
 		FlinchCD = hitcooldown;
 		effect = "Pushes enemies away."; */
+		
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -106,12 +121,12 @@ public class DoubleCycloneProj : Projectile {
 		Player player, ushort? netProjId,
 		bool rpc = false
 	) : base (
-		weapon, pos, xDir, 0, 0.5f,
-		player, "double_cyclone_proj", 0, 0.15f,
+		weapon, pos, xDir, 0, 1,
+		player, "double_cyclone_proj", 0, 0.25f,
 		netProjId, player.ownedByLocalPlayer
 	) {
 		projId = (int)ProjIds.DoubleCyclone;
-		maxTime = 1f;
+		maxTime = 1.2f;
 		fadeSprite = "double_cyclone_fade";
 		fadeOnAutoDestroy = true;
 		destroyOnHit = false;
@@ -167,7 +182,7 @@ public class DoubleCycloneChargedSpawn : Projectile {
 		Player player, ushort? netProjId,
 		bool rpc = false
 	) : base(
-		weapon, pos, xDir, 0, 1,
+		weapon, pos, xDir, 0, 0,
 		player, "double_cyclone_charged_spawn", 0, 0.33f,
 		netProjId, player.ownedByLocalPlayer
 	) {
@@ -215,8 +230,8 @@ public class DoubleCycloneChargedProj : Projectile {
 		Player player, ushort? netProjId,
 		bool rpc = false
 	) : base(
-		weapon, pos, xDir, 180, 0.5f,
-		player, "double_cyclone_charged_proj", 0, 0.15f,
+		weapon, pos, xDir, 180, 2,
+		player, "double_cyclone_charged_proj", 0, 0.3f,
 		netProjId, player.ownedByLocalPlayer
 	) {
 		projId = (int)ProjIds.DoubleCycloneCharged;
@@ -240,18 +255,18 @@ public class DoubleCycloneChargedProj : Projectile {
 
 		if (chr != null) {
 			if (chr.charState.invincible || chr.immuneToKnockback) return;
-			float mod = 1;
-			if (!chr.grounded) mod = 1.5f;
-			else if (chr.charState is Crouch) mod = 0.5f;
+			float mod = 3.2f;
+			if (!chr.grounded) mod = 0.5f;
+			else if (chr.charState is Crouch) mod = 0.25f;
 			
-			chr.xPushVel = vel.x * mod;
+			chr.xPushVel = xDir * mod;
 		}
 
 		if (mav != null) {
-			float mod = 0.75f;
+			float mod = 3.2f;
 			if (!mav.grounded) mod = 1.25f;
 
-			mav.xPushVel = vel.x * mod;
+			mav.xPushVel = xDir * mod;
 		}
 	}
 }

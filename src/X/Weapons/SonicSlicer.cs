@@ -10,7 +10,7 @@ public class SonicSlicer : Weapon {
 		displayName = "Sonic Slicer";
 		shootSounds = new string[] { "sonicSlicer", "sonicSlicer", "sonicSlicer", "sonicSlicerCharged" };
 		fireRate = 60;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.SonicSlicer;
 		weaponBarBaseIndex = 13;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -21,6 +21,21 @@ public class SonicSlicer : Weapon {
 		effect = "U: Bounces on Wall. Breaks W.Sponge Shield.\nC: Decreases vertical speed drastically.";
 		hitcooldown = "0/15";
 		flinch = "0/26";
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) return 6;
+		return 2;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -31,16 +46,18 @@ public class SonicSlicer : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new SonicSlicerStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
-			new Anim(pos, "sonicslicer_charge_start", xDir, null, true);
-			player.setNextActorNetId(player.getNextActorNetId());
-			new SonicSlicerProjCharged( pos, 0, xDir, mmx, player, player.getNextActorNetId(true), true);
-			new SonicSlicerProjCharged( pos, 1, xDir, mmx, player, player.getNextActorNetId(true), true);
-			new SonicSlicerProjCharged( pos, 2, xDir, mmx, player, player.getNextActorNetId(true), true);
-			new SonicSlicerProjCharged( pos, 3, xDir, mmx, player, player.getNextActorNetId(true), true);
-			new SonicSlicerProjCharged( pos, 4, xDir, mmx, player, player.getNextActorNetId(true), true);
+			if (ammo >= 6) {
+				new Anim(pos, "sonicslicer_charge_start", xDir, null, true);
+				player.setNextActorNetId(player.getNextActorNetId());
+				new SonicSlicerProjCharged(pos, 0, xDir, mmx, player, player.getNextActorNetId(true), true);
+				new SonicSlicerProjCharged(pos, 1, xDir, mmx, player, player.getNextActorNetId(true), true);
+				new SonicSlicerProjCharged(pos, 2, xDir, mmx, player, player.getNextActorNetId(true), true);
+				new SonicSlicerProjCharged(pos, 3, xDir, mmx, player, player.getNextActorNetId(true), true);
+				new SonicSlicerProjCharged(pos, 4, xDir, mmx, player, player.getNextActorNetId(true), true);
+			}
 		}
 	}
 }

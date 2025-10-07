@@ -17,11 +17,28 @@ public class ShotgunIce : Weapon {
 		weaknessIndex = (int)WeaponIds.FireWave;
 		shootSounds = new string[] { "shotgunIce", "shotgunIce", "shotgunIce", "icyWind" };
 		fireRate = 30;
+		switchCooldown = 30;
 		damage = "2/1-2";
 		effect = "U:Can Split.\nC: Insta Freeze enemies. Ice sled up to 12 DMG.";
 		hitcooldown = "0/30";
 		flinch = "0";
 		hasCustomChargeAnim = true;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >= 6) {
+			return 6;
+		}
+		return 1;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -32,16 +49,18 @@ public class ShotgunIce : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new ShotgunIceProj(pos, xDir, mmx, player, 0, player.getNextActorNetId(), rpc: true);
 		} else {
-			pos = pos.addxy(xDir * 25, 0);
-			pos.y = mmx.pos.y;
+			if (chargeLevel >=3 && ammo >= 6) {
+				pos = pos.addxy(xDir * 25, 0);
+				pos.y = mmx.pos.y;
 
-			//mmx.shotgunIceChargeTime = 1.5f;
-			character.changeState(new ShotgunIceChargedShot(), true);
-			new ShotgunIceProjSled(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-		}
+				//mmx.shotgunIceChargeTime = 1.5f;
+				character.changeState(new ShotgunIceChargedShot(), true);
+				new ShotgunIceProjSled(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			}
+			}
 	}
 }
 

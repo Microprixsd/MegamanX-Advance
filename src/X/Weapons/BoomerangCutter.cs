@@ -16,11 +16,30 @@ public class BoomerangCutter : Weapon {
 		weaknessIndex = (int)WeaponIds.HomingTorpedo;
 		shootSounds = new string[] { "boomerang", "boomerang", "boomerang", "buster3" };
 		fireRate = 30;
+		switchCooldown = 30;
 		damage = "2/2";
 		effect = "Charged: Doesn't destroy on hit.\nCharged won't give assists.";
 		hitcooldown = "0/0.5";
 		flinch = "0/26";
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
+
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >= 6) {
+			return 6;
+		}
+		return 1;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
+	}
+	
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
@@ -29,29 +48,31 @@ public class BoomerangCutter : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			if (character.ownedByLocalPlayer) {
 				new BoomerangProj(
 					pos, xDir, mmx, player, player.getNextActorNetId(), character.grounded ? 1 : -1, rpc: true
 				);
 			}
 		} else {
-			player.setNextActorNetId(player.getNextActorNetId());
+			if (ammo >= 6) {
+				player.setNextActorNetId(player.getNextActorNetId());
 
-			var twin1 = new BoomerangProjCharged(pos.addxy(0, 5), null, xDir, mmx, player, 90, 1, player.getNextActorNetId(true), null, true);
-			var twin2 = new BoomerangProjCharged(pos.addxy(5, 0), null, xDir, mmx, player, 0, 1, player.getNextActorNetId(true), null, true);
-			var twin3 = new BoomerangProjCharged(pos.addxy(0, -5), null, xDir, mmx, player, -90, 1, player.getNextActorNetId(true), null, true);
-			var twin4 = new BoomerangProjCharged(pos.addxy(-5, 0), null, xDir, mmx, player, -180, 1, player.getNextActorNetId(true), null, true);
-			
-			var a = new BoomerangProjCharged(pos.addxy(0, 5), pos.addxy(0, 35), xDir, mmx, player, 90, 0, player.getNextActorNetId(true), twin1, true);
-			var b = new BoomerangProjCharged(pos.addxy(5, 0), pos.addxy(35, 0), xDir, mmx, player, 0, 0, player.getNextActorNetId(true), twin2, true);
-			var c = new BoomerangProjCharged(pos.addxy(0, -5), pos.addxy(0, -35), xDir, mmx, player, -90, 0, player.getNextActorNetId(true), twin3, true);
-			var d = new BoomerangProjCharged(pos.addxy(-5, 0), pos.addxy(-35, 0), xDir, mmx, player, -180, 0, player.getNextActorNetId(true), twin4, true);
+				var twin1 = new BoomerangProjCharged(pos.addxy(0, 5), null, xDir, mmx, player, 90, 1, player.getNextActorNetId(true), null, true);
+				var twin2 = new BoomerangProjCharged(pos.addxy(5, 0), null, xDir, mmx, player, 0, 1, player.getNextActorNetId(true), null, true);
+				var twin3 = new BoomerangProjCharged(pos.addxy(0, -5), null, xDir, mmx, player, -90, 1, player.getNextActorNetId(true), null, true);
+				var twin4 = new BoomerangProjCharged(pos.addxy(-5, 0), null, xDir, mmx, player, -180, 1, player.getNextActorNetId(true), null, true);
 
-			twin1.twin = a;
-			twin2.twin = b;
-			twin3.twin = c;
-			twin4.twin = d;
+				var a = new BoomerangProjCharged(pos.addxy(0, 5), pos.addxy(0, 35), xDir, mmx, player, 90, 0, player.getNextActorNetId(true), twin1, true);
+				var b = new BoomerangProjCharged(pos.addxy(5, 0), pos.addxy(35, 0), xDir, mmx, player, 0, 0, player.getNextActorNetId(true), twin2, true);
+				var c = new BoomerangProjCharged(pos.addxy(0, -5), pos.addxy(0, -35), xDir, mmx, player, -90, 0, player.getNextActorNetId(true), twin3, true);
+				var d = new BoomerangProjCharged(pos.addxy(-5, 0), pos.addxy(-35, 0), xDir, mmx, player, -180, 0, player.getNextActorNetId(true), twin4, true);
+
+				twin1.twin = a;
+				twin2.twin = b;
+				twin3.twin = c;
+				twin4.twin = d;
+			}
 		}
 	}
 }

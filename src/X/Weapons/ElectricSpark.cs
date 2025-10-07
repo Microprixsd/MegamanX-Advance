@@ -16,11 +16,28 @@ public class ElectricSpark : Weapon {
 		weaknessIndex = (int)WeaponIds.ShotgunIce;
 		shootSounds = new string[] { "electricSpark", "electricSpark", "electricSpark", "electricSpark" };
 		fireRate = 30;
+		switchCooldown = 30;
 		damage = "2/4";
-		effect =  "Can Split. Charged: Doesn't destroy on hit.";
+		effect = "Can Split. Charged: Doesn't destroy on hit.";
 		hitcooldown = "0/0.5";
 		flinch = "6/26";
 		flinchCD = "1/0";
+		
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >= 6) {
+			return 6;
+		}
+		return 1;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -31,11 +48,13 @@ public class ElectricSpark : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new ElectricSparkProj(pos, xDir, mmx, player, 0, player.getNextActorNetId(), rpc: true);
 		} else {
-			new ElectricSparkProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-		}
+			if (ammo >= 6) {
+				new ElectricSparkProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			}
+			}
 	}
 }
 

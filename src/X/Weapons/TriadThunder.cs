@@ -10,7 +10,7 @@ public class TriadThunder : Weapon {
 		displayName = "Triad Thunder";
 		shootSounds = new string[] { "triadThunder", "triadThunder", "triadThunder", "" };
 		fireRate = 135;
-		switchCooldown = 60;
+		switchCooldown = 30;
 		index = (int)WeaponIds.TriadThunder;
 		weaponBarBaseIndex = 19;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -22,14 +22,22 @@ public class TriadThunder : Weapon {
 		hitcooldown = "30";
 		flinch = "6/26";
 		flinchCD = "2.25/0";
-		maxAmmo = 10;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
 		ammo = maxAmmo;
 		hasCustomChargeAnim = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 2.5f; }
-		return 1;
+		if (chargeLevel >= 3) { return 6; }
+		return 3;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -42,7 +50,7 @@ public class TriadThunder : Weapon {
 		if (!player.ownedByLocalPlayer) {
 			return;
 		}
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo <6) {
 			if (player.ownedByLocalPlayer) {
 				new TriadThunderProj(
 					pos, xDir, player.input.isHeld(Control.Down, player) ? -1 : 1,
@@ -51,8 +59,10 @@ public class TriadThunder : Weapon {
 				player.setNextActorNetId((ushort)(player.getNextActorNetId() + 4));
 			}
 		} else {
-			if (character != null && character.ownedByLocalPlayer) {
-				character.changeState(new TriadThunderChargedState(character.grounded), true);
+			if (ammo >= 6) {
+				if (character != null && character.ownedByLocalPlayer) {
+					character.changeState(new TriadThunderChargedState(character.grounded), true);
+				}
 			}
 		}
 	}

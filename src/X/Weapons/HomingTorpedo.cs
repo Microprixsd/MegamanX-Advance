@@ -15,18 +15,27 @@ public class HomingTorpedo : Weapon {
 		weaponSlotIndex = 1;
 		weaknessIndex = (int)WeaponIds.RollingShield;
 		shootSounds = ["torpedo", "torpedo", "torpedo", "buster3"];
-		fireRate = 38;
+		fireRate = 30;
+		switchCooldown = 30;
 		damage = "2/1*6";
-		effect = "Destroys on contact with projectiles or enemies.\nBesides of it's homing capabilities.";
+		effect = "Both:Destroys on contact with projectiles or enemies.\nBesides of its homing capabilities.";
 		hitcooldown = "0";
 		flinch = "0/13";
+
+		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 1;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -37,26 +46,29 @@ public class HomingTorpedo : Weapon {
 		Player player = character.player;
 
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new TorpedoProjX(pos, xDir, mmx, player, player.getNextActorNetId(true), rpc: true);
 		} else {
-			player.getNextActorNetId(true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 30, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 15, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 0, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), -15, true);
-			new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), -30, true);
+			if (ammo >= 6) {
+				player.getNextActorNetId(true);
+				new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 30, new Point(25, -100), true);
+				new TorpedoProjChargedX(pos.addxy(0, 1), xDir, mmx, player, player.getNextActorNetId(true), 15, new Point(175 * xDir, -75), true);
+				new TorpedoProjChargedX(pos.addxy(0, 0), xDir, mmx, player, player.getNextActorNetId(true), 0, new Point(200 * xDir, 0), true);
+				new TorpedoProjChargedX(pos.addxy(0, -1), xDir, mmx, player, player.getNextActorNetId(true), -15, new Point(175 * xDir, 75), true);
+				new TorpedoProjChargedX(pos.addxy(0, -2), xDir, mmx, player, player.getNextActorNetId(true), -30, new Point(25, 100), true);
+			}
 		}
 	}
 } 
 public class TorpedoProjX : Projectile, IDamagable {
 	public Actor? target;
 	public float smokeTime = 0;
-	public float maxSpeed = 150;
+	public float maxSpeed = 200;
+	public Point? oldAmount;
 	public TorpedoProjX(
-		Point pos, int xDir, Actor owner, Player player, ushort? netId, float? angle = null, bool rpc = false
+		Point pos, int xDir, Actor owner, Player player, ushort? netId, float? angle = null, Point? mov = null, bool rpc = false
 	) : base(
-		pos, xDir, owner, "torpedo", netId, player	
+		pos, xDir, owner, "torpedo", netId, player
 	) {
 		weapon = HomingTorpedo.netWeapon;
 		netcodeOverride = NetcodeModel.FavorDefender;
@@ -64,7 +76,7 @@ public class TorpedoProjX : Projectile, IDamagable {
 		vel = new Point(150 * xDir, 0);
 		fadeSprite = "explosion";
 		fadeSound = "explosion";
-		maxTime = 2f;
+		maxDistance = 260;
 		projId = (int)ProjIds.Torpedo;
 		fadeOnAutoDestroy = true;
 		reflectableFBurner = true;
@@ -73,6 +85,8 @@ public class TorpedoProjX : Projectile, IDamagable {
 		if (angle != null) {
 			this.angle = angle.Value + (this.xDir == -1 ? 180 : 0);
 		}
+		if (mov != null) vel = (Point)mov;
+
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
@@ -101,25 +115,37 @@ public class TorpedoProjX : Projectile, IDamagable {
 				}
 			}
 			if (target != null) {
-				if (time < 3f) {
-					var dTo = pos.directionTo(target.getCenterPos()).normalize();
-					var destAngle = MathF.Atan2(dTo.y, dTo.x) * 180 / MathF.PI;
-					destAngle = Helpers.to360(destAngle);
-					angle = Helpers.lerpAngle(angle, destAngle, Global.spf * 3);
-				}
+				var dTo = pos.directionTo(target.getCenterPos()).normalize();
+				var destAngle = MathF.Atan2(dTo.y, dTo.x) * 180 / MathF.PI;
+				destAngle = Helpers.to360(destAngle);
+				angle = Helpers.lerpAngle((float)angle, destAngle, 0.08f);
 			}
 			if (time >= 0.15) {
-				target = Global.level.getClosestTarget(pos, damager.owner.alliance, true, aMaxDist: Global.screenW * 0.75f);
-			} else if (time < 0.15) {
-				//this.vel.x += this.xDir * Global.spf * 300;
+				target = Global.level.getClosestTarget(pos, damager.owner.alliance, false, aMaxDist: Global.screenW * 0.75f);
 			}
-			vel.x = Helpers.cosd(angle) * maxSpeed;
-			vel.y = Helpers.sind(angle) * maxSpeed;
-		}
+			
+			if (target != null) {
+				Point amount = pos.directionToNorm(target.getCenterPos()).times(180);
+				oldAmount = amount;
+				vel = Point.lerp(vel, amount, 0.06f);
+			} else if (oldAmount != null) {
+				vel = Point.lerp(vel, (Point)oldAmount, 0.06f);
+			}
+			if (vel.magnitude > maxSpeed) {
+				vel = vel.normalize().times(maxSpeed);
+			} else {
+				vel += vel * 0.02f;
+			}
+		} 
 		smokeTime += Global.spf;
-		if (smokeTime > 0.2) {
+		if (smokeTime > 0.1) {
+			Point oldPos = pos;
 			smokeTime = 0;
-			if (homing) new Anim(pos, "torpedo_smoke", 1, null, true);
+			if (homing) {
+				Global.level.delayedActions.Add(new DelayedAction(delegate {
+					new Anim(oldPos, "torpedo_smoke", 1, null, true);}
+				, 2f / 60f ));
+			}
 		}
 	}
 	public override void renderFromAngle(float x, float y) {
@@ -178,20 +204,21 @@ public class TorpedoProjX : Projectile, IDamagable {
 public class TorpedoProjChargedX : Projectile, IDamagable {
 	public Actor? target;
 	public float smokeTime = 0;
-	public float maxSpeed = 150;
+	public float maxSpeed = 350;
+	public Point? oldAmount;
 	public TorpedoProjChargedX(
-		Point pos, int xDir, Actor owner, Player player, ushort? netId, float? angle = null, bool rpc = false
+		Point pos, int xDir, Actor owner, Player player, ushort? netId, float? angle = null, Point? mov = null, bool rpc = false
 	) : base(
-		pos, xDir, owner, "torpedo_charge", netId, player	
+		pos, xDir, owner, "torpedo_charge", netId, player
 	) {
 		weapon = HomingTorpedo.netWeapon;
 		netcodeOverride = NetcodeModel.FavorDefender;
 		damager.damage = 1;
 		damager.flinch = Global.halfFlinch;
-		vel = new Point(150 * xDir, 0);
+		//vel = new Point(150 * xDir, 0);
 		fadeSprite = "explosion";
 		fadeSound = "explosion";
-		maxTime = 2f;
+		maxDistance = 300;
 		projId = (int)ProjIds.TorpedoCharged;
 		fadeOnAutoDestroy = true;
 		reflectableFBurner = true;
@@ -200,6 +227,7 @@ public class TorpedoProjChargedX : Projectile, IDamagable {
 		if (angle != null) {
 			this.angle = angle.Value + (this.xDir == -1 ? 180 : 0);
 		}
+		if (mov != null) vel = (Point)mov;
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
@@ -228,25 +256,36 @@ public class TorpedoProjChargedX : Projectile, IDamagable {
 				}
 			}
 			if (target != null) {
-				if (time < 3f) {
-					var dTo = pos.directionTo(target.getCenterPos()).normalize();
-					var destAngle = MathF.Atan2(dTo.y, dTo.x) * 180 / MathF.PI;
-					destAngle = Helpers.to360(destAngle);
-					angle = Helpers.lerpAngle(angle, destAngle, Global.spf * 3);
-				}
+				var dTo = pos.directionTo(target.getCenterPos()).normalize();
+				var destAngle = MathF.Atan2(dTo.y, dTo.x) * 180 / MathF.PI;
+				destAngle = Helpers.to360(destAngle);
+				angle = Helpers.lerpAngle((float)angle, destAngle, 0.08f);
 			}
-			if (time >= 0.15) {
-				target = Global.level.getClosestTarget(pos, damager.owner.alliance, true, aMaxDist: Global.screenW * 0.75f);
-			} else if (time < 0.15) {
-				//this.vel.x += this.xDir * Global.spf * 300;
+			if (time >= 0.3) {
+				target = Global.level.getClosestTarget(pos, damager.owner.alliance, false, aMaxDist: Global.screenW * 0.75f);
 			}
-			vel.x = Helpers.cosd(angle) * maxSpeed;
-			vel.y = Helpers.sind(angle) * maxSpeed;
+			if (target != null) {
+				Point amount = pos.directionToNorm(target.getCenterPos()).times(180);
+				oldAmount = amount;
+				vel = Point.lerp(vel, amount, 0.06f);
+			} else if (oldAmount != null) {
+				vel = Point.lerp(vel, (Point)oldAmount, 0.06f);
+			}
+			if (vel.magnitude > maxSpeed) {
+				vel = vel.normalize().times(maxSpeed);
+			} else {
+				vel += vel * 0.02f;
+			}
 		}
 		smokeTime += Global.spf;
-		if (smokeTime > 0.2) {
+		if (smokeTime > 0.1) {
+			Point oldPos = pos;
 			smokeTime = 0;
-			if (homing) new Anim(pos, "torpedo_smoke", 1, null, true);
+			if (homing) {
+				Global.level.delayedActions.Add(new DelayedAction(delegate {
+					new Anim(oldPos, "torpedo_smoke", 1, null, true);}
+				, 2f / 60f ));
+			}
 		}
 	}
 	public override void renderFromAngle(float x, float y) {

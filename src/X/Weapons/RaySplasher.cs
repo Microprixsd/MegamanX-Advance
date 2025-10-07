@@ -12,6 +12,7 @@ public class RaySplasher : Weapon {
 		displayName = "Ray Splasher";
 		shootSounds = ["raySplasher", "raySplasher", "raySplasher", "warpIn"];
 		fireRate = 80;
+		switchCooldown = 15;
 		index = (int)WeaponIds.RaySplasher;
 		weaponBarBaseIndex = 21;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -22,17 +23,29 @@ public class RaySplasher : Weapon {
 		effect = "Charged: Grants Super Armor.";
 		hitcooldown = "5";
 		hasCustomChargeAnim = true;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			mmx.shootingRaySplasher = this;
 		} else {
-			if (character.ownedByLocalPlayer) {
-				character.changeState(new RaySplasherChargedState(), true);
+			if (ammo >= 6) {
+				if (character.ownedByLocalPlayer) {
+					character.changeState(new RaySplasherChargedState(), true);
+				}
 			}
 		}
 	}
@@ -43,7 +56,7 @@ public class RaySplasher : Weapon {
 				mmx.raySplasherCooldown += Global.speedMul;
 				if (mmx.raySplasherCooldown > 1) {
 					if (mmx.raySplasherCooldown >= 4) {
-						addAmmo(-0.15f, mmx.player);
+						addAmmo(-0.05f, mmx.player);
 						mmx.raySplasherCooldown = 1;
 						new RaySplasherProj(
 							mmx.getShootPos(), mmx.getShootXDir(), mmx.raySplasherFrameIndex % 3,

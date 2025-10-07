@@ -8,7 +8,8 @@ public class GravityWell : Weapon {
 	public GravityWell() : base() {
 		displayName = "Gravity Well";
 		shootSounds = new string[] { "busterX3", "busterX3", "busterX3", "warpIn" };
-		fireRate = 30;
+		fireRate = 5;
+		switchCooldown = 15;
 		index = (int)WeaponIds.GravityWell;
 		weaponBarBaseIndex = 22;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -19,16 +20,23 @@ public class GravityWell : Weapon {
 		effect = "Disables Gravity to the enemy. C: Super Armor.\nUncharged won't give assists.";
 		hitcooldown = "30";
 		flinch = "0/26";
+
+		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
 		hasCustomChargeAnim = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
 	}
-
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -36,14 +44,16 @@ public class GravityWell : Weapon {
 		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			var proj = new GravityWellProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			if (character.ownedByLocalPlayer) {
 				mmx.linkedGravityWell = proj;
 			}
 		} else {
-			if (!character.ownedByLocalPlayer) return;
-			character.changeState(new GravityWellChargedState(), true);
+			if (ammo >= 6) {
+				if (!character.ownedByLocalPlayer) return;
+				character.changeState(new GravityWellChargedState(), true);
+			}
 		}
 	}
 
@@ -76,7 +86,7 @@ public class GravityWellProj : Projectile, IDamagable {
 		weapon = GravityWell.netWeapon;
 		damager.damage = 2;
 		damager.hitCooldown = 30;
-		maxActiveTime = 2;
+		maxActiveTime = 1;
 		maxTime = maxActiveTime + 5;
 		projId = (int)ProjIds.GravityWell;
 		shouldShieldBlock = false;

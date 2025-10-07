@@ -11,6 +11,7 @@ public class SoulBody : Weapon {
 		index = (int)WeaponIds.SoulBody;
 		displayName = "Soul Body";
 		fireRate = 60;
+		switchCooldown = 30;
 		weaponSlotIndex = 125;
         weaponBarBaseIndex = 74;
         weaponBarIndex = 63;
@@ -21,6 +22,16 @@ public class SoulBody : Weapon {
 		Flinch = "0/13";
 		FlinchCD = hitcooldown;
 		effect = "Deals damage on contact. C: Spawns 5 holograms that track enemies."; */
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {
@@ -36,9 +47,12 @@ public class SoulBody : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel >= 3) {
+		if (chargeLevel >= 3 && ammo >= 6) {
 			character.changeState(new ControlClone(), true);
-		} else new SoulBodyHologram(this, pos, xDir, player, player.getNextActorNetId(), true);
+		} else
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
+			new SoulBodyHologram(this, pos, xDir, player, player.getNextActorNetId(), true);
+		}
 	}
 }
 

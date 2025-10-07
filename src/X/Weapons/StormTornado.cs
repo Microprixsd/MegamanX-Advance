@@ -22,13 +22,22 @@ public class StormTornado : Weapon {
 		hitcooldown = "15/20";
 		flinch = "0/26";
 		flinchCD = "0/1";
+
+		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 3;
+	}
+	
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -39,11 +48,13 @@ public class StormTornado : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new TornadoProj(pos, xDir, false, mmx, player, player.getNextActorNetId(), true);
 		} else {
-			new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-		}
+			if (ammo >= 6) {
+				new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			}
+			}
 	}
 }
 

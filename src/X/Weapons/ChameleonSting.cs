@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MMXOnline;
 
@@ -17,22 +18,33 @@ public class ChameleonSting : Weapon {
 		weaknessIndex = (int)WeaponIds.BoomerangCutter;
 		shootSounds = ["csting", "csting", "csting", "stingCharge"];
 		fireRate = 45;
+		switchCooldown = 30;
 		damage = "2";
 		effect = "Splits. \nFull Charge grants invulnerability.";
 		hitcooldown = "0";
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsageEX(int chargeLevel, Character character) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
 		if (chargeLevel < 3 && mmx.stingActiveTime > 0) {
-			return 4;
+			return 1;
 		}
 		if (chargeLevel >= 3 && freeAmmoNextCharge) {
 			freeAmmoNextCharge = false;
 			return 0;
 		}
-		return getAmmoUsage(chargeLevel);
+		return getAmmoUsage(1);
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -51,7 +63,7 @@ public class ChameleonSting : Weapon {
 				freeAmmoNextCharge = true;
 				return;
 			}
-			mmx.stingActiveTime = 480;
+			mmx.stingActiveTime = 210;
 		}
 	}
 }

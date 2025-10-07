@@ -11,21 +11,35 @@ public class StrikeChain : Weapon {
 	public StrikeChain() : base() {
 		displayName = "Strike Chain";
 		shootSounds = new string[] { "strikeChain", "strikeChain", "strikeChain", "strikeChainCharged" };
-		fireRate = 45;
+		fireRate = 60;
 		index = (int)WeaponIds.StrikeChain;
 		weaponBarBaseIndex = 14;
 		weaponBarIndex = weaponBarBaseIndex;
 		weaponSlotIndex = 14;
 		killFeedIndex = 20 + (index - 9);
 		weaknessIndex = (int)WeaponIds.SonicSlicer;
-		switchCooldown = 20;
+		switchCooldown = 30;
 		damage = "2/4";
 		effect = "Hooks enemies and items. Be Spider-Man.";
 		hitcooldown = "30";
 		flinch = "Hooked Time";
 		flinchCD = "0";
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >= 6) return 6;
+		return 2;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
+	}
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 		int chargeLevel = args[0];
@@ -36,7 +50,7 @@ public class StrikeChain : Weapon {
 		int upOrDown = player.input.getYDir(player);
 
 		Projectile proj;
-		if (chargeLevel >= 3) {
+		if (chargeLevel >= 3 && ammo >= 6) {
 			proj = new StrikeChainProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true);
 		} else {
 			proj = new StrikeChainProj(pos, xDir, mmx, player, player.getNextActorNetId(), upOrDown, true);
@@ -192,7 +206,7 @@ public class StrikeChainProj : Projectile {
 		pos, xDir, owner, "strikechain_proj", netId, player	
 	) {
 		weapon = StrikeChain.netWeapon;
-		damager.damage = 2;
+		damager.damage = 3;
 		damager.hitCooldown = 30;
 		vel = new Point(400 * xDir, 0);
 		projId = (int)ProjIds.StrikeChain;

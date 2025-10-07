@@ -14,7 +14,7 @@ public class BubbleSplash : Weapon {
 	public BubbleSplash() : base() {
 		displayName = "Bubble Splash";
 		shootSounds = new string[] { "bubbleSplash", "bubbleSplash", "bubbleSplash", "bubbleSplashCharged" };
-		fireRate = 6;
+		fireRate = 8;
 		isStream = true;
 		index = (int)WeaponIds.BubbleSplash;
 		weaponBarBaseIndex = 10;
@@ -27,19 +27,21 @@ public class BubbleSplash : Weapon {
 		ammousage = 0.5;
 		//effect = "Shoot a Stream up to 7 bubbles. C:Jump Boost.";
 		effect = "Charged: Grants Jump Boost.";
-		maxAmmo = 28;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) {
+		if (chargeLevel >= 3 && ammo >= 5.1) {
 			if (freeAmmoNextCharge) {
 				freeAmmoNextCharge = false;
 				return 0;
 			}
-			return 7;
+			return 6;
 		}
-		return 0.45f;
+		return 0.25f;
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {
@@ -68,6 +70,9 @@ public class BubbleSplash : Weapon {
 				bubbleAfterlifeTimes.RemoveAt(i);
 			}
 		}
+		if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	// Friendly reminder that this method MUST be deterministic across all clients,
@@ -84,7 +89,7 @@ public class BubbleSplash : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 5.1) {
 			int type = 0;
 			if (player.input.isHeld(Control.Up, player)) {
 				type = 1;
@@ -92,7 +97,7 @@ public class BubbleSplash : Weapon {
 			bubblesOnField.Add(
 				new BubbleSplashProj(type, pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true)
 			);
-		} else if (chargeLevel >= 3) {
+		} else if (chargeLevel >= 3 && ammo >= 5.1) {
 			if (mmx.chargedBubbles.Count >= 5) {
 				mmx.specialBuster.shoot(character, [3, 1]);
 				freeAmmoNextCharge = true;

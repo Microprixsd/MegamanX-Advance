@@ -10,6 +10,7 @@ public class SilkShot : Weapon {
 		displayName = "Silk Shot";
 		shootSounds = new string[] { "silkShot", "silkShot", "silkShot", "silkShotCharged" };
 		fireRate = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.SilkShot;
 		weaponBarBaseIndex = 11;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -19,8 +20,18 @@ public class SilkShot : Weapon {
 		damage = "2+1/4+1";
 		effect = "Able to heal allies.\nRewards one metal by healing 16 HP.";
 		flinch = "0/26";
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
+	}
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
@@ -29,7 +40,7 @@ public class SilkShot : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel >= 3) {
+		if (chargeLevel >= 3 && ammo >= 6) {
 			new SilkShotProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
 		/*else if (chargeLevel >= 2) {
@@ -41,7 +52,7 @@ public class SilkShot : Weapon {
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) return 8;
+		if (chargeLevel >= 3 && ammo >=6) return 6;
 		//if (chargeLevel >= 2) return 4;
 		else return 1;
 	}

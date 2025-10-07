@@ -10,6 +10,7 @@ public class AcidBurst : Weapon {
 		displayName = "Acid Burst";
 		shootSounds = new string[] { "acidBurst", "acidBurst", "acidBurst", "acidBurst" };
 		fireRate = 30;
+		switchCooldown = 30;
 		index = (int)WeaponIds.AcidBurst;
 		weaponBarBaseIndex = 17;
 		weaponBarIndex = 17;
@@ -18,6 +19,22 @@ public class AcidBurst : Weapon {
 		weaknessIndex = (int)WeaponIds.FrostShield;
 		damage = "1/1";
 		effect = "DOT: 2+1/3+1. Reduces Enemy Defense. Acid DMG \nstops when cured or immersed in water. Doesn't Assists.";
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >= 6) {
+			return 6;
+		}
+		return 1f;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -27,12 +44,14 @@ public class AcidBurst : Weapon {
 		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >=3 && ammo <6) {
 			new AcidBurstProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
+			if (ammo >=6) {
 			player.setNextActorNetId(player.getNextActorNetId());
 			new AcidBurstProjCharged(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true);
 			new AcidBurstProjCharged(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
+			}
 		}
 	}
 }

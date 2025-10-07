@@ -13,6 +13,7 @@ public class AimingLaser : Weapon {
 		displayName = "Aiming Laser";
 		index = (int)WeaponIds.AimingLaser;
 		fireRate = 60;
+		switchCooldown = 30;
 		weaponSlotIndex = 128;
         weaponBarBaseIndex = 77;
         weaponBarIndex = 66;

@@ -10,7 +10,7 @@ public class FrostShield : Weapon {
 		displayName = "Frost Shield";
 		shootSounds = ["frostShield", "frostShield", "frostShield", "frostShieldCharged"];
 		fireRate = 60;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.FrostShield;
 		weaponBarBaseIndex = 23;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -20,13 +20,21 @@ public class FrostShield : Weapon {
 		damage = "2+2/3+3";
 		hitcooldown = "0/60";
 		flinch = "0/26-26";
+
+		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -36,18 +44,20 @@ public class FrostShield : Weapon {
 		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >=3 && ammo <6) {
 			new FrostShieldProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
 			if (character.isUnderwater() == true) {
 				new FrostShieldProjPlatform(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			} else {
-				if (mmx.chargedFrostShield?.destroyed == false) {
-					mmx.chargedFrostShield.destroySelf();
+				if (ammo >= 6) {
+					if (mmx.chargedFrostShield?.destroyed == false) {
+						mmx.chargedFrostShield.destroySelf();
+					}
+					mmx.chargedFrostShield = new FrostShieldProjCharged(
+						pos, xDir, mmx, player, player.getNextActorNetId(), true
+					);
 				}
-				mmx.chargedFrostShield = new FrostShieldProjCharged(
-					pos, xDir, mmx, player, player.getNextActorNetId(), true
-				);
 			}
 		}
 	}

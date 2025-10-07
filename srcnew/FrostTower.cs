@@ -6,12 +6,11 @@ namespace MMXOnline;
 public class FrostTower : Weapon {
 
 	public static FrostTower netWeapon = new FrostTower();
-	public FrostTower()
-	{
+	public FrostTower() {
 		shootSounds = new string[] { "frostTower", "frostTower", "frostTower", "" };
 		displayName = "Frost Tower";
-		fireRate = 90;
-		switchCooldown = 21;
+		fireRate = 120;
+		switchCooldown = 30;
 		index = (int)WeaponIds.FrostTower;
 		weaponBarIndex = 62;
 		weaponBarBaseIndex = 73;
@@ -24,15 +23,31 @@ public class FrostTower : Weapon {
 		Flinch = "0-13/26";
 		FlinchCD = hitcooldown;
 		effect = "Blocks projectiles. C: Summons huge icicles that drop from above."; */
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 3;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			character.changeState(new FrostTowerState(), true);
+		} else {
+			if (chargeLevel >= 3 && ammo >= 6)
+			character.changeState(new FrostTowerChargedState(), true);
 		}
-		else character.changeState(new FrostTowerChargedState(), true);
 	}
 }
 
@@ -70,9 +85,9 @@ public class FrostTowerState : CharState {
 public class FrostTowerProj : Projectile, IDamagable
 
 {
-	public float health = 4;
+	public float health = 5;
 
-	public float maxHealth = 4;
+	public float maxHealth = 5;
 
 	public bool landed;
 	float zTime;
@@ -85,7 +100,7 @@ public class FrostTowerProj : Projectile, IDamagable
 		weapon, pos, xDir, 0, 1, player, "frosttower_proj", 
 		0, 0.5f, netProjId, player.ownedByLocalPlayer
 	) {
-		maxTime = 2.5f;
+		maxTime = 3f;
 		projId = (int)ProjIds.FrostTower;
 		grounded = false;
 		canBeGrounded = true;

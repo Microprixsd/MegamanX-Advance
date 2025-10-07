@@ -11,16 +11,33 @@ public class GroundHunter : Weapon {
 		index = (int)WeaponIds.GroundHunter;
 		displayName = "Ground Hunter";
 		fireRate = 30;
+		switchCooldown = 30;
 		weaponSlotIndex = 127;
 		weaponBarIndex = 65;
 		weaponBarBaseIndex = 76;
-		shootSounds = new string[] {"busterX4","busterX4","busterX4","buster2X4"};
+		shootSounds = new string[] { "busterX4", "busterX4", "busterX4", "buster2X4" };
 		weaknessIndex = (int)WeaponIds.FrostTower;
 		/* damage = "2/1-1";
 		hitcooldown = "0/0.5-0";
 		Flinch = "0";
 		FlinchCD = hitcooldown;
 		effect = "Press DOWN to change direction. C: Press UP or DOWN to spawn more projectiles."; */
+		
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >= 6) {
+			return 6;
+		}
+		return 1;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -31,7 +48,7 @@ public class GroundHunter : Weapon {
 		Player player = character.player;
 		bool down = player.input.isHeld(Control.Down, player);
 
-		if (chargeLevel >= 3) {
+		if (chargeLevel >= 3 && ammo >= 6) {
 			new GroundHunterChargedProj(this, pos, xDir, player, player.getNextActorNetId(), true);
 		} else {
 			new GroundHunterProj(this, pos, xDir, player, player.getNextActorNetId(), true) { downPressed = down };

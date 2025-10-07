@@ -4,14 +4,14 @@ using System.Collections.Generic;
 namespace MMXOnline;
 
 public class SpeedBurner : Weapon {
-	public static SpeedBurner netWeapon = new(); 
+	public static SpeedBurner netWeapon = new();
 
 	public SpeedBurner() : base() {
 		displayName = "Speed Burner";
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		shootSounds = new string[] { "speedBurner", "speedBurner", "speedBurner", "speedBurnerCharged" };
 		fireRate = 60;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.SpeedBurner;
 		weaponBarBaseIndex = 16;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -24,8 +24,22 @@ public class SpeedBurner : Weapon {
 		flinch = "0/26";
 		flinchCD = "0/0.5";
 		hasCustomChargeAnim = true;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -33,7 +47,7 @@ public class SpeedBurner : Weapon {
 		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			if (!character.isUnderwater()) {
 				new SpeedBurnerProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			} else {
@@ -42,8 +56,10 @@ public class SpeedBurner : Weapon {
 				new SpeedBurnerProjWater(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
 			}
 		} else {
-			if (character.ownedByLocalPlayer) {
-				character.changeState(new SpeedBurnerCharState(), true);
+			if (ammo >= 6) {
+				if (character.ownedByLocalPlayer) {
+					character.changeState(new SpeedBurnerCharState(), true);
+				}
 			}
 		}
 	}

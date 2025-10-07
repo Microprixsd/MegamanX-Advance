@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class FireWave : Weapon {
 	public static FireWave netWeapon = new();
-	
+
 	public FireWave() : base() {
 		displayName = "Fire Wave";
 		index = (int)WeaponIds.FireWave;
@@ -15,6 +15,7 @@ public class FireWave : Weapon {
 		weaponSlotIndex = 4;
 		weaknessIndex = (int)WeaponIds.StormTornado;
 		shootSounds = new string[] { "fireWave", "fireWave", "fireWave", "fireWave" };
+		drawGrayOnLowAmmo = true;
 		fireRate = 4;
 		isStream = true;
 		switchCooldown = 15;
@@ -22,16 +23,22 @@ public class FireWave : Weapon {
 		effect = "Inflicts burn to enemies. DOT: 0.5/2 seconds.\nBurn won't give assists.";
 		hitcooldown = "12/20";
 
-		ammoDisplayScale = 7;
-		maxAmmo = 196;
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) {
-			return 49;
+		if (chargeLevel >= 3 && ammo >= 6) {
+			return 6;
 		}
-		return 1;
+		return 0.1f;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -44,11 +51,13 @@ public class FireWave : Weapon {
 
 		if (character != null) {
 			if (character.isUnderwater()) return;
-			if (chargeLevel < 3) {
-				var proj = new FireWaveProj( pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
+				var proj = new FireWaveProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 				proj.vel.inc(character.vel.times(-0.5f));
 			} else {
+				if (ammo >= 6) {
 				new FireWaveProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			}
 			}
 		}
 	}
@@ -89,7 +98,8 @@ public class FireWaveProjChargedStart : Projectile {
 	) {
 		weapon = FireWave.netWeapon;
 		damager.damage = 2;
-		damager.hitCooldown = 13;
+		damager.flinch = Global.halfFlinch;
+		damager.hitCooldown = 45;
 		vel = new Point(150 * xDir, 0);
 		projId = (int)ProjIds.FireWaveChargedStart;
 		if (collider != null) { collider.wallOnly = true; }
@@ -153,7 +163,7 @@ public class FireWaveProjCharged : Projectile {
 	) {
 		weapon = FireWave.netWeapon;
 		damager.damage = 1;
-		damager.hitCooldown = 19;
+		damager.hitCooldown = 30;
 		vel = new Point(0 * xDir, 0);
 		projId = (int)ProjIds.FireWaveCharged;
 		spriteMid = new Sprite("fire_wave_charge");

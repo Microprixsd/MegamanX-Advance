@@ -23,8 +23,21 @@ public class MagnetMine : Weapon {
 		damage = "2,4/1,2,4";
 		flinch = "0/26";
 		flinchCD = "0/1";
-	}
 
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 1;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -32,7 +45,7 @@ public class MagnetMine : Weapon {
 		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			var magnetMineProj = new MagnetMineProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			mmx.magnetMines.Add(magnetMineProj);
 			if (mmx.magnetMines.Count > maxMinesPerPlayer) {
@@ -40,7 +53,10 @@ public class MagnetMine : Weapon {
 				mmx.magnetMines.RemoveAt(0);
 			}
 		} else {
-			new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			if (ammo >= 6) {
+				new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			}
+		
 		}
 	}
 }

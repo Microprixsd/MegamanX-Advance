@@ -12,7 +12,7 @@ public class CrystalHunter : Weapon {
 		displayName = "Crystal Hunter";
 		shootSounds = new string[] { "crystalHunter", "crystalHunter", "crystalHunter", "crystalHunterCharged" };
 		fireRate = 75;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.CrystalHunter;
 		weaponBarBaseIndex = 9;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -28,8 +28,14 @@ public class CrystalHunter : Weapon {
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) return 4;
-		return 1;
+		if (chargeLevel >= 3) return 6;
+		return 2;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -40,12 +46,14 @@ public class CrystalHunter : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new CrystalHunterProj(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
 		} else {
-			new CrystalHunterCharged(
-				pos, player, player.getNextActorNetId(), player.ownedByLocalPlayer, sendRpc: true
-			);
+			if (ammo >= 6) {
+				new CrystalHunterCharged(
+					pos, player, player.getNextActorNetId(), player.ownedByLocalPlayer, sendRpc: true
+				);
+			}
 		}
 	}
 }

@@ -10,7 +10,7 @@ public class SpinWheel : Weapon {
 		displayName = "Spin Wheel";
 		shootSounds = new string[] { "spinWheel", "spinWheel", "spinWheel", "spinWheelCharged" };
 		fireRate = 60;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.SpinWheel;
 		weaponBarBaseIndex = 12;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -21,13 +21,21 @@ public class SpinWheel : Weapon {
 		effect = "Inflicts Slowdown. Doesn't destroy on hit.\nUncharged won't give assists.";
 		hitcooldown = "12/0";
 		flinch = "0/26";
+
+		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
+		if (chargeLevel >= 3) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -38,10 +46,12 @@ public class SpinWheel : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new SpinWheelProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
-			new SpinWheelProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			if (ammo >= 6) {
+				new SpinWheelProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			}
 		}
 	}
 }

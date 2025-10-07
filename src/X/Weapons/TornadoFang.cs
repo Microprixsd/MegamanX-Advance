@@ -11,7 +11,7 @@ public class TornadoFang : Weapon {
 		displayName = "Tornado Fang";
 		shootSounds = new string[] { "busterX3", "busterX3", "busterX3", "tunnelFang" };
 		fireRate = 60;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.TornadoFang;
 		weaponBarBaseIndex = 24;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -23,11 +23,15 @@ public class TornadoFang : Weapon {
 		hitcooldown = "15/8";
 		flinch = "0/26";
 		flinchCD = "0/1";
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel < 3) {
-			if (doubleShootCooldown > 0) { return 2; }
+			if (doubleShootCooldown > 0) { return 1; }
 			else { return 1; }
 		}
 		return 0;
@@ -36,6 +40,9 @@ public class TornadoFang : Weapon {
 	public override void update() {
 		base.update();
 		Helpers.decrementFrames(ref doubleShootCooldown);
+		if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {

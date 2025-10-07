@@ -6,8 +6,7 @@ namespace MMXOnline;
 public class LightningWeb : Weapon {
 
 	public static LightningWeb netWeapon = new LightningWeb();
-	public LightningWeb()
-	{
+	public LightningWeb() {
 		shootSounds = new string[] { "busterX4", "busterX4", "busterX4", "busterX4" };
 		displayName = "Lightning Web";
 		fireRate = 60;
@@ -23,11 +22,22 @@ public class LightningWeb : Weapon {
 		Flinch = "6/26";
 		FlinchCD = hitcooldown;
 		effect = "Can be used as a wall. C: Creates a network of nine webs."; */
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
+
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
@@ -36,10 +46,12 @@ public class LightningWeb : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			new LightningWebProj(this, pos, xDir, player, player.getNextActorNetId(), true);
 		} else {
-			new LightningWebProjCharged(this, pos, xDir, player, player.getNextActorNetId(), true);
+			if (ammo >= 6) {
+				new LightningWebProjCharged(this, pos, xDir, player, player.getNextActorNetId(), true);
+			}
 		}
 	}
 }

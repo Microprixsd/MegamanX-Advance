@@ -10,7 +10,8 @@ public class RisingFire : Weapon {
 	public RisingFire() {
 		shootSounds = new string[] { "ryuenjin", "ryuenjin", "ryuenjin", "ryuenjin" };
 		displayName = "Rising Fire";
-		fireRate = 45;
+		fireRate = 60;
+		switchCooldown = 30;
 		index = (int)WeaponIds.RisingFire;
 		weaponBarIndex = 64;
 		weaponBarBaseIndex = 75;
@@ -23,15 +24,31 @@ public class RisingFire : Weapon {
 		Flinch = "0/13-26";
 		FlinchCD = hitcooldown;
 		effect = "Burns upper enemies. C: Resets airdashes count."; */
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 
-		if (chargeLevel < 3f) {
-			character.changeState(new RisingFireState(), true);	
+		if (chargeLevel < 3f || chargeLevel >= 3 && ammo <6) {
+			character.changeState(new RisingFireState(), true);
 		} else {
-			character.changeState(new RisingFireChargedState(), true);
+			if (ammo >= 6) {
+				character.changeState(new RisingFireChargedState(), true);
+			}
 		}
 	}
 }

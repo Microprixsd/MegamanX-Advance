@@ -12,7 +12,7 @@ public class SpinningBlade : Weapon {
 		displayName = "Spinning Blade";
 		shootSounds = new string[] { "", "", "", "spinningBladeCharged" };
 		fireRate = 75;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.SpinningBlade;
 		weaponBarBaseIndex = 20;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -24,13 +24,21 @@ public class SpinningBlade : Weapon {
 		hitcooldown = "0/30";
 		flinch = "0/26";
 		flinchCD = "0/1";
+
+		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 4; }
-		return 1;
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 2;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -40,14 +48,16 @@ public class SpinningBlade : Weapon {
 		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo <6) {
 			player.setNextActorNetId(player.getNextActorNetId());
 			new SpinningBladeProj(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true);
 			new SpinningBladeProj(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
 		} else {
-			var csb = new SpinningBladeProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-			if (mmx.ownedByLocalPlayer) {
-				mmx.chargedSpinningBlade = csb;
+			if (ammo >= 6) {
+				var csb = new SpinningBladeProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				if (mmx.ownedByLocalPlayer) {
+					mmx.chargedSpinningBlade = csb;
+				}
 			}
 		}
 	}

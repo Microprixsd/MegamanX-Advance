@@ -12,7 +12,7 @@ public class ParasiticBomb : Weapon {
 		displayName = "Parasitic Bomb";
 		shootSounds = new string[] { "", "", "", "" };
 		fireRate = 60;
-		switchCooldown = 45;
+		switchCooldown = 30;
 		index = (int)WeaponIds.ParasiticBomb;
 		weaponBarBaseIndex = 18;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -24,15 +24,22 @@ public class ParasiticBomb : Weapon {
 		hitcooldown = "0";
 		flinch = "26/26";
 		flinchCD = "0";
+
+		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
 	}
 	
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3) { return 0.5f; }
-		return 1;
+		if (chargeLevel >= 3) { return 2; }
+		return 2;
 	}
-
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
+	}
 	public override bool canShoot(int chargeLevel, Player player) {
 		if (!base.canShoot(chargeLevel, player) || player.character is not MegamanX mmx) return false;
 

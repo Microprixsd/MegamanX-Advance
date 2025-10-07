@@ -16,18 +16,28 @@ public class TwinSlasher : Weapon {
 		weaponSlotIndex = 130;
 		weaknessIndex = (int)WeaponIds.LightningWeb;
 		shootSounds = new string[] { "buster2X4", "buster2X4", "buster2X4", "twinSlasherCharged" };
-		fireRate = 9;
+		fireRate = 15;
 		switchCooldown = 30;
 		/* damage = "1";
 		hitcooldown = "0.5";
 		Flinch = "0/26";
 		FlinchCD = hitcooldown;
 		effect = "Pierces enemies."; */
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel < 3) return 0.75f;
-		return base.getAmmoUsage(chargeLevel);
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 1;
+	}
+	public override void update() {
+		base.update();
+		if (ammo < maxAmmo) {
+			rechargeAmmo(2);
+		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -37,16 +47,18 @@ public class TwinSlasher : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			//player.setNextActorNetId(player.getNextActorNetId());
 			new TwinSlasherProj(this, pos, xDir, 0, player, player.getNextActorNetId(), true);
 			new TwinSlasherProj(this, pos, xDir, 1, player, player.getNextActorNetId(), true);
 		} else {
-			for (int i = 0; i < 9; i++) {
-				if (i != 4) {
-					var tsc = new TwinSlasherProjCharged(
-						this, pos, xDir, i, player, i, player.getNextActorNetId(), true){
-			};
+			if (ammo >= 6) {
+				for (int i = 0; i < 9; i++) {
+					if (i != 4) {
+						var tsc = new TwinSlasherProjCharged(
+							this, pos, xDir, i, player, i, player.getNextActorNetId(), true) {
+						};
+					}
 				}
 			}
 		}
@@ -64,7 +76,7 @@ public class TwinSlasherProj : Projectile {
 		Weapon weapon, Point pos, int xDir, int type, 
 		Player player, ushort netProjId, bool rpc = false
 	) : base(
-		weapon, pos, xDir, 400f, 0.5f, player, "twin_slasher_proj", 
+		weapon, pos, xDir, 400f, 1, player, "twin_slasher_proj", 
 		0, 0, netProjId, player.ownedByLocalPlayer
 	) {
 		maxTime = 0.35f;
