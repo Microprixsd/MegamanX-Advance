@@ -215,7 +215,10 @@ public class XBuster : Weapon {
 
 	public void shootLightBuster4(MegamanX mmx, Point pos, int xDir) {
 		Player player = mmx.player;
-		new Anim(pos.clone(), "buster4_muzzle_flash", xDir, null, true);
+		new SpiralBackProj(
+			pos, xDir, mmx, player.getNextActorNetId(), true, player
+		);
+		//new Anim(pos.clone(), "buster4_muzzle_flash", xDir, null, true);
 		//Create the buster effect
 		int xOff = xDir * -5;
 		player.setNextActorNetId(player.getNextActorNetId());

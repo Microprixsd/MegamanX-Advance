@@ -318,6 +318,7 @@ public enum ProjIds {
 	Buster3Giga,
 	Buster3Max,
 	Buster4,
+	Buster4_Spiral,
 	Buster4Giga,
 	Buster4Giga2,
 	Buster4Max,
