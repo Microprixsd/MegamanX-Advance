@@ -4,6 +4,23 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MMXOnline;
 
+public class XState : CharState {
+	public MegamanX mmx = null!;
+
+	public XState(
+		string sprite, string shootSprite = "", string attackSprite = "",
+		string transitionSprite = "", string transShootSprite = ""
+	) : base(
+		sprite, shootSprite, attackSprite, transitionSprite, transShootSprite
+	) {
+	}
+
+	public override void onEnter(CharState oldState) {
+		mmx = character as MegamanX ?? throw new NullReferenceException();
+	}
+}
+
+
 public class XHover : CharState {
 	public SoundWrapper? sound;
 	float hoverTime;
@@ -86,6 +103,7 @@ public class XHover : CharState {
 	}
 }
 
+
 public class LightDash : CharState {
 	public float dashTime;
 	public float dustTime;
@@ -115,8 +133,10 @@ public class LightDash : CharState {
 			if (exaust?.destroyed == false) {
 				exaust.destroySelf();
 			}
+			character.isDashing = false;
 			dashTime = 0;
 			stop = true;
+			defaultSprite = "dash_end";
 			sprite = "dash_end";
 			shootSprite = "dash_end_shoot";
 			character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
@@ -201,7 +221,7 @@ public class GigaAirDash : CharState {
 	public int dashDir;
 	public bool stop;
 	public Anim? dashSpark;
-	public Anim? exaust = null!;
+	public Anim? exaust = null;
 
 	public GigaAirDash(string initialDashButton) : base("dash", "dash_shoot", "attack_dash") {
 		attackCtrl = true;
@@ -216,9 +236,15 @@ public class GigaAirDash : CharState {
 		base.update();
 		if (!player.isAI && !player.input.isHeld(initialDashButton, player) && !stop) {
 			dashTime = 900;
+			character.isDashing = false;
 		}
 		int inputXDir = player.input.getXDir(player);
 		bool dashHeld = player.input.isHeld(initialDashButton, player);
+
+		if (character.canWallClimb() && character.isCWallClose != null && inputXDir == character.xDir) {
+			character.changeToIdleOrFall();
+			return;
+		}
 
 		if (dashTime > 28 && !stop) {
 			if (exaust?.destroyed == false) {
@@ -227,6 +253,7 @@ public class GigaAirDash : CharState {
 			character.useGravity = true;
 			dashTime = 0;
 			stop = true;
+			defaultSprite = "dash_end";
 			sprite = "dash_end";
 			shootSprite = "dash_end_shoot";
 			character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
@@ -287,7 +314,7 @@ public class GigaAirDash : CharState {
 	}
 }
 
-public class UpDash : CharState {
+public class UpDash : XState {
 	public float dashTime = 0;
 	public string initialDashButton;
 
@@ -336,7 +363,6 @@ public class UpDash : CharState {
 	public void changeToFall() {
 		if (character.vel.y < 0) {
 			character.vel.y *= 0.4f;
-			if (character.vel.y > -1) { character.vel.y = -1; }
 		}
 		bool animOver = character.isAnimOver();
 		string fullSpriteName = character.sprite.name;
@@ -362,13 +388,12 @@ public class UpDash : CharState {
 	}
 }
 
-public class X2ChargeShot : CharState {
+public class X2ChargeShot : XState {
 	bool fired;
 	int shootNum;
 	bool pressFire;
 	Weapon? weaponOverride;
 	Weapon weapon => (weaponOverride ?? mmx.currentWeapon ?? mmx.specialBuster);
-	MegamanX mmx = null!;
 
 	public X2ChargeShot(Weapon? weaponOverride, int shootNum) : base("cross_shot") {
 		this.shootNum = shootNum % 2;
@@ -459,11 +484,10 @@ public class X2ChargeShot : CharState {
 	}
 }
 
-public class X3ChargeShot : CharState {
+public class X3ChargeShot : XState {
 	bool fired;
 	public int state = 0;
 	bool pressFire;
-	MegamanX mmx = null!;
 	public HyperCharge? hyperBusterWeapon;
 
 	public X3ChargeShot(HyperCharge? hyperBusterWeapon) : base("cross_shot") {
@@ -571,6 +595,10 @@ public class X3ChargeShot : CharState {
 		if (mmx == null) {
 			throw new NullReferenceException();
 		}
+		if (!character.grounded) {
+			sprite = "cross_air_shot";
+            character.changeSpriteFromName(sprite, true);
+        }
 		if (mmx.stockedMaxBusterLv >= 2) {
 			sprite = "cross_shot";
 			defaultSprite = sprite;

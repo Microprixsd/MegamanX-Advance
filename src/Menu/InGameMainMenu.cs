@@ -71,11 +71,7 @@ public class InGameMainMenu : IMainMenu {
 					if (UpgradeMenu.onUpgradeMenu && !Global.level.server.disableHtSt) {
 						Menu.change(new UpgradeMenu(this));
 					} else if (Global.level.mainPlayer.realCharNum == 0) {
-						if (Options.main.oldUpgradeMenuX) {
-							Menu.change(new UpgradeArmorMenu(this));
-						} else if (!Options.main.oldUpgradeMenuX) {
-							Menu.change(new UpgradeArmorMenuEX(this));
-						}
+						Menu.change(new UpgradeArmorMenu(this));						
 					} else if (Global.level.mainPlayer.realCharNum == 2) {
 						Menu.change(new SelectVileArmorMenu(this));
 					}
@@ -126,16 +122,6 @@ public class InGameMainMenu : IMainMenu {
 	public bool isSelCharDisabled() {
 		if (Global.level.isElimination()) return true;
 
-		if (Global.level.server?.customMatchSettings?.redSameCharNum > -1) {
-			if (Global.level.gameMode.isTeamMode && Global.level.mainPlayer.alliance == GameMode.redAlliance) {
-				return true;
-			}
-		}
-		if (Global.level.server?.customMatchSettings?.sameCharNum > -1) {
-			if (!Global.level.gameMode.isTeamMode || Global.level.mainPlayer.alliance == GameMode.blueAlliance) {
-				return true;
-			}
-		}
 
 		return false;
 	}

@@ -14,10 +14,10 @@ public class BoomerangKuwanger : Maverick {
 	public float aiAproachCooldown;
 
 	public BoomerangKuwanger(
-		Player player, Point pos, Point destPos, int xDir,
-		ushort? netId, bool ownedByLocalPlayer, bool sendRpc = false
+		Player player, Point pos, int xDir, ushort? netId,
+		bool ownedByLocalPlayer, bool sendRpc = false
 	) : base(
-		player, pos, destPos, xDir, netId, ownedByLocalPlayer
+		player, pos, xDir, netId, ownedByLocalPlayer
 	) {
 		stateCooldowns = new() {
 			{ typeof(MShoot), new(45, true) },
@@ -319,7 +319,7 @@ public class BoomerangKBoomerangProj : Projectile {
 
 #region states
 public class BoomerMState : MaverickState {
-	public BoomerangKuwanger BoomerKuwanger = null!;
+	public BoomerangKuwanger boomeruKuwanger = null!;
 	public BoomerMState(
 		string sprite, string transitionSprite = ""
 	) : base(
@@ -329,7 +329,7 @@ public class BoomerMState : MaverickState {
 
 	public override void onEnter(MaverickState oldState) {
 		base.onEnter(oldState);
-		BoomerKuwanger = maverick as BoomerangKuwanger ?? throw new NullReferenceException();
+		boomeruKuwanger = maverick as BoomerangKuwanger ?? throw new NullReferenceException();
 
 	}
 }

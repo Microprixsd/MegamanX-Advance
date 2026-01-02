@@ -542,72 +542,6 @@ public class GameMode {
 	public virtual void render() {
 		if (level.mainPlayer == null) return;
 
-		if (level.mainPlayer.character is Axl axl) {
-			if (axl.isZooming() && !axl.isZoomOutPhase1Done) {
-				Point charPos = axl.getCenterPos();
-
-				float xOff = axl.axlScopeCursorWorldPos.x - level.camCenterX;
-				float yOff = axl.axlScopeCursorWorldPos.y - level.camCenterY;
-
-				Point bulletPos = axl.getAxlBulletPos();
-				Point scopePos = axl.getAxlScopePos();
-				Point hitPos = axl.getCorrectedCursorPos();
-				//Point hitPos = bulletPos.add(axl.getAxlBulletDir().times(Global.level.adjustedZoomRange));
-				var hitData = axl.getFirstHitPos(level.mainPlayer.adjustedZoomRange, ignoreDamagables: true);
-				Point hitPos2 = hitData.hitPos;
-				if (hitPos2.distanceTo(charPos) < hitPos.distanceTo(charPos)) hitPos = hitPos2;
-				if (!axl.isZoomingOut && !axl.isZoomingIn) {
-					Color laserColor = new Color(255, 0, 0, 160);
-					DrawWrappers.DrawLine(scopePos.x, scopePos.y, hitPos.x, hitPos.y, laserColor, 2, ZIndex.HUD);
-					DrawWrappers.DrawCircle(hitPos.x, hitPos.y, 2f, true, laserColor, 1, ZIndex.HUD);
-					if (axl.ownedByLocalPlayer && Global.level.isSendMessageFrame()) {
-						RPC.syncAxlScopePos.sendRpc(level.mainPlayer.id, true, scopePos, hitPos);
-					}
-				}
-
-				Point cursorPos = new Point(Global.halfScreenW + (xOff / Global.viewSize), Global.halfScreenH + (yOff / Global.viewSize));
-				string scopeSprite = "scope";
-				if (axl.hasScopedTarget()) scopeSprite = "scope2";
-				Global.sprites[scopeSprite].drawToHUD(0, cursorPos.x, cursorPos.y);
-				float w = 298;
-				float h = 224;
-				float hw = 149;
-				float hh = 112;
-				DrawWrappers.DrawRect(cursorPos.x - w, cursorPos.y - h, cursorPos.x + w, cursorPos.y - hh, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
-				DrawWrappers.DrawRect(cursorPos.x - w, cursorPos.y + hh, cursorPos.x + w, cursorPos.y + h, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
-				DrawWrappers.DrawRect(cursorPos.x - w, cursorPos.y - hh, cursorPos.x - hw, cursorPos.y + hh, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
-				DrawWrappers.DrawRect(cursorPos.x + hw, cursorPos.y - hh, cursorPos.x + w, cursorPos.y + hh, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
-
-				DrawWrappers.DrawCircle(charPos.x, charPos.y, level.mainPlayer.zoomRange, false, Color.Red, 1f, ZIndex.HUD, outlineColor: Color.Red, pointCount: 250);
-
-				if (!axl.isZoomingIn && !axl.isZoomingOut) {
-					int zoomChargePercent = MathInt.Round(axl.zoomCharge * 100);
-					Fonts.drawText(
-						FontType.Orange, zoomChargePercent.ToString() + "%",
-						cursorPos.x + 5, cursorPos.y + 5, Alignment.Left,
-						true, depth: ZIndex.HUD
-					);
-				}
-
-				Helpers.decrementTime(ref flashCooldown);
-				if (axl.renderEffects.ContainsKey(RenderEffectType.Hit) && flashTime == 0 && flashCooldown == 0) {
-					flashTime = 0.075f;
-				}
-				if (flashTime > 0) {
-					float th = 2;
-					DrawWrappers.DrawRect(th, th, Global.screenW - th, Global.screenH - th, false, Color.Red, th, ZIndex.HUD, false, outlineColor: Color.Red);
-					flashTime -= Global.spf;
-					if (flashTime < 0) {
-						flashTime = 0;
-						flashCooldown = 0.15f;
-					}
-				}
-			} else {
-				if (axl.isAnyZoom() && Global.level.isSendMessageFrame()) {
-					RPC.syncAxlScopePos.sendRpc(level.mainPlayer.id, false, new Point(), new Point());
-				}
-			}
-		}
 		if (DevConsole.showConsole) {
 			return;
 		}
@@ -633,6 +567,21 @@ public class GameMode {
 					"x" + drawPlayer.currency.ToString(), 16, 140, Alignment.Left
 				);
 			}
+			#region X
+			if (level.mainPlayer.isX && level.mainPlayer.hasHelmetArmor(2)) {
+				Player? mostRecentlyScanned = null;
+				foreach (var player in level.players) {
+					if (player.tagged && player.character != null) {
+						mostRecentlyScanned = player;
+						break;
+					}
+				}
+				if (mostRecentlyScanned != null) {
+					drawObjectiveNavpoint(mostRecentlyScanned.name, mostRecentlyScanned.character?.getCenterPos() ?? new Point (0,0));
+				}
+			}
+			#endregion
+			#region Raging Charge
 			if (drawPlayer.character is RagingChargeX mmx) {
 				/*
 				int x = 10, y = 156;
@@ -652,6 +601,8 @@ public class GameMode {
 					drawGigaWeaponCooldown(51, cooldown, (int)Global.halfScreenW / 17, 178);
 				}
 			}
+			#endregion
+			#region Zero
 			if (drawPlayer.character is Zero zero) {
 				int yStart = 159;
 				if (zero.isViral) {
@@ -684,6 +635,8 @@ public class GameMode {
 					xStart += 15;
 				}
 			}
+			#endregion
+			#region Punchy Zero
 			if (drawPlayer.character is PunchyZero punchyZero) {
 				int xStart = 11;
 				int yStart = 159;
@@ -710,31 +663,8 @@ public class GameMode {
 					xStart += 15;
 				}
 			}
-			if (drawPlayer.character is Axl axl2 && axl2.dodgeRollCooldown > 0) {
-				float cooldown = 1 - Helpers.progress(axl2.dodgeRollCooldown, Axl.maxDodgeRollCooldown);
-				drawGigaWeaponCooldown(50, cooldown, y: 170);
-			}
-			if (drawPlayer.character is Axl && Global.level.server?.customMatchSettings?.axlCustomReload == true) {
-				if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl > 0 ||
-					drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 > 0) {
-					Fonts.drawText(
-						FontType.RedishOrange, "Reloading :",
-						Global.halfScreenW - 157, 5, Alignment.Center
-					);
-				}
-				if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 <= 0 && drawPlayer.weapon?.rechargeAmmoCustomSettingAxl > 0) {
-					Fonts.drawText(
-							FontType.RedishOrange, drawPlayer.weapon.rechargeAmmoCustomSettingAxl.ToString(),
-							Global.halfScreenW - 120, 5, Alignment.Left
-						);
-					}
-				if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 > 0) {
-					Fonts.drawText(
-						FontType.RedishOrange, drawPlayer.weapon.rechargeAmmoCustomSettingAxl2.ToString(),
-						Global.halfScreenW - 120, 5, Alignment.Left
-					);
-				}
-			}
+			#endregion
+			#region CmdSigma
 			if (drawPlayer.character is CmdSigma cmdSigma) {
 				//int xStart = 11;
 				if (cmdSigma.leapSlashCooldown > 0) {
@@ -744,22 +674,154 @@ public class GameMode {
 					drawGigaWeaponCooldown(102, cooldown);
 				}
 			}
+			#endregion
 			if (drawPlayer.character is Vile vilePilot &&
-			vilePilot.rideArmor != null &&
-			vilePilot.rideArmor == vilePilot.linkedRideArmor
-			&& vilePilot.rideArmor.raNum == 2
+				vilePilot.rideArmor != null &&
+				vilePilot.rideArmor == vilePilot.linkedRideArmor
+				&& vilePilot.rideArmor.raNum == 2
 			) {
 				int x = 13, y = 155;
 				int napalmNum = drawPlayer.loadout.vileLoadout.napalm;
 				if (napalmNum < 0) napalmNum = 0;
 				if (napalmNum > 2) napalmNum = 0;
 				Global.sprites["hud_hawk_bombs"].drawToHUD(
-					napalmNum, x, y, alpha: vilePilot.napalmWeapon.shootCooldown == 0 ? 1 : 0.5f
+					napalmNum, x, y, alpha: vilePilot.weaponSystem.rideGrenade.shootCooldown == 0 ? 1 : 0.5f
 				);
 				Fonts.drawText(
 					FontType.Grey, "x" + vilePilot.rideArmor.hawkBombCount.ToString(), x + 10, y - 4
 				);
 			}
+			#region Axl
+			if (level.mainPlayer.character is Axl axl) {
+				int xStart = (int)Global.halfScreenW / 17;
+				int yStart = 160;
+				if (axl.switchTime > 0) {
+					float Ccooldown = 1 - Helpers.progress(axl.switchTime, Axl.highSwitchTime);
+					drawGigaWeaponCooldown(49, Ccooldown, xStart, yStart);
+					yStart += 15;
+				}
+				if (axl.dodgeRollCooldown > 0) {
+					float cooldown = 1 - Helpers.progress(axl.dodgeRollCooldown, Axl.maxDodgeRollCooldown);
+					drawGigaWeaponCooldown(50, cooldown, xStart, yStart);
+					yStart += 15;
+				}
+				/*
+				if (axl.axlWeapon != null) {
+					 i just saw below there was a code that does this but better, like wtf? why was debug only
+					if (axl.axlWeapon.shootCooldown > 0) {
+						float Ccooldown = 1 - Helpers.progress(axl.axlWeapon.shootCooldown, axl.axlWeapon.fireRate);
+						drawGigaWeaponCooldown(axl.axlWeapon.hudSprite, Ccooldown, xStart, yStart);
+						xStart += 15;
+					}
+					if (axl.axlWeapon.altShotCooldown > 0) {
+						float Ccooldown = 1 - Helpers.progress(axl.axlWeapon.altShotCooldown, axl.axlWeapon.altFireCooldown);
+						drawGigaWeaponCooldown(axl.axlWeapon.hudSprite, Ccooldown, xStart, yStart);
+						Fonts.drawText(FontType.Yellow, "A", xStart + 4, yStart);
+						xStart += 15;
+					}
+					
+				} */
+				/*
+				Fonts.drawText(
+					FontType.Orange,
+					"shootcooldown : " + axl.axlWeapon?.shootCooldown.ToString() + "\n"
+					+ "alt : " + axl.axlWeapon?.altShotCooldown.ToString() + "\n" +
+					"switchTime : " + axl.switchTime.ToString() + "\n" +
+					"altSwitchTime : " + axl.altSwitchTime.ToString(),
+					xStart, yStart, Alignment.Left,
+					true, depth: ZIndex.HUD
+				);
+				*/
+				if (axl.isZooming() && !axl.isZoomOutPhase1Done) {
+					Point charPos = axl.getCenterPos();
+
+					float xOff = axl.axlScopeCursorWorldPos.x - level.camCenterX;
+					float yOff = axl.axlScopeCursorWorldPos.y - level.camCenterY;
+
+					Point bulletPos = axl.getAxlBulletPos();
+					Point scopePos = axl.getAxlScopePos();
+					Point hitPos = axl.getCorrectedCursorPos();
+					//Point hitPos = bulletPos.add(axl.getAxlBulletDir().times(Global.level.adjustedZoomRange));
+					var hitData = axl.getFirstHitPos(level.mainPlayer.adjustedZoomRange, ignoreDamagables: true);
+					Point hitPos2 = hitData.hitPos;
+					if (hitPos2.distanceTo(charPos) < hitPos.distanceTo(charPos)) hitPos = hitPos2;
+					if (!axl.isZoomingOut && !axl.isZoomingIn) {
+						Color laserColor = new Color(255, 0, 0, 160);
+						DrawWrappers.DrawLine(scopePos.x, scopePos.y, hitPos.x, hitPos.y, laserColor, 2, ZIndex.HUD);
+						DrawWrappers.DrawCircle(hitPos.x, hitPos.y, 2f, true, laserColor, 1, ZIndex.HUD);
+						if (axl.ownedByLocalPlayer && Global.level.isSendMessageFrame()) {
+							RPC.syncAxlScopePos.sendRpc(level.mainPlayer.id, true, scopePos, hitPos);
+						}
+					}
+
+					Point cursorPos = new Point(Global.halfScreenW + (xOff / Global.viewSize), Global.halfScreenH + (yOff / Global.viewSize));
+					string scopeSprite = "scope";
+					if (axl.hasScopedTarget()) scopeSprite = "scope2";
+					Global.sprites[scopeSprite].drawToHUD(0, cursorPos.x, cursorPos.y);
+					float w = Global.screenW;
+					float h = Global.screenH;
+					float hw = Global.halfScreenW-100;
+					float hh = Global.halfScreenH;
+					DrawWrappers.DrawRect(cursorPos.x - w, cursorPos.y - h, cursorPos.x + w, cursorPos.y - hh, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
+					DrawWrappers.DrawRect(cursorPos.x - w, cursorPos.y + hh, cursorPos.x + w, cursorPos.y + h, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
+					DrawWrappers.DrawRect(cursorPos.x - w, cursorPos.y - hh, cursorPos.x - hw, cursorPos.y + hh, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
+					DrawWrappers.DrawRect(cursorPos.x + hw, cursorPos.y - hh, cursorPos.x + w, cursorPos.y + hh, true, Color.Black, 1, ZIndex.HUD, false, outlineColor: Color.Black);
+
+					DrawWrappers.DrawCircle(charPos.x, charPos.y, level.mainPlayer.zoomRange, false, Color.Red, 1f, ZIndex.HUD, outlineColor: Color.Red, pointCount: 250);
+
+					if (!axl.isZoomingIn && !axl.isZoomingOut) {
+						int zoomChargePercent = MathInt.Round(axl.zoomCharge * 100);
+						Fonts.drawText(
+							FontType.Orange, zoomChargePercent.ToString() + "%",
+							cursorPos.x + 5, cursorPos.y + 5, Alignment.Left,
+							true, depth: ZIndex.HUD
+						);
+					}
+
+					Helpers.decrementTime(ref flashCooldown);
+					if (axl.renderEffects.ContainsKey(RenderEffectType.Hit) && flashTime == 0 && flashCooldown == 0) {
+						flashTime = 0.075f;
+					}
+					if (flashTime > 0) {
+						float th = 2;
+						DrawWrappers.DrawRect(th, th, Global.screenW - th, Global.screenH - th, false, Color.Red, th, ZIndex.HUD, false, outlineColor: Color.Red);
+						flashTime -= Global.spf;
+						if (flashTime < 0) {
+							flashTime = 0;
+							flashCooldown = 0.15f;
+						}
+					}
+				} else {
+					if (axl.isAnyZoom() && Global.level.isSendMessageFrame()) {
+						RPC.syncAxlScopePos.sendRpc(level.mainPlayer.id, false, new Point(), new Point());
+					}
+				}
+				/*
+				if (Global.level.server?.customMatchSettings?.axlCustomReload == true) {
+					if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl > 0 ||
+						drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 > 0) {
+						Fonts.drawText(
+							FontType.RedishOrange, "Reloading :",
+							Global.halfScreenW - 157, 5, Alignment.Center
+						);
+					}
+					if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 <= 0 && drawPlayer.weapon?.rechargeAmmoCustomSettingAxl > 0) {
+						Fonts.drawText(
+								FontType.RedishOrange, drawPlayer.weapon.rechargeAmmoCustomSettingAxl.ToString(),
+								Global.halfScreenW - 120, 5, Alignment.Left
+							);
+					}
+					if (drawPlayer.weapon?.rechargeAmmoCustomSettingAxl2 > 0) {
+						Fonts.drawText(
+							FontType.RedishOrange, drawPlayer.weapon.rechargeAmmoCustomSettingAxl2.ToString(),
+							Global.halfScreenW - 120, 5, Alignment.Left
+						);
+					}
+				}
+				*/
+			}
+			#endregion
+
 			if (drawPlayer.weapons == null) {
 				return;
 			}
@@ -828,9 +890,11 @@ public class GameMode {
 				FontType.BlueMenu, hudErrorMsg,
 				Global.halfScreenW, 50, Alignment.Center
 			);
-		} else if (mainPlayer.character is KaiserSigma) {
+		} else if (mainPlayer?.character is KaiserSigma kaiser) {
 			string msg = "";
-			if (KaiserSigma.canKaiserSpawn(mainPlayer.character, out _)) msg += "[JUMP]: Relocate";
+			if (kaiser.isVirus && KaiserSigma.canKaiserSpawn(mainPlayer.character, out _)) {
+				msg += "[DASH]: Relocate";
+			}
 			if (msg != "") {
 				Fonts.drawText(
 					FontType.BlueMenu, Helpers.controlText(msg),
@@ -911,23 +975,6 @@ public class GameMode {
 
 		drawDiagnostics();
 
-		if (Global.level.mainPlayer.isAxl && Global.level.mainPlayer.character != null) {
-			//Global.sprites["axl_cursor"].drawImmediate(0, Global.level.mainPlayer.character.axlCursorPos.x, Global.level.mainPlayer.character.axlCursorPos.y);
-		}
-
-		if (level.mainPlayer.isX && level.mainPlayer.hasHelmetArmor(2)) {
-			Player? mostRecentlyScanned = null;
-			foreach (var player in level.players) {
-				if (player.tagged && player.character != null) {
-					mostRecentlyScanned = player;
-					break;
-				}
-			}
-			if (mostRecentlyScanned != null) {
-				drawObjectiveNavpoint(mostRecentlyScanned.name, mostRecentlyScanned.character.getCenterPos());
-			}
-		}
-
 		if (level.isNon1v1Elimination() && virusStarted > 0) {
 			drawObjectiveNavpoint("Safe Zone", safeZonePoint);
 		}
@@ -935,7 +982,7 @@ public class GameMode {
 		if (shouldDrawRadar() && !Menu.inMenu) {
 			drawRadar();
 		}
-
+		/*
 		if (level.mainPlayer.isX && level.mainPlayer.character?.charState is XReviveStart xrs) {
 			Character chr = level.mainPlayer.character;
 
@@ -970,6 +1017,7 @@ public class GameMode {
 				Global.sprites["drlight_portrait"].drawToHUD(index, 15, boxStartY + boxHeight * 0.5f);
 			}
 		}
+		*/
 	}
 
 	public void setHUDErrorMessage(
@@ -1413,7 +1461,7 @@ public class GameMode {
 			}
 		}
 		else if (player.character != null) {
-			if (player.character.alive && player.health < player.maxHealth) {
+			if (player.character.alive) {
 				damageSavings = MathInt.Floor(player.character.damageSavings);
 			}
 			if (player.character is MegamanX rmx && rmx.hyperHelmetArmor == ArmorId.Max) {
@@ -1484,7 +1532,28 @@ public class GameMode {
 			else barIndex = 5;
 		}
 
-		for (var i = 0; i < MathF.Ceiling(maxHealth); i++) {
+		float modifier = Player.getHpMod();
+		if (modifier < 1) {
+			modifier = 1;
+		}
+		float maxHP = MathF.Ceiling(maxHealth / modifier);
+		float curHP = MathF.Floor(health / modifier);
+		float ceilCurHP = MathF.Ceiling(health / modifier);
+		float floatCurHP = health / modifier;
+		float fhpAlpha = floatCurHP - curHP;
+		float savings = 0;
+		float svCeil = 0;
+		float svFloat = 0;
+		float svAlpha = 0;
+		if (damageSavings >= 1) {
+			savings = curHP + MathF.Floor(damageSavings / modifier);
+			svCeil = ceilCurHP + MathF.Ceiling(damageSavings / modifier);
+			svFloat = curHP + damageSavings / modifier;
+			svAlpha = svFloat - savings;
+		}
+		maxHP = MathF.Max(maxHP, savings);
+
+		for (var i = 0; i < Math.Ceiling(maxHP); i++) {
 			// Draw HP
 			if (i < MathF.Ceiling(health)) {
 				Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY);
@@ -2049,8 +2118,13 @@ public class GameMode {
 		drawGigaWeaponCooldown(weapon.weaponSlotIndex, 1 - cooldown, x, y);
 	}
 
-	public void drawGigaWeaponCooldown(int slotIndex, float cooldown, int x = 11, int y = 159) {
-		Global.sprites["hud_weapon_icon"].drawToHUD(slotIndex, x, y);
+	public void drawGigaWeaponCooldown(int slotIndex, float cooldown, int x = 11, int y = 159, bool isKillFeed = false, int xKF = 11, int yKF = 159, float alpha = 1) {
+		if (isKillFeed) {
+			Global.sprites["hud_weapon_icon"].drawToHUD(118, x, y, alpha);
+			Global.sprites["hud_killfeed_weapon"].drawToHUD(slotIndex, xKF, yKF, alpha);
+		} else {
+			Global.sprites["hud_weapon_icon"].drawToHUD(slotIndex, x, y, alpha);
+		}
 		drawWeaponSlotCooldown(x, y, cooldown);
 	}
 
@@ -2121,7 +2195,7 @@ public class GameMode {
 			drawWeaponSlotCooldown(x, y, weapon.shootCooldown / 4);
 		}
 
-		if (Global.debug && Global.quickStart && weapon is AxlWeapon aw2 && weapon is not DNACore) {
+		if (weapon is AxlWeapon aw2 && weapon is not DNACore) {
 			drawWeaponSlotCooldownBar(x, y, aw2.shootCooldown / aw2.fireRate);
 			drawWeaponSlotCooldownBar(x, y, aw2.altShotCooldown / aw2.altFireCooldown, true);
 		}
@@ -2177,7 +2251,7 @@ public class GameMode {
 		}*/
 
 		if (weapon is AxlWeapon && Options.main.axlLoadout.altFireArray[Weapon.wiToFi(weapon.index)] == 1) {
-			//Helpers.drawWeaponSlotSymbol(x - 8, y - 8, "²");
+			Helpers.drawWeaponSlotSymbol(x - 8, y - 8, "²");
 		}
 
 		if (weapon is SigmaMenuWeapon && level.mainPlayer.character is BaseSigma baseSigma) {
@@ -2201,6 +2275,7 @@ public class GameMode {
 			*/
 		}
 
+
 		if (mw != null) {
 			if (mw.currencyHUDAnimTime > 0) {
 				float animProgress = mw.currencyHUDAnimTime / MaverickWeapon.currencyHUDMaxAnimTime;
@@ -2212,6 +2287,15 @@ public class GameMode {
 					Fonts.drawText(FontType.RedishOrange, "+5", x - 4, y - yOff - 15, Alignment.Left);	
 				} else 
 				Fonts.drawText(FontType.RedishOrange, "+1", x - 4, y - yOff - 15, Alignment.Left);
+			}
+
+			if (mw.trueControlMode == MaverickModeId.Summoner && mw.maverick != null) {
+				if (mw.maverick.aiBehavior == MaverickAIBehavior.Attack) {
+					Helpers.drawWeaponSlotSymbol(x - 8, y - 8, "²", FontType.Pink);
+				}
+				else if (mw.maverick.aiBehavior == MaverickAIBehavior.Follow) {
+					Helpers.drawWeaponSlotSymbol(x - 8, y - 8, "ª");
+				}
 			}
 		}
 
@@ -2502,7 +2586,6 @@ public class GameMode {
 		}
 
 		float startY = Global.screenH - 12;
-		float height = 15;
 		Vile? vile = level.mainPlayer?.character as Vile;
 		bool isMK2 = vile?.isVileMK2 == true;
 		bool isMK5 = vile?.isVileMK5 == true;

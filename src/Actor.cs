@@ -142,12 +142,10 @@ public partial class Actor : GameObject {
 	float createRpcTime;
 
 	public bool splashable;
-	private Anim _waterWade = null!;
+	private Anim? _waterWade = null;
 	public Anim waterWade {
 		get {
-			if (_waterWade == null) {
-				_waterWade = new Anim(pos, "wade", 1, null, false);
-			}
+			_waterWade ??= new Anim(pos, "wade", 1, null, false);
 			return _waterWade;
 		}
 	}
@@ -398,7 +396,7 @@ public partial class Actor : GameObject {
 		}
 	}
 
-	
+	public bool useAngleOnFade;
 	public float angle {
 		get {
 			return _byteAngle * 1.40625f;
@@ -557,10 +555,6 @@ public partial class Actor : GameObject {
 	}
 
 	public virtual void update() {
-		if (immuneToKnockback) {
-			stopMovingS();
-		}
-
 		foreach (var key in netSounds.Keys.ToList()) {
 			if (!Global.sounds.Contains(netSounds[key])) {
 				netSounds.Remove(key);
@@ -596,6 +590,7 @@ public partial class Actor : GameObject {
 			timeStopTime = 0;
 			sprite.time += Global.spf;
 		}
+
 		if (timeStopTime > 0) {
 			timeStopTime--;
 			if (timeStopTime <= 0) {
@@ -603,22 +598,39 @@ public partial class Actor : GameObject {
 			}
 		};
 
+		if (gravityWellable) {
+			Helpers.decrementTime(ref gravityWellTime);
+			if (gravityWellTime <= 0) {
+				gravityWellModifier = 1;
+			}
+		}
+
+		for (int i = 0; i < damageHistory.Count - 1; i++) {
+			if (Global.time - damageHistory[i].time > 15f &&
+				(damageHistory.Count > 1 || Global.level.isTraining())
+			) {
+				damageHistory.RemoveAt(i);
+				i--;
+			}
+		}
+	}
+
+	public virtual void physicsUpdate() {
+		Character? chr = this as Character;
+
 		bool wading = isWading();
 		bool underwater = isUnderwater();
-
-		var chr = this as Character;
-		var ra = this as RideArmor;
 
 		if (locallyControlled) {
 			localUpdate(underwater);
 		}
 
-		if (this is RideChaser && isWading()) {
+		if (this is RideChaser && wading) {
 			grounded = true;
 			if (vel.y > 0) vel.y = 0;
 		}
 
-		bool isRaSpawning = (ra != null && ra.isSpawning());
+		bool isRaSpawning = (this is RideArmor ra && ra.isSpawning());
 		bool isChrSpawning = (chr != null && chr.isSpawning());
 		if (splashable && !isChrSpawning && !isRaSpawning) {
 			if (wading || underwater) {
@@ -671,20 +683,6 @@ public partial class Actor : GameObject {
 				}
 			} else {
 				underwaterTime = 0;
-			}
-		}
-
-		if (gravityWellable) {
-			Helpers.decrementTime(ref gravityWellTime);
-			if (gravityWellTime <= 0) {
-				gravityWellModifier = 1;
-			}
-		}
-
-		for (int i = 0; i < damageHistory.Count - 1; i++) {
-			if (Global.time - damageHistory[i].time > 15f && (damageHistory.Count > 1 || Global.level.isTraining())) {
-				damageHistory.RemoveAt(i);
-				i--;
 			}
 		}
 	}
@@ -1197,17 +1195,17 @@ public partial class Actor : GameObject {
 	) {
 		if (attacker == null) return;
 
-		float reportDamage = Helpers.clampMax(damage, maxHealth);
-		if (damage == Damager.ohkoDamage && damage >= maxHealth) {
+		if (damage >= Damager.ohkoDamage && damage >= maxHealth) {
 			if (Helpers.randomRange(0, 20) != 10) {
 				addDamageText("Instakill!", (int)FontType.RedishOrange);
 			} else {
 				addDamageText("Fatality!", (int)FontType.RedishOrange);
 			}
 		} else if (attacker.isMainPlayer) {
-			addDamageText(reportDamage);
-		} else if (ownedByLocalPlayer && sendRpc) {
-			RPC.addDamageText.sendRpc(attacker.id, netId, reportDamage);
+			addDamageText(damage);
+		}
+		if (ownedByLocalPlayer && sendRpc) {
+			RPC.addDamageText.sendRpc(attacker.id, netId, damage);
 		}
 	}
 
@@ -1366,7 +1364,12 @@ public partial class Actor : GameObject {
 			var anim = new Anim(getCenterPos(), spriteName, xDir, null, true);
 			// TODO: Fix this. WTF GM19.
 			if (angleSet) {
-				anim.byteAngle = byteAngle;
+				if (useAngleOnFade) {
+					anim.byteAngle = byteAngle;
+				}
+				else if (byteAngle > 64 && byteAngle < 256 - 64) {
+					anim.xDir *= -1;
+				}
 			}
 
 			anim.xScale = xScale;
@@ -1451,6 +1454,9 @@ public partial class Actor : GameObject {
 
 
 	public SoundWrapper? playSound(string soundKey, bool forcePlay = false, bool sendRpc = false) {
+		if (soundKey == "") {
+			return null;
+		}
 		soundKey = soundKey.ToLowerInvariant();
 		if (!Global.soundBuffers.ContainsKey(soundKey)) {
 			throw new Exception($"Attempted playing missing sound with name \"{soundKey}\"");

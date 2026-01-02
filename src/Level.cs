@@ -129,10 +129,18 @@ public partial class Level {
 	public const ushort cp1NetId = 14;
 	public const ushort cp2NetId = 15;
 
-	public ShaderWrapper backgroundShader;
+	public ShaderWrapper? backgroundShader;
 	public Texture backgroundShaderImage;
-	public ShaderWrapper parallaxShader;
+	public ShaderWrapper? parallaxShader;
 	public Texture parallaxShaderImage;
+	public ShaderWrapper? altBackwallShader => backwallShader ?? backgroundShader;
+	public ShaderWrapper? backwallShader;
+	public Texture backwallShaderImage;
+	public ShaderWrapper? altForegroundShader => foregroundShader ?? backgroundShader;
+	public ShaderWrapper? foregroundShader;
+	public Texture foregroundShaderImage;
+
+	public float mapVersion;
 
 	public List<Player> players = new List<Player>();
 	public Player mainPlayer;
@@ -295,7 +303,7 @@ public partial class Level {
 		InGameMainMenu.selectY = 0;
 		UpgradeMenu.onUpgradeMenu = true;
 		UpgradeArmorMenu.xGame = 1;
-		UpgradeArmorMenuEX.xGame = 1;
+		//UpgradeArmorMenuEX.xGame = 1;
 
 		Menu.exit();
 		this.server = server;
@@ -1338,6 +1346,7 @@ public partial class Level {
 			go.speedMul = slowAmount * Global.gameSpeed;
 			go.update();
 			go.stateUpdate();
+			go.physicsUpdate();
 			if (isNon1v1Elimination() &&
 				gameMode.virusStarted > 0 && go is Actor actor &&
 				actor.ownedByLocalPlayer && go is IDamagable damagable
@@ -1941,7 +1950,7 @@ public partial class Level {
 
 		// If a backwall wasn't set, the background becomes the backwall.
 		if (level.backwallSprites != null) {
-			DrawWrappers.DrawMapTiles(level.backwallSprites, 0, 0, srt, level.backgroundShader);
+			DrawWrappers.DrawMapTiles(level.backwallSprites, 0, 0, srt, level.altBackwallShader);
 		} else {
 			DrawWrappers.DrawMapTiles(level.backgroundSprites, 0, 0, srt, level.backgroundShader);
 		}
@@ -1955,7 +1964,7 @@ public partial class Level {
 
 		level.drawKeyRange(keys, ZIndex.Background, ZIndex.Foreground, srt, walDrawObjects);;
 
-		DrawWrappers.DrawMapTiles(level.foregroundSprites, 0, 0, srt, level.backgroundShader);
+		DrawWrappers.DrawMapTiles(level.foregroundSprites, 0, 0, srt, level.altForegroundShader);
 
 		level.drawKeyRange(keys, ZIndex.Foreground, long.MaxValue, srt, walDrawObjects);
 

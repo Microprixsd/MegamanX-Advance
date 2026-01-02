@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,10 +23,9 @@ namespace MMXOnline;
 class Program {
 	public static string exceptionExtraData = "";
 
-	#if WINDOWS
-	[STAThread]
-	#endif
 	static void Main(string[] args) {
+		setDefaultCulture();
+
 		if (args.Length > 0 && args[0] == "-relay") {
 		#if WINDOWS
 			AllocConsole();
@@ -253,7 +253,7 @@ class Program {
 		// Force startup config to be fetched
 		Menu.change(new MainMenu());
 		//Global.changeMusic(Global.level.levelData.getTitleTheme());
-		switch(Helpers.randomRange(1, 15)) {
+		switch (Helpers.randomRange(1, 20)) {
 			// Stage Selects
 			case 1:
 				Global.changeMusic("stageSelect_X1");
@@ -300,7 +300,22 @@ class Program {
 				Global.changeMusic("demo_X3");
 				break;
 			case 15:
-				Global.changeMusic("laboratory_X2");
+				Global.changeMusic("laboratory_X3");
+				break;
+			case 16:
+				Global.changeMusic("sigmaFortress4");
+				break;
+			case 17:
+				Global.changeMusic("variableX");
+				break;
+			case 18:
+				Global.changeMusic("credits_X2");
+				break;
+			case 19:
+				Global.changeMusic("drLight_X1");
+				break;
+			case 20:
+				Global.changeMusic("drLight_X2");
 				break;
 			default:
 				Global.changeMusic("stageSelect_X1");
@@ -1062,16 +1077,16 @@ class Program {
 		float startPos = 0;
 		float endPos = 0;
 		if (iniData.ContainsKey("loopData") && iniData["loopData"] is Dictionary<string, object> loopData) {
-			if (loopData.ContainsKey("loopStart") && loopData["loopStart"] is Decimal loopStart) {
+			if (loopData.ContainsKey("loopStart") && loopData["loopStart"] is decimal loopStart) {
 				startPos = float.Parse(loopStart.ToString());
 			}
-			if (loopData.ContainsKey("loopEnd") && loopData["loopEnd"] is Decimal loopEnd) {
+			if (loopData.ContainsKey("loopEnd") && loopData["loopEnd"] is decimal loopEnd) {
 				endPos = float.Parse(loopEnd.ToString());
 			}
 		}
 		MusicWrapper musicWrapper = new MusicWrapper(file, startPos, endPos, true);
 		if (endPos == 0) {
-			musicWrapper.endPos =  musicWrapper.music.Duration.AsSeconds();
+			musicWrapper.endPos = musicWrapper.music.Duration.AsSeconds();
 		}
 		Global.musics[name] = musicWrapper;
 	}
@@ -1203,6 +1218,32 @@ class Program {
 
 		return true;
 	}
+
+	public static void setDefaultCulture() {
+		CultureInfo cultureInfo = CultureInfo.CreateSpecificCulture("");
+		cultureInfo.NumberFormat.CurrencySymbol = "$";
+		cultureInfo.NumberFormat.NumberDecimalSeparator = ".";
+		cultureInfo.NumberFormat.NumberGroupSeparator = ",";
+		Thread.CurrentThread.CurrentCulture = cultureInfo;
+		Thread.CurrentThread.CurrentUICulture = cultureInfo;
+		CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+		CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
+		Type type = typeof(CultureInfo);
+		type.InvokeMember("s_userDefaultCulture",
+			BindingFlags.SetField | BindingFlags.NonPublic | BindingFlags.Static,
+			null,
+			cultureInfo,
+			[cultureInfo]
+		);
+		type.InvokeMember("s_userDefaultUICulture",
+			BindingFlags.SetField | BindingFlags.NonPublic | BindingFlags.Static,
+			null,
+			cultureInfo,
+			[cultureInfo]
+		);
+	}
+
 
 	public static void getRadminIP() {
 		var local = NetworkInterface.GetAllNetworkInterfaces();
@@ -1433,7 +1474,22 @@ class Program {
 			) as String ?? "Windows";
 		#endif
 		#if LINUX
-			cpuName = "Linux";
+			if (!File.Exists("/proc/cpuinfo")) {
+				return "Unix;"
+			}
+			// Read all lines from /proc/cpuinfo
+			string[] lines = File.ReadAllLines("/proc/cpuinfo");
+			// Find the line containing "model name"
+			string? modelNameLine = lines.FirstOrDefault(
+				line => line.StartsWith("model name", StringComparison.OrdinalIgnoreCase)
+			);
+			if (modelNameLine != null) {
+				// Extract the model name part after the colon and trim whitespace
+				lines = modelNameLine.Split(':');
+				if (lines.Length >= 2) {
+					cpuName = lines[1];
+				}
+			}
 		#endif
 		#if MACOS
 			cpuName = "Darwin";

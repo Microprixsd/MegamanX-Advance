@@ -2,12 +2,26 @@ using System.Linq;
 using System;
 
 namespace MMXOnline;
-
-public class HyperAxlStart : CharState {
-	public float radius = 200;
-	public float time;
+public class AxlState : CharState {
 	public Axl axl = null!;
 
+	public AxlState(
+		string sprite, string shootSprite = "", string attackSprite = "",
+		string transitionSprite = "", string transShootSprite = ""
+	) : base(
+		sprite, shootSprite, attackSprite,
+		transitionSprite, transShootSprite
+	) {
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		axl = player.character as Axl ?? throw new NullReferenceException();
+	}
+}
+public class HyperAxlStart : AxlState {
+	public float radius = 200;
+	public float time;
 	public HyperAxlStart(bool isGrounded) : base(isGrounded ? "hyper_start" : "hyper_start_air") {
 		invincible = true;
 	}
@@ -52,12 +66,10 @@ public class HyperAxlStart : CharState {
 	}
 }
 
-public class Hover : CharState {
+public class Hover : AxlState {
 	public SoundWrapper? sound;
 	float hoverTime;
 	Anim? hoverExhaust;
-	public Axl axl = null!;
-
 	public Hover() : base("hover", "hover", "hover", "hover") {
 		exitOnLanding = true;
 		airMove = true;
@@ -127,26 +139,19 @@ public class Hover : CharState {
 	}
 }
 
-public class DodgeRoll : CharState {
+public class DodgeRoll : AxlState {
 	public float dashTime = 0;
 	public int initialDashDir;
-	public Axl axl = null!;
-
 	public DodgeRoll() : base("roll") {
-		attackCtrl = true;
 		normalCtrl = true;
 		specialId = SpecialStateIds.AxlRoll;
 	}
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		axl = character as Axl ?? throw new NullReferenceException() ;
+		axl = character as Axl ?? throw new NullReferenceException();
 		character.isDashing = true;
 		character.burnTime -= 1;
-		if (character.burnTime < 0) {
-			character.burnTime = 0;
-		}
-
 		initialDashDir = character.xDir;
 		if (player.input.isHeld(Control.Left, player)) initialDashDir = -1;
 		else if (player.input.isHeld(Control.Right, player)) initialDashDir = 1;
@@ -154,35 +159,21 @@ public class DodgeRoll : CharState {
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
-		if (Global.level.server?.customMatchSettings != null)
-			 axl.dodgeRollCooldown = Global.level.server.customMatchSettings.axlDodgerollCooldown;
-		else axl.dodgeRollCooldown = Axl.maxDodgeRollCooldown;
+		axl.dodgeRollCooldown = Axl.maxDodgeRollCooldown;
 	}
 
 	public override void update() {
 		base.update();
-
-		if (character.isAnimOver()) {
-			character.changeToIdleOrFall();
-			return;
-		}
-
-		if (character.frameIndex >= 4) return;
-
-		dashTime += Global.spf;
-
 		var move = new Point(0, 0);
 		move.x = character.getDashSpeed() * initialDashDir;
-		character.move(move);
-		if (stateTime > 0.1) {
-			stateTime = 0;
-			//new Anim(this.character.pos.addxy(0, -4), "dust", this.character.xDir, null, true);
+		character.moveXY(move.x, 0);
+		if (character.isAnimOver()) {
+			character.changeToIdleOrFall();
 		}
 	}
 }
 
-public class SniperAimAxl : CharState {
-	public Axl axl = null!;
+public class SniperAimAxl : AxlState {
 
 	public SniperAimAxl() : base("crouch") {
 

@@ -75,7 +75,9 @@ public class Options {
 	// Zero
 	public bool swapAirAttacks;
 	public bool showGigaAttackCooldown;
+	public bool slashGroundSprite = true;
 	public ZeroLoadout zeroLoadout = new ZeroLoadout();
+	public bool altZeroSpinCtrl; //this is never used
 
 	// Vile
 	public int weaponOrderingVile;

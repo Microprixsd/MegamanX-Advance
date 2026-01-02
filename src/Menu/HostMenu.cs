@@ -870,9 +870,9 @@ public class HostMenu : IMainMenu {
 		// Large maps.
 		"maverickfactory", "weathercontrol", "dinosaurtank", "deepseabase", "volcaniczone",
 		"robotjunkyard", "desertbase", "desertbase2", "crystalmine", "centralcomputer",
-		"xhunter1", "xhunter2", "hunterbase", "highway2", "giantdam", "giantdam2",
+		"xhunter1", "xhunter2", "hunterbase", "highway2", "hunterbase2", "giantdam", "giantdam2",
 		"weaponsfactory", "frozentown", "aircraftcarrier", "powercenter", "shipyard",
-		"quarry", "safaripark", "dopplerlab", "hunterbase2", "nodetest",
+		"quarry", "safaripark", "dopplerlab", "protoDopplerB", "protoDopplerC", "protoDopplerD", "nodetest",
 	};
 	public int mapSortFunc(LevelData a, LevelData b) {
 		int aIndex = -1;
@@ -1386,13 +1386,13 @@ public class HostMenu : IMainMenu {
 			DrawWrappers.DrawTextureHUD(
 				Global.textures["cursor"],
 				menuOptions[selectArrowPosY].pos.x,
-				menuOptions[selectArrowPosY].pos.y + 3
+				menuOptions[selectArrowPosY].pos.y -2
 			);
 		} else {
 			DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
 			Global.sprites["cursor"].drawToHUD(
 				0, menuOptions[selectArrowPosY].pos.x,
-				menuOptions[selectArrowPosY].pos.y + 3
+				menuOptions[selectArrowPosY].pos.y -2
 			);
 		}
 		DrawWrappers.DrawTextureHUD(selectedLevel.getMapThumbnail(), 254, 38);

@@ -18,7 +18,7 @@ public class NeutralEnemy : Actor, IDamagable {
 	public NeutralEnemy(
 		Point pos, ushort netId, bool isLocal, int alliance = 150, bool addToLevel = true
 	) : base(
-		null!, pos, netId, isLocal, !addToLevel
+		"", pos, netId, isLocal, !addToLevel
 	) {
 		// Forcefull change sprite to something before we crash.
 		sprite = new Sprite("empty");
