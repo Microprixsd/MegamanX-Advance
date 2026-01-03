@@ -23,7 +23,9 @@ public class GameMode {
 
 	public const int blueAlliance = 0;
 	public const int redAlliance = 1;
-	public const int neutralAlliance = 10;
+	public const int neutralAlliance = 50;
+	public const int stageAlliance = 52;
+	public const int freelanceAlliance = 60;
 
 	public bool isTeamMode = false;
 	public float overTime = 0;
@@ -1069,15 +1071,14 @@ public class GameMode {
 		List<Point> revealedSpots = new List<Point>();
 		float revealedRadius = Global.viewScreenW * 0.5f;
 		
-		if (level.mainPlayer.mavericks.Count > 0) {
-			foreach (var maverick in level.mainPlayer.mavericks) {
-				if (maverick == level.mainPlayer.currentMaverick) {
-					continue;
-				}
+		if (level.mainPlayer.character is BaseSigma) {
+			foreach (var maverick in level.mainPlayer.mavericks)
+			{
+				if (maverick == level.mainPlayer.currentMaverick && !level.mainPlayer.isAlivePuppeteer()) continue;
 				revealedSpots.Add(maverick.pos);
 			}
 			revealedRadius = Global.viewScreenW * 0.5f;
-		} 
+		}
 		if (level.boundBlasterAltProjs.Count > 0) {
 			foreach (var bbAltProj in level.boundBlasterAltProjs) {
 				revealedSpots.Add(bbAltProj.pos);
@@ -1409,7 +1410,10 @@ public class GameMode {
 		//Health
 		Point pos = getHUDHealthPosition(position, true);
 		int dir = 1;
-		if (position is HUDHealthPosition.Right or HUDHealthPosition.TopRight or HUDHealthPosition.BotRight) {
+		if (position is HUDHealthPosition.Right or
+			HUDHealthPosition.TopRight or
+			HUDHealthPosition.BotRight
+		) {
 			dir = -1;
 		}
 		renderHealth(player, pos, false, false);
@@ -1523,6 +1527,7 @@ public class GameMode {
 		Global.sprites[healthBaseSprite].drawToHUD(frameIndex, baseX, baseY);
 		baseY -= 16;
 		int barIndex = 0;
+		int sBarIndex = 4;
 
 		if (player?.character is RagingChargeX mmx) {
 			float hpPercent = MathF.Floor(player.health / player.maxHealth * 100f);
@@ -1530,6 +1535,7 @@ public class GameMode {
 			else if (hpPercent >= 50) barIndex = 3;
 			else if (hpPercent >= 25) barIndex = 4;
 			else barIndex = 5;
+			sBarIndex = 1;
 		}
 
 		float modifier = Player.getHpMod();
@@ -1555,21 +1561,21 @@ public class GameMode {
 
 		for (var i = 0; i < Math.Ceiling(maxHP); i++) {
 			// Draw HP
-			if (i < MathF.Ceiling(health)) {
+			if (i < curHP) {
 				Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY);
-			} else if (i < MathInt.Ceiling(health) + damageSavings) {
-				Global.sprites["hud_health_full"].drawToHUD(4, baseX, baseY);
-			} else if (i < MathInt.Ceiling(greyHp)) {
-				Global.sprites["hud_weapon_full"].drawToHUD(30, baseX, baseY);
-			} else {
+			}
+			else if (i < savings) {
+				Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY);
+			}
+			else {
 				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
+				if (i < ceilCurHP) {
+					Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY, fhpAlpha);
+				}
+				else if (i < svCeil) {
+					Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY, svAlpha);
+				}
 			}
-
-			// 2-layer health
-			if (twoLayerHealth > 0 && i < MathF.Ceiling(twoLayerHealth)) {
-				Global.sprites["hud_health_full"].drawToHUD(2, baseX, baseY);
-			}
-
 			baseY -= 2;
 		}
 		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);

@@ -224,12 +224,6 @@ label:
 		changeWeaponSlot(ws);
 	}
 
-	public void clearXWeapons() {
-		preXWeapons = new List<Weapon>(weapons);
-		weapons.Clear();
-	}
-	public List<Weapon>? preXWeapons;
-
 	public void configureWeapons(Character character) {
 		// Save weapons for cross-life maverick HP if not an Axl.
 		if (!character.isATrans) {

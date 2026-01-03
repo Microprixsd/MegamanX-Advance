@@ -614,9 +614,9 @@ public class KaiserSigmaBeamProj : Projectile {
 				if (xDir == -1 && isUp) beamAngle = 225;
 				if (xDir == 1 && isUp) beamAngle = 315;
 			}
-			string poiName = isUp ? "laserU" : "laserD";
+			string poiName = isUp ? "laserU" :"laserD";
 			Point? shootPos = ownerActor.getFirstPOI(poiName);
-
+		
 			if (shootPos != null) {
 				changePos(shootPos.Value);
 			}

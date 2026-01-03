@@ -63,7 +63,7 @@ public class Helpers {
 		if (val < min) return min;
 		return val;
 	}
-
+	
 	public static int clampMax(int val, int max) {
 		if (val >= max) { return max; }
 		return val;
@@ -75,7 +75,7 @@ public class Helpers {
 	}
 
 	public static decimal clampMax(decimal val, decimal max) {
-		return Math.Clamp(val, Decimal.MinValue, max);
+		return  Math.Clamp(val, Decimal.MinValue, max);
 	}
 
 	public static string getTypedString(string str, int maxLength) {
@@ -350,7 +350,7 @@ public class Helpers {
 		if (diff > 180) {
 			return 360 - diff;
 		}
-		return MathF.Abs(diff); ;
+		return MathF.Abs(diff);;
 	}
 
 	public static float btAngleDist(float angle1, float angle2) {

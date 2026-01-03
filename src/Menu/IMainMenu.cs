@@ -1,4 +1,6 @@
-﻿namespace MMXOnline;
+﻿using System;
+
+namespace MMXOnline;
 
 public interface IMainMenu {
 	void update();

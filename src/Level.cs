@@ -272,6 +272,18 @@ public partial class Level {
 		if (!string.IsNullOrEmpty(levelData.backgroundShaderImage)) {
 			backgroundShaderImage = Global.textures.GetValueOrDefault(levelData.backgroundShaderImage);
 		}
+		if (!string.IsNullOrEmpty(levelData.backwallShader)) {
+			backwallShader = Helpers.cloneShaderSafe(levelData.backwallShader);
+		}
+		if (!string.IsNullOrEmpty(levelData.backwallShaderImage)) {
+			backwallShaderImage = Global.textures.GetValueOrDefault(levelData.backwallShaderImage);
+		}
+		if (!string.IsNullOrEmpty(levelData.foregroundShader)) {
+			foregroundShader = Helpers.cloneShaderSafe(levelData.foregroundShader);
+		}
+		if (!string.IsNullOrEmpty(levelData.foregroundShaderImage)) {
+			foregroundShaderImage = Global.textures.GetValueOrDefault(levelData.foregroundShaderImage);
+		}
 		if (!string.IsNullOrEmpty(levelData.parallaxShader)) {
 			parallaxShader = Helpers.cloneShaderSafe(levelData.parallaxShader);
 		}
@@ -421,15 +433,18 @@ public partial class Level {
 			int yDir = flipY ? -1 : 1;
 			if (instance.points != null) {
 				foreach (var point in instance.points) {
-					points.Add(new Point((float)point.x, (float)point.y));
+					points.Add(new Point((float)point.x, (float)point.y).round());
 				}
 			}
-			Point pos = new Point((float)(instance.pos?.x ?? 0), (float)(instance.pos?.y ?? 0));
+			Point pos = new Point((float)(instance.pos?.x ?? 0), (float)(instance.pos?.y ?? 0)).round();
 
 			if (objectName == "Collision Shape") {
 				Wall wall = new Wall(instanceName, points);
 
 				float moveX = instance?.properties?.moveX ?? 0;
+				if (mapVersion == 0) {
+					moveX /= 60;
+				}
 				wall.moveX = moveX;
 
 				if (instance?.properties?.slippery != null && instance.properties.slippery == true) {
@@ -444,14 +459,14 @@ public partial class Level {
 				if (instance?.properties?.pitWall != null && instance.properties.pitWall == true) {
 					isPitWall = true;
 					wall.collider._shape.points[2] = (
-						new Point(wall.collider._shape.points[2].x, Global.level.height + 45)
+						new Point(wall.collider._shape.points[2].x, Global.level.height + 45).round()
 					);
 					wall.collider._shape.points[3] = (
-						new Point(wall.collider._shape.points[3].x, Global.level.height + 45)
+						new Point(wall.collider._shape.points[3].x, Global.level.height + 45).round()
 					);
-					var rect = wall.collider.shape.getRect();
-					var newRect = new Rect(rect.x1, rect.y2, rect.x2, rect.y2 + 1000);
-					var pitWall = new Wall(wall.name + "Pit", newRect.getPoints());
+					Rect rect = wall.collider.shape.getRect();
+					Rect newRect = new Rect(rect.x1, rect.y2, rect.x2, rect.y2 + 1000);
+					Wall pitWall = new Wall(wall.name + "Pit", newRect.getPoints());
 					pitWall.collider.isClimbable = false;
 					addGameObject(pitWall); 
 				}
@@ -512,14 +527,24 @@ public partial class Level {
 				float? damage = instance.properties.damage;
 				bool flinch = instance.properties.flinch ?? false;
 				float hitCooldown = instance.properties.hitCooldown ?? 1;
+				if (mapVersion == 0) {
+					hitCooldown *= 60;
+				}
 
 				var killZone = new KillZone(instanceName, points, killInvuln, damage, flinch, hitCooldown);
 				addGameObject(killZone);
 			} else if (objectName == "Move Zone") {
 				if (levelData.name != "giantdam" || enableGiantDamPropellers()) {
+					float moveX = (float?)instance.properties.moveX ?? 0;
+					float moveY = (float?)instance.properties.moveY ?? 0;
+
+					if (mapVersion == 0) {
+						moveX /= 60;
+						moveY /= 60;
+					}
 					var moveZone = new MoveZone(
 						instanceName, points,
-						(float)instance.properties.moveX / 60f, (float)instance.properties.moveY / 60f
+						moveX, moveY
 					);
 					addGameObject(moveZone);
 				}
@@ -670,7 +695,7 @@ public partial class Level {
 				var spriteHeight = Global.sprites[spriteName].frames[0].rect.h();
 
 				if (!enabledInLargeCam && server.fixedCamera) {
-					// Do not add the map sprite
+				// Do not add the map sprite
 				} else if (rawParallaxIndex != null) {
 					if (Options.main.enableMapSprites) {
 						int parallaxIndex = rawParallaxIndex.Value - 1;
@@ -1227,6 +1252,22 @@ public partial class Level {
 				backgroundShader.SetUniform("imageH", (int)backgroundShaderImage.Size.Y);
 			}
 		}
+		if (backwallShader != null) {
+			backwallShader.SetUniform("t", time);
+			if (backwallShaderImage != null) {
+				backwallShader.SetUniform("image", backwallShaderImage);
+				backwallShader.SetUniform("imageW", (int)backwallShaderImage.Size.X);
+				backwallShader.SetUniform("imageH", (int)backwallShaderImage.Size.Y);
+			}
+		}
+		if (foregroundShader != null) {
+			foregroundShader.SetUniform("t", time);
+			if (foregroundShaderImage != null) {
+				foregroundShader.SetUniform("image", foregroundShaderImage);
+				foregroundShader.SetUniform("imageW", (int)foregroundShaderImage.Size.X);
+				foregroundShader.SetUniform("imageH", (int)foregroundShaderImage.Size.Y);
+			}
+		}
 		if (parallaxShader != null) {
 			parallaxShader.SetUniform("t", time);
 			if (parallaxShaderImage != null) {
@@ -1384,24 +1425,37 @@ public partial class Level {
 
 		// Collision shenanigans.
 		collidedGObjs.Clear();
-		(int x, int y)[] arrayGrid = populatedGrids.ToArray();
+		(int x, int y)[] arrayGrid = populatedGrids.OrderBy(
+			grid => grid.x + grid.y * 4096
+		).ToArray();
 		foreach ((int x, int y)gridData in arrayGrid) {
 			// Initalize data.
 			List<GameObject> currentGrid = new(grid[gridData.x, gridData.y]);
 			// Give piority to some objects.
 			currentGrid = currentGrid.OrderBy(gameObj => {
+				// Terrain at very last.
+				// This is used for optimization reasons.
+				if (gameObj is Geometry or CrackedWall) {
+					return 5;
+				}
+				// Other non-actor stuff.
 				if (gameObj is not Actor actor) {
 					return 4;
 				}
+				// High piorty stuff, like shields.
 				if (actor.highPiority) {
 					return 0;
 				}
-				if (actor is IDamagable) {
-					return 3;
-				}
+				// Low piority stuff.
+				// Like Kaiser body.
 				if (actor.lowPiority) {
 					return 2;
 				}
+				// Random non-actor stuff.
+				if (actor is IDamagable) {
+					return 3;
+				}
+				// Default.
 				return 1;
 			}).ToList();
 			// Get the terrain.
@@ -1412,8 +1466,9 @@ public partial class Level {
 			// Iterate trough populated grids.
 			for (int i = 0; i < currentGrid.Count; i++) {
 				// Skip terrain.
+				// As terrain is last this just skips terrain coliding with eachother.
 				if (currentGrid[i] is Geometry or CrackedWall) {
-					continue;
+					break;
 				}
 				// Skip destroyed stuff.
 				if (currentGrid[i].iDestroyed) {
@@ -1423,10 +1478,6 @@ public partial class Level {
 					// Exit if we get destroyed.
 					if (currentGrid[i].iDestroyed) {
 						break;
-					}
-					// Skip terrain coliding with eachother.
-					if (currentGrid[j] is Geometry or CrackedWall) {
-						continue;
 					}
 					// Get order independent hash.
 					int hash = currentGrid[i].GetHashCode() ^ currentGrid[j].GetHashCode();
@@ -1962,7 +2013,7 @@ public partial class Level {
 			DrawWrappers.DrawMapTiles(level.backgroundSprites, 0, 0, srt, level.backgroundShader);
 		}
 
-		level.drawKeyRange(keys, ZIndex.Background, ZIndex.Foreground, srt, walDrawObjects);;
+		level.drawKeyRange(keys, ZIndex.Background, ZIndex.Foreground, srt, walDrawObjects);
 
 		DrawWrappers.DrawMapTiles(level.foregroundSprites, 0, 0, srt, level.altForegroundShader);
 
@@ -2253,6 +2304,7 @@ public partial class Level {
 
 	private void drawPowerplant2() {
 		byte alpha = 0;
+		byte alpha2 = 0;
 		if (powerplant2State == 0) {
 			powerplant2DarkTime += Global.spf * 0.5f;
 			if (powerplant2DarkTime >= 1) {
@@ -2260,29 +2312,35 @@ public partial class Level {
 				powerplant2DarkTime = 0;
 			}
 		} else if (powerplant2State == 1) {
-			alpha = (byte)(powerplant2DarkTime * 255);
+			alpha = (byte)(powerplant2DarkTime * 200);
+			alpha2 = (byte)(powerplant2DarkTime * 150);
 			powerplant2DarkTime += Global.spf * 2;
 			if (powerplant2DarkTime >= 1) {
 				powerplant2State = 2;
-				powerplant2DarkTime = 0;
+				powerplant2DarkTime = -3;
 			}
 		} else if (powerplant2State == 2) {
-			alpha = 255;
+			alpha = 200;
+			alpha2 = 150;
 			powerplant2DarkTime += Global.spf * 0.5f;
 			if (powerplant2DarkTime >= 1) {
 				powerplant2State = 3;
 				powerplant2DarkTime = 0;
 			}
 		} else if (powerplant2State == 3) {
-			alpha = (byte)((1 - powerplant2DarkTime) * 255);
+			alpha = (byte)((1 - powerplant2DarkTime) * 200);
+			alpha = (byte)((1 - powerplant2DarkTime) * 150);
 			powerplant2DarkTime += Global.spf * 2;
 			if (powerplant2DarkTime >= 1) {
 				powerplant2State = 0;
 				powerplant2DarkTime = 0;
 			}
 		}
+		DrawWrappers.DrawRect(0, 0, width, height, true,
+		new Color(0, 0, 0, alpha2), 1, ZIndex.AboveFont, isWorldPos: true);
 
-		DrawWrappers.DrawRect(0, 0, width, height, true, new Color(0, 0, 0, alpha), 1, Global.level.mainPlayer?.character?.zIndex ?? ZIndex.HUD, isWorldPos: true);
+		DrawWrappers.DrawRect(0, 0, width, height, true, new Color(0, 0, 0, alpha), 1,
+		Global.level.mainPlayer?.character?.zIndex ?? ZIndex.HUD, isWorldPos: true);
 	}
 
 	public bool ignoreNoScrolls() {
@@ -2687,7 +2745,7 @@ public partial class Level {
 			dump += "NetId: " + redFlag.netId + "\n";
 			dump += "Owned By Local Player: " + redFlag.ownedByLocalPlayer + "\n";
 			dump += "Position: " + redFlag.pos.ToString() + "\n";
-			dump += "Carrier: " + redFlag.chr?.player?.name + "\n";
+			dump += "Carrier: " + redFlag.linkedChar?.player?.name + "\n";
 			if (redFlag.destroyed) dump += "DESTROYED\n";
 		}
 		dump += "\nBlue Flag:\n";
@@ -2695,7 +2753,7 @@ public partial class Level {
 			dump += "NetId: " + blueFlag.netId + "\n"; ;
 			dump += "Owned By Local Player: " + blueFlag.ownedByLocalPlayer + "\n"; ;
 			dump += "Position: " + blueFlag.pos.ToString() + "\n"; ;
-			dump += "Carrier: " + blueFlag.chr?.player?.name + "\n";
+			dump += "Carrier: " + blueFlag.linkedChar?.player?.name + "\n";
 			if (blueFlag.destroyed) dump += "DESTROYED\n";
 		}
 

@@ -120,7 +120,7 @@ public partial class Actor {
 				rect.y2 = MathF.Round(rect.y2 - 1);
 				DrawWrappers.DrawRect(
 					rect.x1, rect.y1, rect.x2, rect.y2,
-					true, hitboxColor, 1, zIndex + ZIndex.HUD, true,
+					true, hitboxColor, 1, zIndex +  + ZIndex.HUD, true,
 					outlineColor
 				);
 			} else {
@@ -149,7 +149,7 @@ public partial class Actor {
 			DrawWrappers.DrawPolygon(
 				rect.getPoints(),
 				new Color(0, 255, 0, 150),
-				fill: false, zIndex + ZIndex.HUD, true
+				fill: false, zIndex +  + ZIndex.HUD, true
 			);
 		}
 		//DrawWrappers.DrawCircle(collider.shape, Color.Blue, true, zIndex + 1, false, true);
@@ -435,7 +435,7 @@ public partial class Actor {
 		if (terrainCollider == null) {
 			return;
 		}
-
+ 
 		foreach (CollideData collideData in currentCollideDatas) {
 			if (this is Character chara && collideData.gameObject is Character otherChara) {
 				chara.insideCharacter = true;

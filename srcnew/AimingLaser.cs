@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using SFML.Graphics;
@@ -70,15 +70,14 @@ public class AimingLaser : Weapon {
 
 
 public class AimingLaserTargetAnim : Anim {
-
-	Character chara;
+	MegamanX? chara;
 
 	public AimingLaserTargetAnim(
 		Point pos, int xDir, ushort? netId, Character chara
 	) : base (
 		pos, "aiming_laser_cursor", xDir, netId, false, true
 	) {
-		this.chara = chara;
+		this.chara = chara as MegamanX;
 	}
 
 	public override void update() {
@@ -149,7 +148,6 @@ public class AimingLaserHud : Anim {
 
 
 public class AimingLaserCursor : Projectile {
-
 	MegamanX mmx = null!;
 	Player player;
 	float ogAngle = 0;
@@ -202,8 +200,8 @@ public class AimingLaserCursor : Projectile {
 				if (!mmx.aLaserTargets.Any(c => c == chr)) {
 					mmx.aLaserTargets.Add(chr);
 					//chr.addALaserAttacker(mmx);
-					if (chr.aLaserTargetAnim == null) {
-						chr.aLaserTargetAnim = new AimingLaserTargetAnim(
+					if (mmx.aLaserTargetAnim == null) {
+						mmx.aLaserTargetAnim = new AimingLaserTargetAnim(
 							chr.getCenterPos(), 1, null, chr
 						);
 					}

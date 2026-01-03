@@ -1,5 +1,4 @@
 ﻿namespace MMXOnline;
-
 using SFML.Graphics;
 using System;
 using System.Collections.Generic;
@@ -62,11 +61,11 @@ public class UpgradeArmorMenu : IMainMenu {
 		}
 		// Enable this to disable 14.0 UAX Menu
 		if (mmx?.hasFullHyperMaxArmor == true) {
-			//	Menu.change(new UpgradeArmorMenuGolden(GoldenMenu));
+		//	Menu.change(new UpgradeArmorMenuGolden(GoldenMenu));
 			return;
 		}
 		if (mmx?.hasUltimateArmor == true) {
-			//	Menu.change(new UpgradeArmorMenuUAX(UAXMenu));
+		//	Menu.change(new UpgradeArmorMenuUAX(UAXMenu));
 			return;
 		}
 		if (Global.input.isPressedMenu(Control.MenuConfirm)) {
@@ -168,7 +167,8 @@ public class UpgradeArmorMenu : IMainMenu {
 				mmx.hyperArmActive = false;
 				mmx.hyperLegActive = false;
 				mmx.hyperHelmetActive = false;
-			} else if (selectArrowPosY == 0) {
+			}
+			else if (selectArrowPosY == 0) {
 				if (mainPlayer.helmetArmorNum == xGame) {
 					if (mainPlayer.hasAllX3Armor()) {
 						if (mmx != null) {
@@ -181,22 +181,25 @@ public class UpgradeArmorMenu : IMainMenu {
 						upgradeHelmetArmor(mainPlayer, 0);
 					}
 				}
-			} else if (selectArrowPosY == 1) {
+			}
+			else if (selectArrowPosY == 1) {
 				if (mainPlayer.bodyArmorNum == xGame) {
 					upgradeBodyArmor(mainPlayer, 0);
 				}
-			} else if (selectArrowPosY == 2) {
+			}
+			else if (selectArrowPosY == 2) {
 				if (mainPlayer.armArmorNum == xGame) {
 					upgradeArmArmor(mainPlayer, 0);
 				}
-			} else if (selectArrowPosY == 3) {
+			}
+			else if (selectArrowPosY == 3) {
 				if (mainPlayer.legArmorNum == xGame) {
 					upgradeBootsArmor(mainPlayer, 0);
 				}
 			}
 		}
 	}
-
+	
 	public static void clearAllHyperArmor(MegamanX mmx) {
 		mmx.hyperChestActive = false;
 		mmx.hyperArmActive = false;
@@ -336,7 +339,7 @@ public class UpgradeArmorMenu : IMainMenu {
 
 		switch (xGame) {
 			case 1: case 2: case 3: Global.sprites["menu_xdefault"].drawToHUD(0, 300, 110); break;
-		}
+		} 
 		switch (mainPlayer.helmetArmorNum) {
 			case 1: Global.sprites["menu_xhelmet"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xhelmet2"].drawToHUD(0, 300, 110); break;
@@ -384,10 +387,10 @@ public class UpgradeArmorMenu : IMainMenu {
 				Fonts.drawText(FontType.Blue, "Store an extra charge shot.", optionPos3.x + 5, optionPos3.y + 20);
 				Fonts.drawText(FontType.Blue, "Air dash 15% faster and longer.", optionPos4.x + 5, optionPos4.y + 10);
 				break;
-			case 3: //Max
+			case 3:	//Max
 				if (!mainPlayer.hasAllX3Armor()) {
 					Fonts.drawText(FontType.Blue, "Communicates with the", optionPos1.x + 5, optionPos1.y + 10);
-					Fonts.drawText(FontType.DarkPurple, "State of the Art Space Satellite.", optionPos1.x + 5, optionPos1.y + 20);
+					Fonts.drawText(FontType.DarkPurple,"State of the Art Space Satellite.", optionPos1.x + 5, optionPos1.y + 20);
 					Fonts.drawText(FontType.Blue, "To uncover enemy position.", optionPos1.x + 5, optionPos1.y + 30);
 					Fonts.drawText(FontType.Blue, "Gain a Defensive Forcefield", optionPos2.x + 5, optionPos2.y + 10);
 					Fonts.drawText(FontType.Blue, "on taking Damage.", optionPos2.x + 5, optionPos2.y + 20);
@@ -407,13 +410,13 @@ public class UpgradeArmorMenu : IMainMenu {
 					Fonts.drawText(FontType.Blue, "Dash Twice in the air", optionPos4.x + 5, optionPos4.y + 20);
 				}
 				if (mainPlayer.character is MegamanX mmx) {
-					if (mmx.hyperHelmetActive) Global.sprites["menu_chip"].drawToHUD(0, 296, optionPos1.y - 16);
-					if (mmx.hyperChestActive) Global.sprites["menu_chip"].drawToHUD(0, 296, optionPos2.y + 4);
-					if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, 262, optionPos3.y - 8);
-					if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, 278, optionPos4.y + 6);
+					if (mmx.hyperHelmetActive) Global.sprites["menu_chip"].drawToHUD(0, 296, optionPos1.y-16);
+					if (mmx.hyperChestActive) Global.sprites["menu_chip"].drawToHUD(0, 296, optionPos2.y+4);
+					if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, 262, optionPos3.y-8);
+					if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, 278, optionPos4.y+6);
 				}
 				break;
-		}
+		} 
 		//drawHyperArmorUpgrades(mainPlayer, 0);
 
 		Fonts.drawTextEX(
@@ -567,25 +570,25 @@ public class UpgradeArmorMenuUAX : IMainMenu {
 	public void render() {
 
 		DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
-		Fonts.drawText(FontType.Purple, "Ultimate Armor Active", Global.screenW * 0.5f, 20, Alignment.Center);
+		Fonts.drawText(FontType.Purple, "Ultimate Armor Active",Global.screenW * 0.5f, 20, Alignment.Center);
 		Global.sprites["menu_xultimatex2"].drawToHUD(0, Global.halfScreenW, 80);
-		Fonts.drawText(FontType.RedishOrange, "Uncompleted Powerful Armor", Global.halfScreenW - 80, 140);
+		Fonts.drawText(FontType.RedishOrange, "Uncompleted Powerful Armor",Global.halfScreenW-80, 140);
 		//Fonts.drawText(FontType.Red, "Grants Parts of All armors and Chips in the entire armor", Global.halfScreenW-170, optionPos3.y + 30);
-		Fonts.drawText(FontType.DarkPurple, "Enhances the Base Armor", Global.halfScreenW - 70, 155);
-		Fonts.drawText(FontType.DarkPurple, "Grants Nova Strike, Hover and The Plasma Shot", Global.halfScreenW - 136, 170);
+		Fonts.drawText(FontType.DarkPurple, "Enhances the Base Armor", Global.halfScreenW-70, 155);
+		Fonts.drawText(FontType.DarkPurple, "Grants Nova Strike, Hover and The Plasma Shot", Global.halfScreenW-136, 170);
 		Fonts.drawTextEX(
 			FontType.Grey, "[MLEFT]/[MRIGHT]: Change Menu",
-			Global.halfScreenW - 70, 190
+			Global.halfScreenW-70, 190
 		);
 		Fonts.drawTextEX(
 			FontType.Grey, "[BACK]: Back",
-			Global.halfScreenW - 20, 200
+			Global.halfScreenW-20, 200
 		);
 		if (mainPlayer.character is MegamanX mmx) {
-			if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW - 6, 52, alpha: 0.85f);
-			if (mmx.hyperChestActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW + 2, 70, alpha: 0.85f);
-			if (mmx.hyperHelmetActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW - 20, 45, alpha: 0.85f);
-			if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW - 22, 96, alpha: 0.85f);
+			if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW-6, 52, alpha: 0.85f);
+			if (mmx.hyperChestActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW+2, 70, alpha: 0.85f);
+			if (mmx.hyperHelmetActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW-20, 45, alpha: 0.85f);
+			if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW-22, 96, alpha: 0.85f);
 		}
 	}
 }
@@ -627,21 +630,21 @@ public class UpgradeArmorMenuGolden : IMainMenu {
 	public void render() {
 
 		DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
-		Fonts.drawText(FontType.Pink, "Hyper Chip Active", Global.screenW * 0.5f, 20, Alignment.Center);
+		Fonts.drawText(FontType.Pink, "Hyper Chip Active",Global.screenW * 0.5f, 20, Alignment.Center);
 		Global.sprites["menu_x3"].drawToHUD(2, 295, 110);
-		if (Global.flFrameCount % 6 < 4)
-			Global.sprites["LightX3"].drawToHUD(10, 50, 130);
+		if (Global.flFrameCount % 6 < 4) 
+			 Global.sprites["LightX3"].drawToHUD(10, 50, 130);
 		else Global.sprites["LightX3"].drawToHUD(11, 50, 130);
 		DrawWrappers.DrawRect(
-				210, 100, 80, 40,
+				210, 100 , 80 , 40,
 				true, Helpers.MenuBgColor, 0, ZIndex.Default, false
 		);
-		Fonts.drawText(FontType.DarkBlue, "(RIGHT)", 92, 46);
-		Fonts.drawText(FontType.DarkBlue, "Your battles should", 90, 60);
-		Fonts.drawText(FontType.DarkBlue, "be easier now.", 90, 70);
-		Fonts.drawText(FontType.DarkBlue, "Do your Best, X.", 90, 80);
+		Fonts.drawText(FontType.DarkBlue, "(RIGHT)",92, 46);
+		Fonts.drawText(FontType.DarkBlue, "Your battles should",90, 60);
+		Fonts.drawText(FontType.DarkBlue, "be easier now.",90, 70);
+		Fonts.drawText(FontType.DarkBlue, "Do your Best, X.",90, 80);
 		if (Global.flFrameCount % 60 < 30)
-			Global.sprites["cursorchar"].drawToHUD(0, 94, 94);
+		Global.sprites["cursorchar"].drawToHUD(0, 94, 94);
 		Fonts.drawText(FontType.RedishOrange, "Enhances The Max Armor.", 30, 150);
 		Fonts.drawText(FontType.RedishOrange, "Grants the Z-Saber", 30, 160);
 		Fonts.drawText(FontType.RedishOrange, "and All the Chips.", 30, 170);
@@ -964,7 +967,7 @@ public class SNESArmorHandler : IMenuHandler {
 			name = "Body",
 			isUnlocked = player => player.character is MegamanX mmx && mmx.hyperChestActive,
 			canUnlock = player => player.character is MegamanX mmx && player.hasAllX3Armor() && !mmx.hasAnyHyperArmor,
-			canLock = player => player.character is MegamanX mmx && mmx.hyperChestActive,
+			canLock = player => player.character is MegamanX mmx  && mmx.hyperChestActive,
 			unlock = (player) => { if (player.character is MegamanX mmx) mmx.hyperChestActive = true; },
 			lockit = (player) => { if (player.character is MegamanX mmx) mmx.hyperChestActive = false; },
 			description = "ENHANCEMENT CHIP\nForcefield Defense: 50%",
@@ -1238,7 +1241,7 @@ public class UpgradeArmorMenuEX : IMainMenu {
 		DrawWrappers.DrawRect(364, 40, 20, 180, true, new Color(0, 0, 0, 100), 1,
 		ZIndex.HUD, false, outlineColor: Color.White);
 		menu.drawToHUD(0, ghw, ghh, 0.5f);
-		Global.sprites["hud_killfeed_weapon"].drawToHUD(175, ghw + 164, ghh + 40, changeMenuTime / 55);
+		Global.sprites["hud_killfeed_weapon"].drawToHUD(175, ghw+164, ghh+40, changeMenuTime/55);
 		menuX();
 		DrawTextStuff();
 		LowerMenuText();
@@ -1247,7 +1250,7 @@ public class UpgradeArmorMenuEX : IMainMenu {
 			snesArmorHandler.renderCursor(snesUD, snesLR, cursor, ghw, ghh);
 			snesArmorHandler.renderDescription(mainP, snesUD, snesLR, ghw, ghh);
 			snesArmorHandler.renderNoPurchasedArmors(mainP);
-			snesArmorHandler.renderEquippedArmors(mainP);
+			snesArmorHandler.renderEquippedArmors(mainP);	
 		}
 		Fonts.drawText(FontType.Blue, "Metals: " + mainP.currency.ToString(), 361, 160, Alignment.Right);
 	}

@@ -5,7 +5,7 @@ using System.Linq;
 namespace MMXOnline;
 
 public class MagnetMine : Weapon {
-	public static MagnetMine netWeapon = new(); 
+	public static MagnetMine netWeapon = new();
 	public const int maxMinesPerPlayer = 10;
 
 	public MagnetMine() : base() {
@@ -18,26 +18,13 @@ public class MagnetMine : Weapon {
 		weaponSlotIndex = 15;
 		killFeedIndex = 20 + (index - 9);
 		weaknessIndex = (int)WeaponIds.SilkShot;
-		effect = "C: Can absorb projectiles and grow it's size.\nSize growth depends on the damage of the projectile.";
+		effect = "U:Planted mines have a limit of 10.\nC:Can absorb projectiles and grow its size.\nGrowth depends on the damage absorbed.";
 		hitcooldown = "0/12";
 		damage = "2,4/1,2,4";
 		flinch = "0/26";
 		flinchCD = "0/1";
+	}
 
-		ammoDisplayScale = 1;
-		maxAmmo = 16;
-		ammo = maxAmmo;
-	}
-	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel >= 3 && ammo >=6) { return 6; }
-		return 1;
-	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
-	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -45,7 +32,7 @@ public class MagnetMine : Weapon {
 		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
+		if (chargeLevel < 3) {
 			var magnetMineProj = new MagnetMineProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			mmx.magnetMines.Add(magnetMineProj);
 			if (mmx.magnetMines.Count > maxMinesPerPlayer) {
@@ -53,10 +40,7 @@ public class MagnetMine : Weapon {
 				mmx.magnetMines.RemoveAt(0);
 			}
 		} else {
-			if (ammo >= 6) {
-				new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-			}
-		
+			new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
 	}
 }
@@ -70,7 +54,7 @@ public class MagnetMineProj : Projectile, IDamagable {
 	public MagnetMineProj(
 		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
 	) : base(
-		pos, xDir, owner, "magnetmine_proj", netId, player	
+		pos, xDir, owner, "magnetmine_proj", netId, player
 	) {
 		weapon = MagnetMine.netWeapon;
 		damager.damage = 2;
@@ -199,7 +183,7 @@ public class MagnetMineProjCharged : Projectile {
 	public MagnetMineProjCharged(
 		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
 	) : base(
-		pos, xDir, owner, "magnetmine_charged", netId, player	
+		pos, xDir, owner, "magnetmine_charged", netId, player
 	) {
 		weapon = MagnetMine.netWeapon;
 		damager.damage = 1;
@@ -249,11 +233,11 @@ public class MagnetMineProjCharged : Projectile {
 			}
 
 			if (pos.y > startY + maxY) {
-				pos.y = startY + maxY;
+				changePosY(startY + maxY);
 				vel.y = 0;
 			}
 			if (pos.y < startY - maxY) {
-				pos.y = startY - maxY;
+				changePosY(startY - maxY);
 				vel.y = 0;
 			}
 			soundTime += Global.spf;

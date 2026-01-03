@@ -13,11 +13,11 @@ public partial class Player {
 	public static Player stagePlayer = new Player(
 		"Stage", 255, -1,
 		new PlayerCharData() { charNum = -1 },
-		false, true, GameMode.neutralAlliance,
+		false, true, GameMode.stageAlliance,
 		new Input(false),
 		new ServerPlayer(
 			"Stage", 255, false,
-			-1, GameMode.neutralAlliance, "NULL", null, 0
+			-1, GameMode.stageAlliance, "NULL", null, 0
 		)
 	);
 	public static Player errorPlayer = new Player(
@@ -394,7 +394,9 @@ public partial class Player {
 	public ShaderWrapper acidShader = Helpers.cloneShaderSafe("acid");
 	public ShaderWrapper oilShader = Helpers.cloneShaderSafe("oil");
 	public ShaderWrapper igShader = Helpers.cloneShaderSafe("igIce");
+	public ShaderWrapper mvIgShader = Helpers.cloneShaderSafe("igIce");
 	public ShaderWrapper infectedShader = Helpers.cloneShaderSafe("infected");
+	public ShaderWrapper mvInfectedShader = Helpers.cloneShaderSafe("infected");
 	public ShaderWrapper frozenCastleShader = Helpers.cloneShaderSafe("frozenCastle");
 	public ShaderWrapper possessedShader = Helpers.cloneShaderSafe("possessed");
 	public ShaderWrapper vaccineShader = Helpers.cloneShaderSafe("vaccine");
@@ -446,7 +448,7 @@ public partial class Player {
 	public List<ChillPIceStatueProj> iceStatues = new List<ChillPIceStatueProj>();
 	public List<WSpongeSpike> seeds = new List<WSpongeSpike>();
 	public List<Actor> mechaniloids = new List<Actor>();
-	public SoulBodyClone? sClone;
+
 	public ExplodeDieEffect? explodeDieEffect;
 	public bool suicided;
 
@@ -457,6 +459,7 @@ public partial class Player {
 
 	public float lastMashAmount;
 	public int lastMashAmountSetFrame;
+	public SoulBodyClone sClone;
 
 	public bool is1v1MaverickX1() {
 		return maverick1v1 <= 8;
@@ -669,14 +672,14 @@ public partial class Player {
 	public float getMaxHealth() {
 		// 1v1 is the only mode without possible heart tanks/sub tanks
 		if (Global.level.is1v1()) {
-			return getModifiedHealth(28);
+			return MathF.Ceiling(getModifiedHealth(28) * getHpMod());
 		}
 		int bonus = 0;
 		if (isSigma) {
 			bonus = 6;
 		}
 		return MathF.Ceiling(
-			getModifiedHealth(16 + bonus) + (heartTanks * getHeartTankModifier())
+			(getModifiedHealth(16 + bonus) + heartTanks * getHeartTankModifier()) * getHpMod()
 		);
 	}
 
@@ -848,10 +851,10 @@ public partial class Player {
 		if (character is Vile vile) {
 			if (isSelectingRA()) {
 				int maxRAIndex = vile.isVileMK1 ? 3 : 4;
-				if (input.isPressedMenu(Control.MenuDown)) {
+				if (input.isPressedMenu(Control.MenuLeft)) {
 					selectedRAIndex--;
 					if (selectedRAIndex < 0) selectedRAIndex = maxRAIndex;
-				} else if (input.isPressedMenu(Control.MenuUp)) {
+				} else if (input.isPressedMenu(Control.MenuRight)) {
 					selectedRAIndex++;
 					if (selectedRAIndex > maxRAIndex) selectedRAIndex = 0;
 				}
@@ -2094,8 +2097,7 @@ public partial class Player {
 				return false;
 			}
 			/*
-			if (character?.charState?.isGrabbedState == true)
-			{
+			if (character?.charState?.isGrabbedState == true) {
 				return false;
 			}
 			*/
@@ -2112,7 +2114,10 @@ public partial class Player {
 		if (Global.level?.server?.customMatchSettings != null) {
 			fillSubtank(Global.level.server.customMatchSettings.subtankGain);
 		} else {
-			fillSubtank(4);
+			if (character is Zero or PunchyZero or BusterZero) fillSubtank(2);
+			if (character is Vile) fillSubtank(2);
+            if (character is Axl) fillSubtank(3);
+            if (character is MegamanX or BaseSigma) fillSubtank(4);
 		}
 		if (character is Zero zero && zero.isViral) {
 			zero.freeBusterShots++;
@@ -2516,10 +2521,9 @@ public partial class Player {
 		if (armorIndex == 1) bitStr = bits[4] + bits[5] + bits[6] + bits[7];
 		if (armorIndex == 2) bitStr = bits[8] + bits[9] + bits[10] + bits[11];
 		if (armorIndex == 3) bitStr = bits[12] + bits[13] + bits[14] + bits[15];
-		if (armorIndex == 4) bitStr = bits[16] + bits[17] + bits[18] + bits[19];
 
 		int retVal = Convert.ToInt32(bitStr, 2);
-		if (retVal > 4 && !isChipCheck) retVal = 4;
+		if (retVal > 3 && !isChipCheck) retVal = 3;
 		return retVal;
 	}
 
@@ -2576,6 +2580,30 @@ public partial class Player {
 	public void setBodyArmorPurchased(int xGame) { bodyArmorsPurchased[xGame - 1] = true; }
 	public void setArmArmorPurchased(int xGame) { armArmorsPurchased[xGame - 1] = true; }
 	public void setBootsArmorPurchased(int xGame) { bootsArmorsPurchased[xGame - 1] = true; }
+
+	public bool hasAllArmorsPurchased() {
+		for (int i = 0; i < 3; i++) {
+			if (!headArmorsPurchased[i]) return false;
+			if (!bodyArmorsPurchased[i]) return false;
+			if (!armArmorsPurchased[i]) return false;
+			if (!bootsArmorsPurchased[i]) return false;
+		}
+		return true;
+	}
+
+	public bool hasAnyArmorPurchased() {
+		for (int i = 0; i < 3; i++) {
+			if (headArmorsPurchased[i]) return true;
+			if (bodyArmorsPurchased[i]) return true;
+			if (armArmorsPurchased[i]) return true;
+			if (bootsArmorsPurchased[i]) return true;
+		}
+		return false;
+	}
+
+	public bool hasAnyArmor() {
+		return legArmorNum > 0 || armArmorNum > 0 || bodyArmorNum > 0 || helmetArmorNum > 0;
+	}
 
 	public void press(string inputMapping) {
 		string keyboard = "keyboard";

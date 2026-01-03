@@ -201,7 +201,7 @@ public class SpeedBurnerCharState : CharState {
 
 	public SpeedBurnerCharState() : base("speedburner") {
 		superArmor = true;
-		immuneToWind = true;
+		pushImmune = true;
 	}
 
 	public override void update() {

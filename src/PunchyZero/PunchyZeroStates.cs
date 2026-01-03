@@ -805,7 +805,7 @@ public class PunchyZeroRekkohaState : PunchyZeroGigaAttack {
 	public RekkohaEffect? effect;
 	public PunchyZeroRekkohaState(Weapon weapon) : base(weapon, "rekkoha") {
 		this.weapon = weapon;
-		immuneToWind = true;
+		pushImmune = true;
 	}
 
 	public override void update() {

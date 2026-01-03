@@ -747,7 +747,7 @@ public class XRevive : CharState {
 
 	public XRevive() : base("revive_shake") {
 		invincible = true;
-		immuneToWind = true;
+		pushImmune = true;
 		enterSound = "xRevive";
 		useGravity = false;
 	}

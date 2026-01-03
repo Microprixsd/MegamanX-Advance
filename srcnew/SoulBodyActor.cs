@@ -1,10 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MMXOnline;
 
 public class SoulBodyClone : MegamanX {
-
 	MegamanX owner = null!;
 	Player pl = null!;
 	float distance = 0;
@@ -14,6 +13,7 @@ public class SoulBodyClone : MegamanX {
 	public float maxHealth = 8;
 	public float health = 8;
 	bool plasma;
+
 	public SoulBodyClone(
 		Player player, float x, float y, int xDir,
 		bool isVisible, ushort? netId, bool ownedByLocalPlayer,
@@ -30,10 +30,8 @@ public class SoulBodyClone : MegamanX {
 		base.player = pl;
 		charId = CharIds.SoulBodyClone;
 
-		player.clearXWeapons();
-		player.weapons.Clear();
-		player.weapons.Add(new XBuster());
-		player.changeWeaponSlot(0);
+		weapons = [new XBuster()];
+		weaponSlot = 0;
 	}
 
 	public override void update() {
@@ -129,7 +127,5 @@ public class SoulBodyClone : MegamanX {
 		player.sClone = null!;
 		owner.changeToIdleOrFall();
 		owner.useGravity = true;
-		player.preXWeapons.Clear();
-		
 	}	
 }

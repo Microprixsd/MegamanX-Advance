@@ -188,11 +188,6 @@ public partial class Character : Actor, IDamagable {
 	public float crystalizedTime;
 	public float crystalizedMaxTime;
 
-	//Aiming Laser stuff
-	public bool isTargetByALaser;
-	public List<Character> aLaserAttackers = new();
-	public Anim? aLaserTargetAnim;
-
 	// Buffs.
 	public float vaccineTime;
 	public float vaccineHurtCooldown;
@@ -262,8 +257,11 @@ public partial class Character : Actor, IDamagable {
 		CharState initialCharState;
 
 		if (ownedByLocalPlayer) {
-			if (isWarpIn) { initialCharState = new WarpIn(true, true); ; }
-			else { initialCharState = getIdleState(); }
+			if (isWarpIn) {
+				initialCharState = new WarpIn(true, true);
+			} else {
+				initialCharState = getIdleState();
+			}
 		} else {
 			initialCharState = new NetLimbo();
 			useGravity = false;
@@ -302,7 +300,7 @@ public partial class Character : Actor, IDamagable {
 		lastGravityWellDamager = player;
 		this.heartTanks = heartTanks ?? player.getHeartTanks((int)charId);
 		maxHealth = getMaxHealth();
-		if (!ownedByLocalPlayer || !isWarpIn) {
+		if (ownedByLocalPlayer && (!isWarpIn || player.warpedInOnce)) {
 			health = maxHealth;
 		}
 	}
@@ -326,31 +324,23 @@ public partial class Character : Actor, IDamagable {
 	public bool isVaccinated() { return vaccineTime > 0; }
 
 	public void addVirusTime(Player attacker, float time) {
-		if (!ownedByLocalPlayer) return;
-		if (isInvulnerable()) return;
-		if (isVaccinated()) return;
-		if (charState.invincible) return;
-
+		if (!ownedByLocalPlayer || isTimeImmune()) {
+			return;
+		}
 		//Damager damager = new Damager(attacker, 0, 0, 0);
 		virusTime += time;
 		if (virusTime > 8) virusTime = 8;
 	}
 
 	public void addDarkHoldTime(float darkHoldTime, Player attacker) {
-		if (!ownedByLocalPlayer) return;
-		if (isInvulnerable()) return;
-		if (isVaccinated()) return;
-		if (charState.invincible) return;
-
+		if (!ownedByLocalPlayer || isStunImmune() || isTimeImmune()) {
+			return;
+		}
 		changeState(new DarkHoldState(this, darkHoldTime), true);
 	}
 
 	public void addAcidTime(Player attacker, float time) {
-		if (!ownedByLocalPlayer ||
-			isDotImmune() ||
-			isInvulnerable() ||
-			isVaccinated() || charState.invincible
-		) {
+		if (!ownedByLocalPlayer || isDotImmune()) {
 			return;
 		}
 		// If attacker is null use the same, else use self.
@@ -371,11 +361,7 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public void addOilTime(Player attacker, float time) {
-		if (!ownedByLocalPlayer ||
-			isDebuffImmune() ||
-			isInvulnerable() ||
-			isVaccinated() || charState.invincible
-		) {
+		if (!ownedByLocalPlayer || isDebuffImmune()) {
 			return;
 		}
 		// If attacker is null use the same, else use self.
@@ -391,18 +377,14 @@ public partial class Character : Actor, IDamagable {
 			oilTime = 8;
 		}
 		// Activate burn if burning.
-		if (burnTime > 0) {
+		if (burnTime > 0 && !isDotImmune()) {
 			addBurnTime(attacker, new FlameMOilWeapon(), 2);
 			return;
 		}
 	}
 
 	public void addBurnTime(Player? attacker, Weapon weapon, float time) {
-		if (!ownedByLocalPlayer ||
-			isDotImmune() ||
-			isInvulnerable() ||
-			isVaccinated() || charState.invincible
-		) {
+		if (!ownedByLocalPlayer || isDotImmune()) {
 			return;
 		}
 		// If attacker is null use the same, else use self.
@@ -441,13 +423,9 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public void addIgFreezeProgress(float amount, int freezeTime = 120) {
-		if (freezeInvulnTime > 0) return;
-		if (frozenTime > 0) return;
-		if (isStatusImmune()) return;
-		if (isInvulnerable()) return;
-		if (isVaccinated()) return;
-		if (charState.invincible) return;
-
+		if (freezeInvulnTime > 0 || frozenTime > 0 || isSlowImmune()) {
+			return;
+		}
 		igFreezeProgress += amount;
 		igFreezeRecoveryCooldown = 0;
 		if (igFreezeProgress >= 4) {
@@ -640,18 +618,24 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public virtual bool canPickupFlag() {
-		if (player.isPossessed()) return false;
-		if (dropFlagCooldown > 0) return false;
-		if (isInvulnerable()) return false;
-		if (isATrans && !disguiseCoverBlown) return false;
-		if (isNonDamageStatusImmune()) return false;
-		if (charState is Die || charState is VileRevive || charState is XReviveStart || charState is XRevive) return false;
-		if (isWarpOut()) return false;
-		if (Global.serverClient != null) {
-			if (Global.serverClient.isLagging() == true) return false;
-			if (player.serverPlayer.connection?.AverageRoundtripTime >= 1000) return false;
+		if (player.isPossessed() ||
+			dropFlagCooldown > 0 ||
+			isInvulnerable() ||
+			isATrans && !disguiseCoverBlown ||
+			charState is Die or VileRevive or XReviveStart or
+				XRevive or KaiserSigmaRevive or
+				WolfSigmaRevive or ViralSigmaRevive ||
+			isWarpOut()
+		) {
+			return false;
 		}
-		if (charState is KaiserSigmaRevive || charState is WolfSigmaRevive || charState is ViralSigmaRevive) return false;
+		if (Global.serverClient != null) {
+			if (Global.serverClient.isLagging() ||
+				player.serverPlayer.connection?.AverageRoundtripTime >= 1000
+			) {
+				return false;
+			}
+		}
 		return true;
 	}
 
@@ -659,7 +643,6 @@ public partial class Character : Actor, IDamagable {
 		if (player.isPossessed()) return false;
 		if (health <= 0) return false;
 		if (isInvulnerable()) return false;
-		if (isNonDamageStatusImmune()) return false;
 		if (charState is Die) return false;
 		if (isWarpOut()) return false;
 		if (Global.serverClient != null) {
@@ -677,6 +660,7 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public virtual CharState getIdleState() => new Idle();
+	public virtual CharState getCrouchState() => new Crouch();
 	public virtual CharState getRunState(bool skipInto = false) => new Run(skipInto);
 	public virtual CharState getJumpState() => new Jump();
 	public virtual CharState getAirJumpState() => new Jump();
@@ -701,7 +685,7 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public virtual float getDashSpeed() {
-		return (3.45f * 60f) * getRunDebuffs();
+		return 3.45f * getRunDebuffs();
 	}
 
 	public virtual float getDashOrRunSpeed() {
@@ -963,17 +947,11 @@ public partial class Character : Actor, IDamagable {
 				}
 				burnDamager?.applyDamage(this, false, burnWeapon, this, (int)ProjIds.Burn, overrideDamage: 1f);
 			}
-			if (isUnderwater()) {
-				burnTime = 0;
-			}
 			if (burnTime <= 0) {
 				removeBurn();
 			}
 		}
-		if (flattenedTime > 0 && !(charState is Die)) {
-			flattenedTime -= Global.spf;
-			if (flattenedTime < 0) flattenedTime = 0;
-		}
+		Helpers.decrementFrames(ref flattenedTime);
 		Helpers.decrementTime(ref slowdownTime);
 		igFreezeRecoveryCooldown += speedMul;
 		if (igFreezeRecoveryCooldown > 12) {
@@ -1204,8 +1182,8 @@ public partial class Character : Actor, IDamagable {
 		ai?.update();
 
 		if (slideVel != 0) {
-			slideVel = Helpers.toZero(slideVel, Global.spf * 350, Math.Sign(slideVel));
-			move(new Point(slideVel, 0), true);
+			slideVel = Helpers.toZero(slideVel, speedMul * 0.1f, Math.Sign(slideVel));
+			moveXY(slideVel, 0);
 		}
 		base.update();
 
@@ -1435,7 +1413,7 @@ public partial class Character : Actor, IDamagable {
 				return true;
 			}
 			if (player.isCrouchHeld() && canCrouch() && charState is not Crouch) {
-				changeState(new Crouch());
+				changeState(getCrouchState());
 				return true;
 			}
 			if (player.input.isPressed(Control.Taunt, player)) {
@@ -1522,7 +1500,7 @@ public partial class Character : Actor, IDamagable {
 			Point moveSpeed = new Point();
 			if (canMove()) { moveSpeed.x = getDashOrRunSpeed() * xDpadDir; }
 			if (canTurn()) { xDir = xDpadDir; }
-			if (moveSpeed.magnitude > 0) { move(moveSpeed); }
+			if (moveSpeed.x != 0) { movePoint(moveSpeed); }
 		}
 	}
 
@@ -1611,30 +1589,11 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public bool canFreeze() {
-		return (
-			charState is not Die &&
-			!isStunImmune() &&
-			!charState.stunResistant &&
-			!charState.invincible &&
-			invulnTime == 0 &&
-			freezeInvulnTime <= 0 &&
-			!isInvulnerable() &&
-			!isVaccinated() &&
-			!isStatusImmune()
-		);
+		return (!isStunImmune() && freezeInvulnTime <= 0);
 	}
 
 	public void paralize(float timeToParalize = 120) {
-		if (!ownedByLocalPlayer ||
-			isInvulnerable() ||
-			isVaccinated() ||
-			isStatusImmune() ||
-			charState.invincible ||
-			charState.stunResistant ||
-			(charState is Die or VileMK2Grabbed) ||
-			isStunImmune() ||
-		 	stunInvulnTime > 0
-		) {
+		if (!ownedByLocalPlayer || isStunImmune() || stunInvulnTime > 0) {
 			return;
 		}
 		paralyzedMaxTime = timeToParalize;
@@ -1645,17 +1604,7 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public void crystalize(float timeToCrystalize = 120) {
-		if (!ownedByLocalPlayer ||
-			isInvulnerable() ||
-			isVaccinated() ||
-			isStatusImmune() ||
-			charState.invincible ||
-			charState.stunResistant ||
-			isCrystalized ||
-			(charState is Die) ||
-			isStunImmune() ||
-			crystalizeInvulnTime > 0
-		) {
+		if (!ownedByLocalPlayer || isStunImmune() || isCrystalized || crystalizeInvulnTime > 0) {
 			return;
 		}
 		vel.y = 0;
@@ -1690,33 +1639,37 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public virtual bool isDebuffImmune() {
-		return isStatusImmune() || isNonDamageStatusImmune();
+		return isStatusImmune() || isNonDamageStatusImmune() || isVaccinated();
 	}
 
 	public virtual bool isDotImmune() {
-		return isStatusImmune();
+		return isStatusImmune() || isVaccinated();
 	}
 
 	public virtual bool isSlowImmune() {
-		return isStatusImmune() || isNonDamageStatusImmune() || isPushImmune();
+		return isStatusImmune() || isNonDamageStatusImmune() || isPushImmune() || isVaccinated();
 	}
 
 	public virtual bool isStunImmune() {
 		return (
 			isStatusImmune() || isInvulnerable() || isNonDamageStatusImmune() ||
-			charState.invincible || charState.stunResistant
+			charState.invincible || charState.stunImmune || isVaccinated()
 		);
 	}
 
 	public virtual bool isFlinchImmune() {
 		return (
 			isStatusImmune() || isInvulnerable() || isNonDamageStatusImmune() ||
-			charState.superArmor || charState.invincible
+			charState.superArmor || charState.invincible ||
+			isVaccinated()
 		);
 	}
 
 	public virtual bool isPushImmune() {
-		return isTrueStatusImmune() || charState.immuneToWind == true || immuneToKnockback || isClimbingLadder();
+		return (
+			isTrueStatusImmune() || charState.pushImmune == true ||
+			immuneToKnockback || isClimbingLadder()
+		);
 	}
 
 	public virtual bool isTimeImmune() {
@@ -1724,11 +1677,15 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public virtual bool isGrabImmune() {
-		return isStatusImmune() || isInvulnerable() || charState.invincible || isNonDamageStatusImmune();
+		return (
+			isStatusImmune() || isInvulnerable() ||
+			charState.invincible || isNonDamageStatusImmune() ||
+			isDarkHoldState
+		);
 	}
 
 	public virtual bool isStatusImmune() {
-		return isTrueStatusImmune() || isVaccinated();
+		return isTrueStatusImmune();
 	}
 
 	public virtual bool isTrueStatusImmune() {
@@ -1741,6 +1698,36 @@ public partial class Character : Actor, IDamagable {
 
 	public virtual bool isToughGuyHyperMode() {
 		return false;
+	}
+
+	public virtual void clenaseDmgDebuffs() {
+		removeBurn();
+		removeAcid();
+		oilTime = 0;
+		parasiteTime = 0;
+		parasiteMashTime = 0;
+		parasiteDamager = null;
+	}
+
+	public virtual void clenaseAllDebuffs() {
+		// Remove all DOT.
+		removeBurn();
+		removeAcid();
+		// Remove debuffs.
+		oilTime = 0;
+		parasiteTime = 0;
+		parasiteMashTime = 0;
+		parasiteDamager = null;
+		// Remove slows.
+		igFreezeProgress = 0;
+		virusTime = 0;
+		slowdownTime = 0;
+		xFlinchPushVel = 0;
+		// Remove stuns & grabs.
+		if (charState is Hurt or GenericStun or VileMK2Grabbed or GenericGrabbedState) {
+			changeToIdleOrFall();
+			return;
+		}
 	}
 
 	// If factorHyperMode = true, then invuln frames in a hyper mode won't count as "invulnerable".
@@ -1791,8 +1778,7 @@ public partial class Character : Actor, IDamagable {
 
 	public bool canBeGrabbed() {
 		return (
-			grabInvulnTime == 0 && !charState.invincible &&
-			!isInvulnerable() && !isGrabImmune() && !isDarkHoldState
+			grabInvulnTime == 0 && !isGrabImmune()
 		);
 	}
 
@@ -2019,7 +2005,7 @@ public partial class Character : Actor, IDamagable {
 
 	public virtual void changeToCrouchOrFall() {
 		if (grounded) {
-			changeState(new Crouch(), true);
+			changeState(getCrouchState());
 		} else {
 			if (vel.y * gravityModifier < 0 && charState.canStopJump && !charState.stoppedJump) {
 				CharState jumpState = getJumpState();
@@ -2044,7 +2030,7 @@ public partial class Character : Actor, IDamagable {
 					stateFrames = wallSlide.stateFrames
 				}
 			),
-			Crouch when canCrouch() => new Crouch(),
+			Crouch when canCrouch() => getCrouchState(),
 			Run => getRunState(true),
 			_ => null
 		};
@@ -2719,9 +2705,13 @@ public partial class Character : Actor, IDamagable {
 
 	public virtual int getMaxHealth() {
 		if (Global.level.is1v1()) {
-			return Player.getModifiedHealth(28);
+			return MathInt.Ceiling(Player.getModifiedHealth(28) * Player.getHpMod());
 		}
-		return Player.getModifiedHealth(baselineMaxHealth() + (heartTanks * Player.getHeartTankModifier()));
+		return MathInt.Ceiling(
+			(Player.getModifiedHealth(baselineMaxHealth()) +
+				heartTanks * Player.getHeartTankModifier()
+			) * Player.getHpMod()
+		);
 	}
 
 	public virtual bool canBeHealed(int healerAlliance) {
@@ -3314,26 +3304,37 @@ public partial class Character : Actor, IDamagable {
 
 	// PARASITE SECTION
 	public void addParasite(Player attacker) {
-		if (!ownedByLocalPlayer) return;
-		if (charState.invincible || isInvulnerable()) return;
+		if (!ownedByLocalPlayer || isDebuffImmune() || isStunImmune()) {
+			return;
+		}
 		Damager damager = new Damager(attacker, 4, Global.defFlinch, 0);
 		parasiteTime = Global.spf;
 		parasiteDamager = damager;
-		parasiteAnim = new ParasiteAnim(getCenterPos(), "parasitebomb_latch_start", player.getNextActorNetId(), true, true);
+		parasiteAnim = new ParasiteAnim(
+			getCenterPos(), "parasitebomb_latch_start",
+			player.getNextActorNetId(), true, true
+		);
 	}
 
 	public void updateParasite() {
-		if (parasiteTime <= 0) return;
+		if (parasiteTime <= 0) {
+			return;
+		}
 		slowdownTime = Math.Max(slowdownTime, 0.05f);
 
-		if (!(charState is ParasiteCarry) && parasiteTime > 1.5f) {
+		if (charState is not ParasiteCarry && parasiteTime > 1.5f) {
 			foreach (var otherPlayer in Global.level.players) {
-				if (otherPlayer.character == null) continue;
-				if (otherPlayer == player) continue;
-				if (otherPlayer == parasiteDamager?.owner) continue;
-				if (otherPlayer.character.isInvulnerable()) continue;
-				if (Global.level.gameMode.isTeamMode && otherPlayer.alliance != player.alliance) continue;
-				if (otherPlayer.character.getCenterPos().distanceTo(getCenterPos()) > ParasiticBomb.carryRange) continue;
+				if (otherPlayer.character == null ||
+					otherPlayer == player ||
+					otherPlayer == parasiteDamager?.owner ||
+					otherPlayer.character.isDebuffImmune() ||
+					Global.level.gameMode.isTeamMode &&
+					otherPlayer.alliance != player.alliance ||
+					otherPlayer.character.getCenterPos().distanceTo(getCenterPos()) >
+					ParasiticBomb.carryRange
+				) {
+					continue;
+				}
 				Character target = otherPlayer.character;
 				changeState(new ParasiteCarry(target, true));
 				break;
@@ -3352,7 +3353,9 @@ public partial class Character : Actor, IDamagable {
 		if (mashValue > Global.spf) {
 			parasiteMashTime += mashValue;
 		}
-		if (parasiteMashTime > 5) {
+		if (isDebuffImmune() || isStunImmune()) {
+			removeParasite(true, false);
+		} else if (parasiteMashTime > 5) {
 			removeParasite(true, false);
 		} else if (parasiteTime > 2 && charState is not ParasiteCarry) {
 			removeParasite(false, false);
@@ -3657,10 +3660,10 @@ public partial class Character : Actor, IDamagable {
 		customData.Add(0);
 
 		// Always on values.
-		byte netHP = (byte)Math.Ceiling(health);
-		byte netMaxHP = (byte)Math.Ceiling(maxHealth);
+		ushort netHP = (ushort)Math.Ceiling(health);
+		ushort netMaxHP = (ushort)Math.Ceiling(maxHealth);
+		ushort netCurrency = (ushort)player.currency;
 		byte netAlliance = (byte)player.alliance;
-		byte netCurrency = (byte)player.currency;
 
 		// Bool variables. Packed in a single byte.
 		byte stateFlag = Helpers.boolArrayToByte([
@@ -3669,14 +3672,14 @@ public partial class Character : Actor, IDamagable {
 			invulnTime > 0,
 			isDarkHoldState,
 			isStrikeChainState,
-			charState.immuneToWind,
-			charState.stunResistant,
+			charState.pushImmune,
+			charState.stunImmune,
 		]);
 
-		customData.Add(netHP);
-		customData.Add(netMaxHP);
+		customData.AddRange(BitConverter.GetBytes(netHP));
+		customData.AddRange(BitConverter.GetBytes(netMaxHP));
+		customData.AddRange(BitConverter.GetBytes(netCurrency));
 		customData.Add(netAlliance);
-		customData.Add(netCurrency);
 		customData.Add(stateFlag);
 
 		// Bool mask. Pos 6.
@@ -3739,30 +3742,32 @@ public partial class Character : Actor, IDamagable {
 
 	public override void updateCustomActorNetData(byte[] data) {
 		// Always on values.
-		health = data[1];
-		maxHealth = data[2];
-		player.alliance = data[3];
-		currency = data[4];
+		health = BitConverter.ToUInt16(data[1..3]);
+		maxHealth = BitConverter.ToUInt16(data[3..5]);
+		currency = BitConverter.ToUInt16(data[4..6]);
+		player.alliance = data[6];
+;
 
 		// Bool variables.
-		bool[] boolData = Helpers.byteToBoolArray(data[5]);
+		bool[] boolData = Helpers.byteToBoolArray(data[7]);
 
 		alive = boolData[0];
 		player.isDefenderFavoredNonOwner = boolData[1];
 		invulnTime = boolData[2] ? 10 : 0;
 		isDarkHoldState = boolData[3];
 		isStrikeChainState = boolData[4];
-		charState.immuneToWind = boolData[5];
-		charState.stunResistant = boolData[6];
+		charState.pushImmune = boolData[5];
+		charState.stunImmune = boolData[6];
 
 		// Optional statuses.
-		bool[] boolMask = Helpers.byteToBoolArray(data[6]);
+		bool[] boolMask = Helpers.byteToBoolArray(data[8]);
 
 		// For crash reports.
-		//int netCharNum = data[7];
+		//int netCharNum = data[9];
 
-		// Set pointer to last.
-		int pos = 8;
+		// Set pointer.
+		int pos = 10;
+
 		// Update and increase pos as we go.
 		acidTime = 0;
 		if (boolMask[0]) {

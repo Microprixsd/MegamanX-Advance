@@ -152,6 +152,7 @@ public class MegamanX : Character {
 	public const float maxHyperChargeAnimTime = 12;
 	public Sprite hyperChargePartSprite = new Sprite("hypercharge_part_1");
 	public Sprite hyperChargePart2Sprite = new Sprite("charge_part_3");
+	public Anim aLaserTargetAnim;
 
 	// Creation code.
 	public MegamanX(
