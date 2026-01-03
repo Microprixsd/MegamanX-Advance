@@ -311,22 +311,7 @@ public class CustomMatchSettingsMenu : IMainMenu {
 				}
 			)
 		);
-			menuOptions2.Add(
-			new MenuOption(
-				startX2, currentY2 += lineH2,
-				() => {
-					Helpers.menuLeftRightBool(ref savedMatchSettings.customMatchSettings.assistable);
-				},
-				(Point pos, int index) => {
-					Fonts.drawText(
-						FontType.Blue,
-						"Unassistable List: " +
-						Helpers.boolYesNo(savedMatchSettings.customMatchSettings.assistable),
-						pos.x, pos.y, selected: selectArrowPosY2 == 4
-					);
-				}
-			)
-		);
+		
 			menuOptions2.Add(
 			new MenuOption(
 				startX2, currentY2 += lineH2,

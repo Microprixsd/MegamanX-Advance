@@ -11,7 +11,7 @@ public class KaiserSigmaBaseState : CharState {
 	public KaiserSigma kaiserSigma = null!;
 
 	public KaiserSigmaBaseState(string sprite) : base(sprite) {
-		immuneToWind = true;
+		pushImmune = true;
 	}
 
 	public override void update() {
@@ -237,7 +237,7 @@ public class KaiserSigmaTauntState : KaiserSigmaBaseState {
 
 public class KaiserSigmaHoverState : KaiserSigmaBaseState {
 	public KaiserSigmaHoverState() : base("hover") {
-		immuneToWind = true;
+		pushImmune = true;
 		showExhaust = true;
 		canShootBallistics = true;
 		useGravity = false;
@@ -350,7 +350,7 @@ public class KaiserSigmaVirusState : CharState {
 	public KaiserSigma kaiserSigma = null!;
 
 	public KaiserSigmaVirusState() : base("virus") {
-		immuneToWind = true;
+		pushImmune = true;
 	}
 
 	public void lerpBack(Point destPos, bool isRelocating) {
@@ -427,7 +427,7 @@ public class KaiserSigmaVirusState : CharState {
 		clampViralSigmaPos();
 
 		bool canSpawnAtPos = KaiserSigma.canKaiserSpawn(kaiserSigma, out var spawnPoint);
-		if (player.input.isPressed(Control.Shoot, player) || player.input.isPressed(Control.Jump, player)) {
+		if (player.input.isPressed(Control.Shoot, player) || player.input.isPressed(Control.Dash, player)) {
 			if (canSpawnAtPos) {
 				lerpBack(spawnPoint, true);
 				return;
@@ -493,7 +493,7 @@ public class KaiserSigmaBeamState : KaiserSigmaBaseState {
 	SoundWrapper? chargeSound;
 	SoundWrapper? beamSound;
 	public KaiserSigmaBeamState(bool isDown) : base(isDown ? "shoot" : "shoot2") {
-		immuneToWind = true;
+		pushImmune = true;
 		canShootBallistics = true;
 		this.isDown = isDown;
 	}
@@ -614,9 +614,9 @@ public class KaiserSigmaBeamProj : Projectile {
 				if (xDir == -1 && isUp) beamAngle = 225;
 				if (xDir == 1 && isUp) beamAngle = 315;
 			}
-			string poiName = isUp ? "laserU" :"laserD";
+			string poiName = isUp ? "laserU" : "laserD";
 			Point? shootPos = ownerActor.getFirstPOI(poiName);
-		
+
 			if (shootPos != null) {
 				changePos(shootPos.Value);
 			}
@@ -835,20 +835,20 @@ public class KaiserSigmaMineProj : Projectile, IDamagable {
 		if (!firstHit && type == 0) {
 			firstHit = true;
 			vel.x *= -1;
-			vel.y = -speed;
-			vel = vel.normalize().times(speed);
+			vel.y = -100;
+			vel = vel.normalize().times(100);
 			didHit = true;
 		} else if (other.isSideWallHit()) {
 			vel.x *= -1;
-			vel = vel.normalize().times(speed);
+			vel = vel.normalize().times(100);
 			didHit = true;
 		} else if (other.isCeilingHit() || other.isGroundHit()) {
 			vel.y *= -1;
-			vel = vel.normalize().times(speed);
+			vel = vel.normalize().times(100);
 			didHit = true;
 		}
 		if (didHit) {
-			//playSound("gbeetleProjBounce", sendRpc: true);
+			playSound("gbeetleProjBounce", sendRpc: true);
 			hitWallCooldown = 0.1f;
 		}
 	}

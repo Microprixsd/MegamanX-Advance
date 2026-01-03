@@ -614,30 +614,45 @@ public partial class Player {
 
 	public float getMaverickMaxHp(MaverickModeId controlMode) {
 		if (!Global.level.is1v1() && controlMode == MaverickModeId.TagTeam) {
-			return getModifiedHealth(20) + (heartTanks * getHeartTankModifier());
+			return MathF.Ceiling(
+				(getModifiedHealth(20) + heartTanks * getHeartTankModifier()) * getHpMod()
+			);
 		}
-		return MathF.Ceiling(getModifiedHealth(24));
+		return MathF.Ceiling(getModifiedHealth(24) * getHpMod());
 	}
 
 	public bool hasAllItems() {
 		return subtanks.Count >= UpgradeMenu.getMaxSubTanks() && heartTanks >= UpgradeMenu.getMaxHeartTanks();
 	}
 
-	public static float getBaseHealth() {
+	public static float getHpMod() {
 		if (Global.level.server.customMatchSettings != null) {
 			return Global.level.server.customMatchSettings.healthModifier;
+		}
+		return 1;
+	}
+
+	public static decimal getHpDMod() {
+		if (Global.level.server.customMatchSettings != null) {
+			return (decimal)Global.level.server.customMatchSettings.healthModifier;
+		}
+		return 1;
+	}
+
+	public static float getBaseHp() {
+		if (Global.level.server.customMatchSettings != null) {
+			return Global.level.server.customMatchSettings.baseHp;
 		}
 		return 16;
 	}
 
 	public static int getModifiedHealth(float health) {
 		if (Global.level.server.customMatchSettings != null) {
-			float retHp = getBaseHealth();
+			float retHp = getBaseHp();
 			float extraHP = health - 16;
 
-			//float hpMulitiplier = MathF.Ceiling(getBaseHealth() / 16);
-			//retHp += MathF.Ceiling(extraHP + hpMulitiplier);
-			retHp += MathF.Ceiling(extraHP);
+			float hpMulitiplier = getBaseHp() / 16;
+			retHp += MathF.Ceiling(extraHP * hpMulitiplier);
 
 			if (retHp < 1) {
 				retHp = 1;

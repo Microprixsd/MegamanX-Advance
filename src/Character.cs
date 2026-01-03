@@ -687,7 +687,7 @@ public partial class Character : Actor, IDamagable {
 		return Physics.WalkSpeed * getRunDebuffs();
 	}
 
-	public float getRunDebuffs() {
+	public virtual float getRunDebuffs() {
 		if (isSlowImmune()) {
 			return 1;
 		}
@@ -2936,7 +2936,7 @@ public partial class Character : Actor, IDamagable {
 				player.delaySubtank();
 				enterCombat();
 			}
-			if (actor is Projectile proj && proj.owningActor != null) {
+			if (actor is Projectile proj && proj.ownerActor != null) {
 
 			}
 			else if (player.character != null) {

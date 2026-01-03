@@ -1,4 +1,5 @@
 ﻿namespace MMXOnline;
+
 using SFML.Graphics;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ public class UpgradeArmorMenu : IMainMenu {
 
 		// Should not be able to reach here but preventing upgrades just in case
 
-		Helpers.menuUpDown(ref selectArrowPosY, 0, 4);
+		Helpers.menuUpDown(ref selectArrowPosY, 0, 3);
 
 		if (Global.input.isPressedMenu(Control.MenuLeft)) {
 			xGame--;
@@ -45,8 +46,8 @@ public class UpgradeArmorMenu : IMainMenu {
 			}
 		} else if (Global.input.isPressedMenu(Control.MenuRight)) {
 			xGame++;
-			if (xGame > 4) {
-				xGame = 4;
+			if (xGame > 3) {
+				xGame = 3;
 				if (!Global.level.server.disableHtSt) {
 					UpgradeMenu.onUpgradeMenu = true;
 					Menu.change(new UpgradeMenu(prevMenu));
@@ -61,11 +62,11 @@ public class UpgradeArmorMenu : IMainMenu {
 		}
 		// Enable this to disable 14.0 UAX Menu
 		if (mmx?.hasFullHyperMaxArmor == true) {
-		//	Menu.change(new UpgradeArmorMenuGolden(GoldenMenu));
+			//	Menu.change(new UpgradeArmorMenuGolden(GoldenMenu));
 			return;
 		}
 		if (mmx?.hasUltimateArmor == true) {
-		//	Menu.change(new UpgradeArmorMenuUAX(UAXMenu));
+			//	Menu.change(new UpgradeArmorMenuUAX(UAXMenu));
 			return;
 		}
 		if (Global.input.isPressedMenu(Control.MenuConfirm)) {
@@ -167,8 +168,7 @@ public class UpgradeArmorMenu : IMainMenu {
 				mmx.hyperArmActive = false;
 				mmx.hyperLegActive = false;
 				mmx.hyperHelmetActive = false;
-			}
-			else if (selectArrowPosY == 0) {
+			} else if (selectArrowPosY == 0) {
 				if (mainPlayer.helmetArmorNum == xGame) {
 					if (mainPlayer.hasAllX3Armor()) {
 						if (mmx != null) {
@@ -181,25 +181,22 @@ public class UpgradeArmorMenu : IMainMenu {
 						upgradeHelmetArmor(mainPlayer, 0);
 					}
 				}
-			}
-			else if (selectArrowPosY == 1) {
+			} else if (selectArrowPosY == 1) {
 				if (mainPlayer.bodyArmorNum == xGame) {
 					upgradeBodyArmor(mainPlayer, 0);
 				}
-			}
-			else if (selectArrowPosY == 2) {
+			} else if (selectArrowPosY == 2) {
 				if (mainPlayer.armArmorNum == xGame) {
 					upgradeArmArmor(mainPlayer, 0);
 				}
-			}
-			else if (selectArrowPosY == 3) {
+			} else if (selectArrowPosY == 3) {
 				if (mainPlayer.legArmorNum == xGame) {
 					upgradeBootsArmor(mainPlayer, 0);
 				}
 			}
 		}
 	}
-	
+
 	public static void clearAllHyperArmor(MegamanX mmx) {
 		mmx.hyperChestActive = false;
 		mmx.hyperArmActive = false;
@@ -284,7 +281,6 @@ public class UpgradeArmorMenu : IMainMenu {
 			1 => "Light Armor",
 			2 => "Giga Armor",
 			3 => "Max Armor",
-			4 => "Force Armor",
 			_ => "ERROR"
 		};
 		Fonts.drawText(
@@ -339,31 +335,27 @@ public class UpgradeArmorMenu : IMainMenu {
 		bool showChips = mainPlayer.hasAllX3Armor() && xGame == 3;
 
 		switch (xGame) {
-			case 1: case 2: case 3: case 4: Global.sprites["menu_xdefault"].drawToHUD(0, 300, 110); break;
+			case 1: case 2: case 3: Global.sprites["menu_xdefault"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.helmetArmorNum) {
 			case 1: Global.sprites["menu_xhelmet"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xhelmet2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xhelmet3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xhelmet4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.bodyArmorNum) {
 			case 1: Global.sprites["menu_xbody"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xbody2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xbody3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xbody4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.armArmorNum) {
 			case 1: Global.sprites["menu_xarm"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xarm2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xarm3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xarm4"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.legArmorNum) {
 			case 1: Global.sprites["menu_xboots"].drawToHUD(0, 300, 110); break;
 			case 2: Global.sprites["menu_xboots2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xboots3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xboots4"].drawToHUD(0, 300, 110); break;
 		}
 		Fonts.drawText(FontType.Yellow, "Head Parts", optionPos1.x, optionPos1.y, selected: selectArrowPosY == 0 && !showChips);
 		Fonts.drawText(FontType.Green, getHeadArmorMessage(), optionPos1.x + 60, optionPos1.y);
@@ -421,17 +413,7 @@ public class UpgradeArmorMenu : IMainMenu {
 					if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, 278, optionPos4.y + 6);
 				}
 				break;
-				case 4: //Force
-				Fonts.drawText(FontType.Blue, "Grants a headbutt attack on Jump.", optionPos1.x + 5, optionPos1.y + 10);
-				Fonts.drawText(FontType.Blue, "Can be combined with Upward Dash.", optionPos1.x + 5, optionPos1.y + 20);
-				Fonts.drawText(FontType.Blue, "Reduces Damage by 12.5%", optionPos2.x + 5, optionPos2.y + 10);
-				Fonts.drawText(FontType.Blue, "Reduces Flinch by 25.0%", optionPos2.x + 5, optionPos2.y + 20);
-				Fonts.drawText(FontType.Blue, "Powers up your Spiral Crush Buster", optionPos3.x + 5, optionPos3.y + 10);
-				Fonts.drawText(FontType.Blue, "by charging shots 50% Faster.", optionPos3.x + 5, optionPos3.y + 20);
-				Fonts.drawText(FontType.Blue, "Ground Dash 15% faster and longer.", optionPos4.x + 5, optionPos4.y + 10);
-				break;
-				
-		} 
+		}
 		//drawHyperArmorUpgrades(mainPlayer, 0);
 
 		Fonts.drawTextEX(
@@ -585,25 +567,25 @@ public class UpgradeArmorMenuUAX : IMainMenu {
 	public void render() {
 
 		DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
-		Fonts.drawText(FontType.Purple, "Ultimate Armor Active",Global.screenW * 0.5f, 20, Alignment.Center);
+		Fonts.drawText(FontType.Purple, "Ultimate Armor Active", Global.screenW * 0.5f, 20, Alignment.Center);
 		Global.sprites["menu_xultimatex2"].drawToHUD(0, Global.halfScreenW, 80);
-		Fonts.drawText(FontType.RedishOrange, "Uncompleted Powerful Armor",Global.halfScreenW-80, 140);
+		Fonts.drawText(FontType.RedishOrange, "Uncompleted Powerful Armor", Global.halfScreenW - 80, 140);
 		//Fonts.drawText(FontType.Red, "Grants Parts of All armors and Chips in the entire armor", Global.halfScreenW-170, optionPos3.y + 30);
-		Fonts.drawText(FontType.DarkPurple, "Enhances the Base Armor", Global.halfScreenW-70, 155);
-		Fonts.drawText(FontType.DarkPurple, "Grants Nova Strike, Hover and The Plasma Shot", Global.halfScreenW-136, 170);
+		Fonts.drawText(FontType.DarkPurple, "Enhances the Base Armor", Global.halfScreenW - 70, 155);
+		Fonts.drawText(FontType.DarkPurple, "Grants Nova Strike, Hover and The Plasma Shot", Global.halfScreenW - 136, 170);
 		Fonts.drawTextEX(
 			FontType.Grey, "[MLEFT]/[MRIGHT]: Change Menu",
-			Global.halfScreenW-70, 190
+			Global.halfScreenW - 70, 190
 		);
 		Fonts.drawTextEX(
 			FontType.Grey, "[BACK]: Back",
-			Global.halfScreenW-20, 200
+			Global.halfScreenW - 20, 200
 		);
 		if (mainPlayer.character is MegamanX mmx) {
-			if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW-6, 52, alpha: 0.85f);
-			if (mmx.hyperChestActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW+2, 70, alpha: 0.85f);
-			if (mmx.hyperHelmetActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW-20, 45, alpha: 0.85f);
-			if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW-22, 96, alpha: 0.85f);
+			if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW - 6, 52, alpha: 0.85f);
+			if (mmx.hyperChestActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW + 2, 70, alpha: 0.85f);
+			if (mmx.hyperHelmetActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW - 20, 45, alpha: 0.85f);
+			if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, Global.halfScreenW - 22, 96, alpha: 0.85f);
 		}
 	}
 }
@@ -645,21 +627,21 @@ public class UpgradeArmorMenuGolden : IMainMenu {
 	public void render() {
 
 		DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
-		Fonts.drawText(FontType.Pink, "Hyper Chip Active",Global.screenW * 0.5f, 20, Alignment.Center);
+		Fonts.drawText(FontType.Pink, "Hyper Chip Active", Global.screenW * 0.5f, 20, Alignment.Center);
 		Global.sprites["menu_x3"].drawToHUD(2, 295, 110);
-		if (Global.flFrameCount % 6 < 4) 
-			 Global.sprites["LightX3"].drawToHUD(10, 50, 130);
+		if (Global.flFrameCount % 6 < 4)
+			Global.sprites["LightX3"].drawToHUD(10, 50, 130);
 		else Global.sprites["LightX3"].drawToHUD(11, 50, 130);
 		DrawWrappers.DrawRect(
-				210, 100 , 80 , 40,
+				210, 100, 80, 40,
 				true, Helpers.MenuBgColor, 0, ZIndex.Default, false
 		);
-		Fonts.drawText(FontType.DarkBlue, "(RIGHT)",92, 46);
-		Fonts.drawText(FontType.DarkBlue, "Your battles should",90, 60);
-		Fonts.drawText(FontType.DarkBlue, "be easier now.",90, 70);
-		Fonts.drawText(FontType.DarkBlue, "Do your Best, X.",90, 80);
+		Fonts.drawText(FontType.DarkBlue, "(RIGHT)", 92, 46);
+		Fonts.drawText(FontType.DarkBlue, "Your battles should", 90, 60);
+		Fonts.drawText(FontType.DarkBlue, "be easier now.", 90, 70);
+		Fonts.drawText(FontType.DarkBlue, "Do your Best, X.", 90, 80);
 		if (Global.flFrameCount % 60 < 30)
-		Global.sprites["cursorchar"].drawToHUD(0, 94, 94);
+			Global.sprites["cursorchar"].drawToHUD(0, 94, 94);
 		Fonts.drawText(FontType.RedishOrange, "Enhances The Max Armor.", 30, 150);
 		Fonts.drawText(FontType.RedishOrange, "Grants the Z-Saber", 30, 160);
 		Fonts.drawText(FontType.RedishOrange, "and All the Chips.", 30, 170);
@@ -756,7 +738,7 @@ public class SNESArmorHandler : IMenuHandler {
 				if (player.armArmorsPurchased[0] == false)
 					player.currency += MegamanX.armArmorCost;
 			},
-			description = "Powers up your Spiral Crush Buster.\nby charging shots 50% Faster.",
+			description = "Powers up your Spiral Crush Buster\nby charging shots 50% Faster.",
 			price = MegamanX.armArmorCost.ToString(),
 		};
 		menu[(1, 4)] = new ArmorLoadoutSkill {
@@ -967,95 +949,6 @@ public class SNESArmorHandler : IMenuHandler {
 			price = MegamanX.bootsArmorCost.ToString(),
 		};
 		#endregion
-		#region Force
-		menu[(5, 1)] = new Skill {
-			name = "Helmet",
-			isUnlocked = player => player.helmetArmorNum == (int)ArmorId.Force,
-			canUnlock = player => player.helmetArmorNum != (int)ArmorId.Force && player.currency >= MegamanX.headArmorCost || player.headArmorsPurchased[0] == true,
-			canLock = player => player.helmetArmorNum == (int)ArmorId.Force,
-			unlock = (player) => {
-				//Kill me
-				setHelmet(player, (int)ArmorId.Force);
-				player.helmetArmorNum = (int)ArmorId.Force;
-				if (player.headArmorsPurchased[0] == false)
-					player.currency -= MegamanX.headArmorCost;
-				player.headArmorsPurchased[0] = true;
-			},
-			lockit = (player) => {
-				setHelmet(player, (int)ArmorId.None);
-				player.helmetArmorNum = (int)ArmorId.None;
-				if (player.headArmorsPurchased[0] == false)
-					player.currency += MegamanX.headArmorCost;
-			},
-			description = "Grants a headbutt attack on Jump.\nCan be combined with Upward Dash.",
-			price = MegamanX.headArmorCost.ToString(),
-		};
-		menu[(5, 2)] = new Skill {
-			name = "Body",
-			isUnlocked = player => player.bodyArmorNum == (int)ArmorId.Force,
-			canUnlock = player => player.bodyArmorNum != (int)ArmorId.Force && player.currency >= MegamanX.chestArmorCost || player.bodyArmorsPurchased[0] == true,
-			canLock = player => player.bodyArmorNum == (int)ArmorId.Force,
-			unlock = (player) => {
-				setBody(player, (int)ArmorId.Force);
-				player.removeGigaCrush();
-				player.bodyArmorNum = (int)ArmorId.Force;
-				if (player.bodyArmorsPurchased[0] == false)
-					player.currency -= MegamanX.chestArmorCost;
-				player.bodyArmorsPurchased[0] = true;
-			},
-			lockit = (player) => {
-				setBody(player, (int)ArmorId.None);
-				player.bodyArmorNum = (int)ArmorId.None;
-				if (player.bodyArmorsPurchased[0] == false)
-					player.currency += MegamanX.chestArmorCost;
-			},
-			description = "Reduces Damage by 12.5%\nReduces Flinch by 25.0%",
-			price = MegamanX.chestArmorCost.ToString(),
-		};
-		menu[(5, 3)] = new Skill {
-			name = "Arm",
-			isUnlocked = player => player.armArmorNum == (int)ArmorId.Force,
-			canUnlock = player => player.armArmorNum != (int)ArmorId.Force && player.currency >= MegamanX.armArmorCost || player.armArmorsPurchased[0] == true,
-			canLock = player => player.armArmorNum == (int)ArmorId.Force,
-			unlock = (player) => {
-				setArm(player, (int)ArmorId.Force);
-				player.removeHyperCharge();
-				player.armArmorNum = (int)ArmorId.Force;
-				if (player.armArmorsPurchased[0] == false)
-					player.currency -= MegamanX.armArmorCost;
-				player.armArmorsPurchased[0] = true;
-			},
-			lockit = (player) => {
-				setArm(player, (int)ArmorId.None);
-				player.armArmorNum = (int)ArmorId.None;
-				if (player.armArmorsPurchased[0] == false)
-					player.currency += MegamanX.armArmorCost;
-			},
-			description = "Powers up your Spiral Crush Buster.\nby charging shots 50% Faster.",
-			price = MegamanX.armArmorCost.ToString(),
-		};
-		menu[(5, 4)] = new Skill {
-			name = "Boots",
-			isUnlocked = player => player.legArmorNum == (int)ArmorId.Force,
-			canUnlock = player => player.legArmorNum != (int)ArmorId.Force && player.currency >= MegamanX.bootsArmorCost || player.bootsArmorsPurchased[0] == true,
-			canLock = player => player.legArmorNum == (int)ArmorId.Force,
-			unlock = (player) => {
-				setLegs(player, (int)ArmorId.Force);
-				player.legArmorNum = (int)ArmorId.Force;
-				if (player.bootsArmorsPurchased[0] == false)
-					player.currency -= MegamanX.bootsArmorCost;
-				player.bootsArmorsPurchased[0] = true;
-			},
-			lockit = (player) => {
-				setLegs(player, (int)ArmorId.None);
-				player.legArmorNum = (int)ArmorId.None;
-				if (player.bootsArmorsPurchased[0] == false)
-					player.currency += MegamanX.bootsArmorCost;
-			},
-			description = "Ground Dash 15% faster and longer.",
-			price = MegamanX.bootsArmorCost.ToString(),
-		};
-		#endregion
 		#region HyperChip
 		menu[(4, 1)] = new ArmorLoadoutSkill {
 			name = "Helmet",
@@ -1169,7 +1062,7 @@ public class SNESArmorHandler : IMenuHandler {
 	public void renderEquippedArmors(Player player) {
 		if (player.character is not MegamanX mmx) return;
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 4; i++) {
 			float xStartPos = 34;
 			float[] xPos = [xStartPos + 0, xStartPos + 20, xStartPos + 40, xStartPos + 60];
 			float yPos = 50 + (i * 20);
@@ -1231,32 +1124,22 @@ public class SNESArmorHandler : IMenuHandler {
 
 	public void renderCursor(int ud, int lr, AnimData cursor, uint ghw, uint ghh) {
 		Dictionary<(int, int), (float x, float y)> positions = new() {
-			//Primer Espacio
-			//Casco
-			{ (1, 1), (-150, -60)},
-			{ (1, 2), (-120, -60)},
-			{ (1, 3), (-90, -60)},
-			{ (1, 4), (-60, -60)},
-			//Segundo espacio
-			{(2, 1), (-150, -32)},
-			{(2, 2), (-120, -32)},
-			{(2, 3), (-90, -32)},
-			{(2, 4), (-60, -32)},
-			//Tercer Espacio
-			{(3, 1), (-150, -4)},
-			{(3, 2), (-120, -4)},
-			{(3, 3), (-90, -4)},
-			{(3, 4), (-60, -4)},
-			//Cuarto Espacio
-			{(4, 1), (-150, 13)},
-			{(4, 2), (-120, 13)},
-			{(4, 3), (-90, 13)},
-			{(4, 4), (-60, 13)},
-			//Quinto Espacio
-			{(5, 1), (-150, 30)},
-			{(5, 2), (-120, 30)},
-			{(5, 3), (-90, 30)},
-			{(5, 4), (-60, 30)},
+			{(1, 1), (-150, -50)},
+			{(1, 2), (-130, -50)},
+			{(1, 3), (-110, -50)},
+			{(1, 4), (-90, -50)},
+			{(2, 1), (-150, -30)},
+			{(2, 2), (-130, -30)},
+			{(2, 3), (-110, -30)},
+			{(2, 4), (-90, -30)},
+			{(3, 1), (-150, -10)},
+			{(3, 2), (-130, -10)},
+			{(3, 3), (-110, -10)},
+			{(3, 4), (-90, -10)},
+			{(4, 1), (-150, 10)},
+			{(4, 2), (-130, 10)},
+			{(4, 3), (-110, 10)},
+			{(4, 4), (-90, 10)},
 		};
 		if (positions.TryGetValue((ud, lr), out var pos))
 			cursor.drawToHUD(0, ghw + pos.x, ghh + pos.y);
@@ -1264,31 +1147,22 @@ public class SNESArmorHandler : IMenuHandler {
 	public void renderIcons(int frame, AnimData icon, uint ghw, uint ghh, float opacity) {
 		Dictionary<int, Point> iconsD = new()
 		{
-            //Light Icon
-			{ 0, new Point(-150, -60) },//Helmet
-			{ 1, new Point(-120, -60) }, //Body
-			{ 2, new Point(-90, -60) },//Arm
-			{ 3, new Point(-60, -60) },//Foot
-			//Gigga Icon
-			{ 4, new Point(-150, -32) },//Helmet
-			{ 5, new Point(-120, -32) },//Foot
-			{ 6, new Point(-90, -32) },//Arm
-			{ 7, new Point(-60, -32) },//Body
-			//Max Icon
-			{ 8, new Point(-150, -4) },//Helmet
-			{ 9, new Point(-120, -4) },//Body	
-			{ 10, new Point(-90, -4) },//Arm
-			{ 11, new Point(-60, -4) },//Foot
-			//Golden Icon
-			{ 12, new Point(-150, 13) },//Helmet
-			{ 13, new Point(-120, 13) },//Body
-			{ 14, new Point(-90, 13) },//Arm
-			{ 15, new Point(-60, 13) },//Foot
-			//Force Icon
-			{ 16, new Point(-150, 30) },//Helmet
-			{ 17, new Point(-120, 30) },//Body
-			{ 18, new Point(-90, 30) },//Arm
-			{ 19, new Point(-60, 30) },//Foot
+			{ 4, new Point(-150, -50) }, //Helmet
+			{ 7, new Point(-90, -50) }, //Foot
+			{ 6, new Point(-110, -50) }, //Arm
+			{ 5, new Point(-130, -50) }, //Body
+			{ 8, new Point(-150, -30) },   //Helmet
+			{ 9, new Point(-130, -30) }, //Body	
+			{ 10, new Point(-110, -30) },  //Arm
+			{ 11, new Point(-90, -30) },  //Foot
+			{ 12, new Point(-150, -10) }, //Helmet
+			{ 13, new Point(-130, -10) }, //Body
+			{ 14, new Point(-110, -10) }, //Arm
+			{ 15, new Point(-90, -10) }, //Foot
+			{ 0, new Point(-150, 10) }, //Helmet
+			{ 1, new Point(-130, 10) }, //Body
+			{ 2, new Point(-110, 10) }, //Arm
+			{ 3, new Point(-90, 10) }, //Foot
         };
 		foreach (var icons in iconsD) {
 			icon.drawToHUD(icons.Key, ghw + icons.Value.x, ghh + icons.Value.y, opacity);
@@ -1345,7 +1219,7 @@ public class UpgradeArmorMenuEX : IMainMenu {
 			switch (slot) {
 				case 1:
 					Helpers.menuLeftRightInc(ref snesLR, 1, 4, true, true);
-					Helpers.menuUpDown(ref snesUD, 1, 5, true, true);
+					Helpers.menuUpDown(ref snesUD, 1, 4, true, true);
 					snesArmorHandler.handleInput(mainP, snesUD, snesLR);
 					break;
 			}
@@ -1361,10 +1235,10 @@ public class UpgradeArmorMenuEX : IMainMenu {
 
 	public void render() {
 		DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
-		DrawWrappers.DrawRect(364, 30, 20, 180, true, new Color(0, 0, 0, 100), 1,
+		DrawWrappers.DrawRect(364, 40, 20, 180, true, new Color(0, 0, 0, 100), 1,
 		ZIndex.HUD, false, outlineColor: Color.White);
 		menu.drawToHUD(0, ghw, ghh, 0.5f);
-		Global.sprites["hud_killfeed_weapon"].drawToHUD(175, ghw+164, ghh+40, changeMenuTime/55);
+		Global.sprites["hud_killfeed_weapon"].drawToHUD(175, ghw + 164, ghh + 40, changeMenuTime / 55);
 		menuX();
 		DrawTextStuff();
 		LowerMenuText();
@@ -1373,7 +1247,7 @@ public class UpgradeArmorMenuEX : IMainMenu {
 			snesArmorHandler.renderCursor(snesUD, snesLR, cursor, ghw, ghh);
 			snesArmorHandler.renderDescription(mainP, snesUD, snesLR, ghw, ghh);
 			snesArmorHandler.renderNoPurchasedArmors(mainP);
-			snesArmorHandler.renderEquippedArmors(mainP);	
+			snesArmorHandler.renderEquippedArmors(mainP);
 		}
 		Fonts.drawText(FontType.Blue, "Metals: " + mainP.currency.ToString(), 361, 160, Alignment.Right);
 	}
@@ -1472,25 +1346,21 @@ public class UpgradeArmorMenuEX : IMainMenu {
 			case 1: Global.sprites["menu_xhelmet"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 2: Global.sprites["menu_xhelmet2"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 3: Global.sprites["menu_xhelmet3"].drawToHUD(0, ghw, ghh, 0.5f); break;
-			case 4: Global.sprites["menu_xhelmet4"].drawToHUD(0, ghw, ghh, 0.5f); break;
 		}
 		switch (mainP.bodyArmorNum) {
 			case 1: Global.sprites["menu_xbody"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 2: Global.sprites["menu_xbody2"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 3: Global.sprites["menu_xbody3"].drawToHUD(0, ghw, ghh, 0.5f); break;
-			case 4: Global.sprites["menu_xbody4"].drawToHUD(0, ghw, ghh, 0.5f); break;
 		}
 		switch (mainP.armArmorNum) {
 			case 1: Global.sprites["menu_xarm"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 2: Global.sprites["menu_xarm2"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 3: Global.sprites["menu_xarm3"].drawToHUD(0, ghw, ghh, 0.5f); break;
-			case 4: Global.sprites["menu_xarm4"].drawToHUD(0, ghw, ghh, 0.5f); break;
 		}
 		switch (mainP.legArmorNum) {
 			case 1: Global.sprites["menu_xboots"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 2: Global.sprites["menu_xboots2"].drawToHUD(0, ghw, ghh, 0.5f); break;
 			case 3: Global.sprites["menu_xboots3"].drawToHUD(0, ghw, ghh, 0.5f); break;
-			case 4: Global.sprites["menu_xboots4"].drawToHUD(0, ghw, ghh, 0.5f); break;
 		}
 	}
 

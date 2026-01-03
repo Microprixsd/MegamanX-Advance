@@ -246,7 +246,6 @@ public class Maverick : Actor, IDamagable {
 		aiBehavior = player.currentMaverickCommand;
 	}
 
-	float ammoRechargeTime;
 	public void rechargeAmmo(float amountPerSecond) {
 		float ammoRechargeCooldown = 1 / amountPerSecond;
 		ammoRechargeTime -= Global.spf;
@@ -257,7 +256,6 @@ public class Maverick : Actor, IDamagable {
 		}
 	}
 
-	float ammoDrainTime;
 	public void drainAmmo(float amountPerSecond) {
 		float ammoDrainCooldown = 1 / amountPerSecond;
 		ammoDrainTime -= Global.spf;

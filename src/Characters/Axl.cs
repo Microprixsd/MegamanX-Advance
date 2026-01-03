@@ -558,21 +558,6 @@ public class Axl : Character {
 		return base.normalCtrl();
 	}
 
-	public float getAimBackwardsAmount() {
-		Point bulletDir = getAxlBulletDir();
-
-		float forwardAngle = getShootXDir() == 1 ? 0 : 180;
-		float bulletAngle = bulletDir.angle;
-		if (bulletAngle > 180) bulletAngle = 360 - bulletAngle;
-
-		float dist = MathF.Abs(forwardAngle - bulletAngle);
-		dist = Helpers.clampMin0(dist - 90);
-		if (Global.level.server?.customMatchSettings?.axlBackwardsDebuff == false) {
-			dist = 0;
-		}
-		return Helpers.clamp01(dist / 90f);
-	}
-
 	public void updateAxlAim() {
 		if (Global.level.gameMode.isOver || isAnyZoom() || sniperMissileProj != null) {
 			resetToggle();

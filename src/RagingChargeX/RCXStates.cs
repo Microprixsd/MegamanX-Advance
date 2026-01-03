@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using SFML.Graphics;
@@ -75,8 +75,8 @@ public class XUPParryStartState : CharState {
 		}
 
 		if (damagingActor is Projectile proj) {
-			if (proj.owningActor != null) {
-				counterAttackTarget = proj.owningActor;
+			if (proj.ownerActor != null) {
+				counterAttackTarget = proj.ownerActor;
 			}
 			if (!proj.isMelee && proj.shouldVortexSuck) {
 				absorbedProj = proj;

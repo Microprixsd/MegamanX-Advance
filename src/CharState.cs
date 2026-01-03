@@ -36,9 +36,11 @@ public class CharState {
 	public bool useGravity = true;
 
 	public bool invincible;
-	public bool stunResistant;
+	public bool stunImmune;
 	public bool superArmor;
-	public bool immuneToWind;
+	public bool pushImmune;
+	public bool slowImmune;
+	public bool statusEffectImmune;
 	public int accuracy;
 	public bool isGrabbedState;
 
