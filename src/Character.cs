@@ -2811,7 +2811,7 @@ public partial class Character : Actor, IDamagable {
 		// Add hypercharge ammo.
 		if (giveHyperchargeAmmo){
 			// Give 15% if damaged.
-			player.hyperchargeAmmo += fDamage * 0.15;
+			player.hyperchargeAmmo += fDamage * 0.15f;
 			// Give 20% to enemy.
 			if (ownedByLocalPlayer && attacker != null && attacker != player) {
 				float ammoToAdd = fDamage * 0.20f;

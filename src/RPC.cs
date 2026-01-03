@@ -2247,7 +2247,7 @@ public class RPCGiveHyperchargeAmmo : RPC {
 		player.hyperchargeAmmo +- ammo;
     }
 
-    public void sendRpc(float ammo) {
+    public void sendRpc(Player player, float ammo) {
         List<byte> data = [];
 		data.Add((byte)player.id);
 		data.Add(BitConverter.GetBytes(ammo));
