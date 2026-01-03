@@ -503,3 +503,33 @@ public class BusterPlasmaHitProj : Projectile {
 		);
 	}
 }
+public class SpiralBackProj : Projectile {
+	public SpiralBackProj (
+		Point pos, int xDir, Actor owner, ushort? netId,
+		bool sendRpc = false, Player? altPlayer = null
+	) : base (
+		pos, xDir, owner, "buster4_muzzle_flash", netId, altPlayer
+	) {
+		maxTime = 0.5f;
+		projId = (int)ProjIds.Buster4_Spiral;
+
+		damager.damage = 2;
+		damager.flinch = Global.halfFlinch;
+		damager.hitCooldown = 15;
+		destroyOnHit = false;
+		reflectable = false;
+
+		if (sendRpc) {
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+		}
+
+		projId = (int)ProjIds.Buster4;
+
+	}
+	public override void update() {
+		base.update();
+		if (isAnimOver()) {
+			destroySelf();
+		}
+	}
+}
