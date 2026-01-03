@@ -2803,12 +2803,23 @@ public partial class Character : Actor, IDamagable {
 			originalDamage == (decimal)Damager.envKillDamage
 		) {
 			isArmorPiercing = true;
+			// If not instakill, disable hypercharge ammo grant.
 			if (originalDamage != (decimal)Damager.ohkoDamage){
 				giveHyperchargeAmmo = false;
 			}
 		}
+		// Add hypercharge ammo.
 		if (giveHyperchargeAmmo){
-			player.hyperchargeAmmo += ammo * 0.15;
+			// Give 15% if damaged.
+			player.hyperchargeAmmo += fDamage * 0.15;
+			// Give 20% to enemy.
+			if (ownedByLocalPlayer && attacker != null && attacker != player) {
+				float ammoToAdd = fDamage * 0.20f;
+				if (attacker.ownedByLocalPlayer) {
+					attacker.hyperchargeAmmo += ammoToAdd;
+				}
+				RPC.giveHyperchargeAmmo.sendRpc(attacker, ammoToAdd);
+			}
 		}
 
 		if (projId == (int)ProjIds.CrystalHunterDash &&
