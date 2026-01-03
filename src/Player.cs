@@ -461,6 +461,7 @@ public partial class Player {
 	public int lastMashAmountSetFrame;
 	public SoulBodyClone sClone;
 
+	public float hyperchargeAmmo;
 	public bool is1v1MaverickX1() {
 		return maverick1v1 <= 8;
 	}

@@ -2796,12 +2796,19 @@ public partial class Character : Actor, IDamagable {
 		}
 		// Get armor penetration flag.
 		bool isArmorPiercing = Damager.isArmorPiercing(projId);
+		bool giveHyperchargeAmmo = true;
 		// Instakills and hits while dead also ignore armor.
 		if (originalDamage == (decimal)Damager.forceKillDamage ||
 			originalDamage == (decimal)Damager.ohkoDamage ||
 			originalDamage == (decimal)Damager.envKillDamage
 		) {
 			isArmorPiercing = true;
+			if (originalDamage != (decimal)Damager.ohkoDamage){
+				giveHyperchargeAmmo = false;
+			}
+		}
+		if (giveHyperchargeAmmo){
+			player.hyperchargeAmmo += ammo * 0.15;
 		}
 
 		if (projId == (int)ProjIds.CrystalHunterDash &&

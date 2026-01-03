@@ -99,7 +99,7 @@ public class RPC {
 	public static RpcDeflect deflect = new();
 	public static RpcUpdateMaxTime updateMaxTime = new();
 	public static RpcReviveSigma reviveSigma = new();
-
+	public static RPCGiveHyperchargeAmmo giveHyperchargeAmmo = new();
 	public static RPC[] templates = {
 		// Strings.
 		sendString,
@@ -179,6 +179,7 @@ public class RPC {
 		syncPossessInput,
 		feedWheelGator,
 		healDoppler,
+		giveHyperchargeAmmo,
 		// Custom generic RCP.
 		custom,
 	};
@@ -2231,7 +2232,29 @@ public class RPCResetFlag : RPC {
 		Global.serverClient?.rpc(RPC.resetFlags);
 	}
 }
+public class RPCGiveHyperchargeAmmo : RPC {
+    public RPCGiveHyperchargeAmmo() {
+        netDeliveryMethod = NetDeliveryMethod.ReliableOrdered;
+    }
 
+    public override void invoke(params byte[] args) {
+        Player? player = Global.level.getPlayerById(args[0]);
+		if (player == null) {
+			return;
+		}
+
+		float ammo = BitConverter.ToSingle(data[1..5]);
+		player.hyperchargeAmmo +- ammo;
+    }
+
+    public void sendRpc(float ammo) {
+        List<byte> data = [];
+		data.Add((byte)player.id);
+		data.Add(BitConverter.GetBytes(ammo));
+
+		Global.serverClient?.rpc(RPC.giveHyperchargeAmmo, data.ToArray());
+    }
+}
 public class PendingRPC {
 	public RPC rpc;
 	public byte[] bytes = [];
