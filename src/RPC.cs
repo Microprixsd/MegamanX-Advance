@@ -2243,14 +2243,14 @@ public class RPCGiveHyperchargeAmmo : RPC {
 			return;
 		}
 
-		float ammo = BitConverter.ToSingle(data[1..5]);
-		player.hyperchargeAmmo +- ammo;
+		float ammo = BitConverter.ToSingle(args.AsSpan()[1..5]);
+		player.hyperchargeAmmo += ammo;
     }
 
     public void sendRpc(Player player, float ammo) {
         List<byte> data = [];
 		data.Add((byte)player.id);
-		data.Add(BitConverter.GetBytes(ammo));
+		data.AddRange(BitConverter.GetBytes(ammo));
 
 		Global.serverClient?.rpc(RPC.giveHyperchargeAmmo, data.ToArray());
     }
