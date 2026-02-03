@@ -63,7 +63,8 @@ public class FrostShield : Weapon {
 	}
 }
 
-public class FrostShieldProj : Projectile {
+public class FrostShieldProj : Projectile, IDamagable{
+	float health = 4;
 	int state = 0;
 	float stateTime;
 	public Anim exhaust;
@@ -81,7 +82,7 @@ public class FrostShieldProj : Projectile {
 		destroyOnHit = true;
 		exhaust = new Anim(pos, "frostshield_exhaust", xDir, null, false);
 		if (Global.level.server?.customMatchSettings?.frostShieldNerf == false) {
-			isShield = true;
+			isShield = false;
 		}
 
 		if (rpc) {
@@ -129,6 +130,34 @@ public class FrostShieldProj : Projectile {
 		base.onDestroy();
 		exhaust?.destroySelf();
 		shatter();
+	}
+	public void applyDamage(float damage, Player? owner, Actor? actor, int? weaponIndex, int? projId) {
+		health -= damage;
+		if (health <= 0) {
+			destroySelf();
+		}
+	}
+
+	public bool canBeDamaged(int damagerAlliance, int? damagerPlayerId, int? projId) {
+		return damagerAlliance != owner.alliance;
+	}
+
+	public bool canBeHealed(int healerAlliance) {
+		return false;
+	}
+
+	public void heal(Player healer, float healAmount, bool allowStacking = true, bool drawHealText = false) {
+	}
+
+	public bool isInvincible(Player attacker, int? projId) {
+		if (projId == null) {
+			return true;
+		}
+		return !Damager.canDamageFrostShield(projId.Value);
+	}
+
+	public bool isPlayableDamagable() {
+		return false;
 	}
 }
 
@@ -188,7 +217,7 @@ public class FrostShieldProjGround : Projectile, IDamagable {
 		projId = (int)ProjIds.FrostShieldGround;
 		destroyOnHit = true;
 		if (Global.level.server?.customMatchSettings?.frostShieldNerf == false) {
-			isShield = true;
+			isShield = false;
 		}
 		playSound("frostShield");
 		if (rpc) {

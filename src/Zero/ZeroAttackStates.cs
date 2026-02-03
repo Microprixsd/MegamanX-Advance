@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace MMXOnline;
 
@@ -70,7 +70,7 @@ public class ZeroSlash2State : ZeroGenericMeleeState {
 	public ZeroSlash2State() : base("attack2") {
 		sound = "saber2";
 		soundFrame = 1;
-		comboFrame = 3;
+		comboFrame = 5;
 	}
 
 	public override bool altCtrlUpdate(bool[] ctrls) {

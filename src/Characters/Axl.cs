@@ -349,7 +349,7 @@ public class Axl : Character {
 		}
 
 		//Reload Axl Bullets
-		if (isAxlBulletsType)  axlWeapon?.rechargeAxlBulletAmmo(player, this, shootHeld, 1);
+		if (isAxlBulletsType)  axlWeapon?.rechargeAxlBulletAmmo(player, this, shootHeld, 4);
         //customSettingReloadWeapon();
 
 		Helpers.decrementFrames(ref dodgeRollCooldown);
@@ -518,11 +518,11 @@ public class Axl : Character {
 			changeState(new Hover(), true);
 			return true;
 		}
-		if (dodgeRollCooldown == 0 && player.canControl && grounded) {
-			if (charState is Crouch && player.input.isPressed(Control.Dash, player)) {
+		if (dodgeRollCooldown == 0) {
+			if (charState is Crouch && dashPressed) {
 				changeState(new DodgeRoll(), true);
 				return true;
-			} else if (player.input.isPressed(Control.Dash, player) && player.input.checkDoubleTap(Control.Dash)) {
+			} else if (dashPressed && player.input.checkDoubleTap(Control.Dash)) {
 				changeState(new DodgeRoll(), true);
 				return true;
 			}
@@ -1453,28 +1453,17 @@ public class Axl : Character {
 	}
 
 	public override bool canChangeWeapons() {
-		if (gaeaShield != null) return false;
+		//if (gaeaShield != null) return false;
 		if (sniperMissileProj != null) return false;
 		if (revTime > 0.5f) return false;
 
 		return base.canChangeWeapons();
 	}
 
-	public override float getRunSpeed() {
-		float runSpeed = 90;
-		if (shootTime > 0) {
-			runSpeed = 90 - getAimBackwardsAmount() * 25;
-		}
-		return runSpeed * getRunDebuffs();
-	}
-
 	public override float getDashSpeed() {
-		float dashSpeed = 3.45f * 60f;;
+		float dashSpeed = 3.45f;
 		if (axlWeapon != null && axlWeapon.isTwoHanded(false)) {
 			dashSpeed *= 0.875f;
-		}
-		if (shootTime > 0) {
-			dashSpeed = dashSpeed - getAimBackwardsAmount() * 50;
 		}
 		return dashSpeed * getRunDebuffs();
 	}
@@ -1863,7 +1852,7 @@ public class Axl : Character {
 		netAxlArmSpriteIndex = BitConverter.ToUInt16(data[5..7]);
 	}
 	public override void aiAttack(Actor? target) {
-		if (axlHyperMode == 0 && player.currency >= 10 && !player.isDead && !isInvulnerable() 
+		if (whiteAxlLoadout && player.currency >= 10 && !player.isDead && !isInvulnerable() 
 			&& !(isWhiteAxl() || isStealthMode()) && charState.attackCtrl) {
 			changeState(new HyperAxlStart(grounded), true);
 		}
@@ -1885,9 +1874,10 @@ public class Axl : Character {
 		}
 		base.aiAttack(target);
 	}
+
 	public override void aiDodge(Actor? target) {
 		foreach (GameObject gameObject in getCloseActors(32, true, false, false)) {
-			if (gameObject is Projectile proj && proj.damager.owner.alliance != player?.alliance) {
+			if (gameObject is Projectile proj && proj.damager.owner.alliance != player.alliance) {
 				if (grounded && canDash() && charState is not DodgeRoll && dodgeRollCooldown <= 0 && charState.normalCtrl) {
 					changeState(new DodgeRoll());
 					dodgeRollCooldown = maxDodgeRollCooldown;

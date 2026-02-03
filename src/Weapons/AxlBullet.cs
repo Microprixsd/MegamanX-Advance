@@ -27,17 +27,21 @@ public class AxlBullet : AxlWeapon {
 		displayName = "Axl Bullets";
 		canHealAmmo = true;
 		isAxlBullets = true;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 	public override float getAmmoUsage(int chargeLevel) {
 		switch (chargeLevel) {
 			case 1:
-				return 4;
+				return 2;
 			case 2:
-				return 6;
+				return 3;
 			case >= 3:
-				return 8;
+				return 4;
 			default:
-				return 1;
+				return 0.5f;
 		}
 	}
 	public override void axlShoot(Character character, int[] args) {

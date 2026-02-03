@@ -142,7 +142,7 @@ public class RollingShieldProjCharged : Projectile {
 	) {
 		weapon = RollingShield.netWeapon;
 		damager.damage = 1;
-		damager.hitCooldown = 20;
+		damager.hitCooldown = 45;
 		vel = new Point(0 * xDir, 0);
 		projId = (int)ProjIds.RollingShieldCharged;
 		fadeSprite = "rolling_shield_charge_break";
@@ -206,7 +206,7 @@ public class RollingShieldProjCharged : Projectile {
 	public void decAmmo(float amount = 1) {
 		if (mmx?.currentWeapon is RollingShield && ammoDecCooldown == 0) {
 			ammoDecCooldown = damager.hitCooldown;
-			mmx?.currentWeapon?.addAmmo(-amount / 4, damager.owner);
+			mmx?.currentWeapon?.addAmmo(-amount / 3, damager.owner);
 		}
 	}
 

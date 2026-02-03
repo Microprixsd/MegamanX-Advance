@@ -50,7 +50,6 @@ public class XLoadoutSetup {
 			}
 			if (enableX4Weapons) {
 				weapons.Add(new LightningWeb());
-				weapons.Add(new TwinSlasher());
 				weapons.Add(new SoulBody());
 	            weapons.Add(new GroundHunter());
 	            weapons.Add(new DoubleCyclone());

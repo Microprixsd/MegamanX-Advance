@@ -9,7 +9,7 @@ public class TriadThunder : Weapon {
 	public TriadThunder() : base() {
 		displayName = "Triad Thunder";
 		shootSounds = new string[] { "triadThunder", "triadThunder", "triadThunder", "" };
-		fireRate = 135;
+		fireRate = 120;
 		switchCooldown = 30;
 		index = (int)WeaponIds.TriadThunder;
 		weaponBarBaseIndex = 19;

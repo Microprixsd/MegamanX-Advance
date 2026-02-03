@@ -79,7 +79,7 @@ public class GigaCrushProj : Projectile {
 				damager.applyDamage(damagable, false, weapon, this, projId);
 			}
 		}
-		radius += Global.spf * 400;
+		radius += Global.spf * 800;
 
 		if (!pilarCreated && time > maxActiveTime - 0.2) {
 			new GigaCrushPilar(pos, ZIndex.Character + 10);

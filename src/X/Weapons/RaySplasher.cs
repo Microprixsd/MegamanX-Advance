@@ -11,8 +11,7 @@ public class RaySplasher : Weapon {
 	public RaySplasher() : base() {
 		displayName = "Ray Splasher";
 		shootSounds = ["raySplasher", "raySplasher", "raySplasher", "warpIn"];
-		fireRate = 80;
-		switchCooldown = 15;
+		fireRate = 81;
 		index = (int)WeaponIds.RaySplasher;
 		weaponBarBaseIndex = 21;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -20,32 +19,20 @@ public class RaySplasher : Weapon {
 		killFeedIndex = 44;
 		weaknessIndex = (int)WeaponIds.SpinningBlade;
 		damage = "1/1";
-		effect = "Charged: Grants Super Armor.";
+		effect = "C:Grants Flinch Immunity.";
 		hitcooldown = "5";
 		hasCustomChargeAnim = true;
-
-		ammoDisplayScale = 1;
-		maxAmmo = 16;
-		ammo = maxAmmo;
-	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
+		if (chargeLevel < 3) {
 			mmx.shootingRaySplasher = this;
 		} else {
-			if (ammo >= 6) {
-				if (character.ownedByLocalPlayer) {
-					character.changeState(new RaySplasherChargedState(), true);
-				}
+			if (character.ownedByLocalPlayer) {
+				character.changeState(new RaySplasherChargedState(), true);
 			}
 		}
 	}
@@ -55,8 +42,12 @@ public class RaySplasher : Weapon {
 			if (mmx.shootingRaySplasher != null) {
 				mmx.raySplasherCooldown += Global.speedMul;
 				if (mmx.raySplasherCooldown > 1) {
+					//Stop when invincible
+					if (mmx.charState.invincible) return;
+					if (mmx.invulnTime > 0) return;
+					if (!mmx.charState.attackCtrl) return;
 					if (mmx.raySplasherCooldown >= 4) {
-						addAmmo(-0.05f, mmx.player);
+						addAmmo(-0.15f, mmx.player);
 						mmx.raySplasherCooldown = 1;
 						new RaySplasherProj(
 							mmx.getShootPos(), mmx.getShootXDir(), mmx.raySplasherFrameIndex % 3,
@@ -68,7 +59,7 @@ public class RaySplasher : Weapon {
 					mmx.shootAnimTime = 10;
 					mmx.raySplasherCooldown2 += Global.speedMul;
 				}
-				if (mmx.raySplasherCooldown2 >= 76) {
+				if (mmx.raySplasherCooldown2 >= 66) {
 					mmx.shootingRaySplasher = null;
 					mmx.raySplasherCooldown2 = 0;
 				}
@@ -386,8 +377,6 @@ public class RaySplasherChargedState : CharState {
 	bool fired = false;
 	public RaySplasherChargedState() : base("point_up") {
 		superArmor = true;
-		landSprite = "point_up";
-		airSprite = "point_up_air";
 		useDashJumpSpeed = true;
 	}
 
@@ -414,13 +403,17 @@ public class RaySplasherChargedState : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		character.useGravity = false;
 		character.vel = new Point();
-		mmx = character as MegamanX ?? throw new NullReferenceException();
-		if (!character.grounded) {
-			sprite = airSprite;
-			character.changeSpriteFromName(sprite, true);
+		character.useGravity = false;
+		
+		bool air = !character.grounded || character.vel.y < 0;
+		defaultSprite = sprite;
+		landSprite = "point_up";
+		if (air) {
+			sprite = "point_up_air";
+			defaultSprite = sprite;
 		}
+		character.changeSpriteFromName(sprite, true);
 	}
 
 	public override void onExit(CharState? newState) {

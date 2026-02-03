@@ -342,7 +342,7 @@ public class Buster4Proj : Projectile {
 
 	) {
 		weapon = XBuster.netWeapon;
-		damager.damage = 4;
+		damager.damage = 3;
 		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 60;
 		fadeSprite = "buster4_fade";
@@ -513,8 +513,8 @@ public class SpiralBackProj : Projectile {
 		maxTime = 0.5f;
 		projId = (int)ProjIds.Buster4_Spiral;
 
-		damager.damage = 2;
-		damager.flinch = Global.halfFlinch;
+		damager.damage = 3;
+		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 15;
 		destroyOnHit = false;
 		reflectable = false;

@@ -72,32 +72,44 @@ public class Vile : Character {
 		hasSpeedDevil = player.speedDevil;
 	}
 
-	public Sprite? getCannonSprite(out Point poiPos, out int zIndexDir) {
-		poiPos = getNullableShootPos() ?? getCenterPos();
-		zIndexDir = 0;
-
+	public (Sprite? spr, Point drawPos, Point shootPos) getCannonSprite() {
 		string vilePrefix = "vile_";
-		if (isVileMK2) vilePrefix = "vilemk2_";
-		if (isVileMK5) vilePrefix = "vilemk5_";
+		if (isVileMK2) { vilePrefix = "vilemk2_"; }
+		if (isVileMK5) { vilePrefix = "vilemk5_"; }
 		string cannonSprite = vilePrefix + "cannon";
+
 		for (int i = 0; i < currentFrame.POIs.Length; i++) {
-			var poi = currentFrame.POIs[i];
-			var tag = currentFrame.POITags[i] ?? "";
-			zIndexDir = tag.EndsWith("b") ? -1 : 1;
-			int? frameIndexToDraw = null;
-			if (tag.StartsWith("cannon1") && cannonAimNum == 0) frameIndexToDraw = 0;
-			if (tag.StartsWith("cannon2") && cannonAimNum == 1) frameIndexToDraw = 1;
-			if (tag.StartsWith("cannon3") && cannonAimNum == 2) frameIndexToDraw = 2;
-			if (tag.StartsWith("cannon4") && cannonAimNum == 3) frameIndexToDraw = 3;
-			if (tag.StartsWith("cannon5") && cannonAimNum == 4) frameIndexToDraw = 4;
-			if (frameIndexToDraw != null) {
-				Sprite? retSprite = new Sprite(cannonSprite);
-				Point? altPOI = retSprite.animData.frames.ElementAtOrDefault(cannonAimNum)?.POIs?.FirstOrDefault();
-				poiPos = altPOI ?? new Point(pos.x + (poi.x * getShootXDirSynced()), pos.y + poi.y);
-				return retSprite;
+			string tag = currentFrame.POITags[i] ?? "";
+			if (tag == "") {
+				continue;
 			}
+			int frameIndexToDraw = tag.ToLower() switch {
+				"cannon1" or "cannon1b" => 0,
+				"cannon2" or "cannon2b" => 1,
+				"cannon3" or "cannon3b" => 2,
+				"cannon4" or "cannon4b" => 3,
+				"cannon5" or "cannon5b" => 4,
+				"cannon" => cannonAimNum,
+				_ => -1
+			};
+			if (frameIndexToDraw != cannonAimNum) {
+				continue;
+			}
+			Point poi = currentFrame.POIs[i];
+			Sprite retSprite = new Sprite(cannonSprite);
+			int dir = getShootXDirSynced();
+			Point altPOI = (
+				retSprite.animData.frames.ElementAtOrDefault(cannonAimNum)?.POIs?.FirstOrDefault() ??
+				Point.zero
+			);
+			altPOI.x *= dir;
+
+			Point drawPos = new Point(poi.x * dir + pos.x, poi.y + pos.y);
+			Point shootPos = drawPos + altPOI;
+
+			return (retSprite, drawPos, shootPos);
 		}
-		return null;
+		return (null, pos, getCenterPos());
 	}
 
 	public Point setCannonAim(Point shootDir) {
@@ -110,8 +122,7 @@ public class Vile : Character {
 		else if (ratio <= 0.25f && ratio > -0.25f) cannonAimNum = 0;
 		else cannonAimNum = 4;
 
-		getCannonSprite(out Point poiPos, out _);
-		return poiPos;
+		return getCannonSprite().shootPos;
 	}
 
 	public override void preUpdate() {
@@ -171,16 +182,19 @@ public class Vile : Character {
 		// GMTODO: Consider a better way here instead of a hard-coded deny list
 		// Gacel: Done, now it uses attackCtrl
 		if (!charState.attackCtrl || charState is VileMK2GrabState) {
-			return;
+			chargeLogic(null);
+		} else {
+			chargeLogic(shoot);
 		}
-		chargeLogic(shoot);
 	}
+
 	public override bool attackCtrl() {
 		if (dashGrabSpecial()) {
 			return true;
 		}
 		return weaponSystem.shootLogic(this);
 	}
+
 	public bool dashGrabSpecial() {
 		if (!player.input.isHeld(Control.Special1, player)) {
 			return false;
@@ -189,6 +203,7 @@ public class Vile : Character {
 			charState is Dash or AirDash { stop: false }
 		) {
 			charState.isGrabbing = true;
+			charState.superArmor = true; //peakbalance
 			changeSpriteFromName("dash_grab", true);
 			return true;
 		}
@@ -675,10 +690,10 @@ public class Vile : Character {
 			removeRenderEffect(RenderEffectType.SpeedDevilTrail);
 		}
 		if (currentFrame.POIs.Length > 0) {
-			Sprite? cannonSprite = getCannonSprite(out Point poiPos, out int zIndexDir);
+			(Sprite? cannonSprite, Point drawPos, _) = getCannonSprite();
 			cannonSprite?.draw(
-				cannonAimNum, poiPos.x, poiPos.y, getShootXDirSynced(),
-				1, getRenderEffectSet(), alpha, 1, 1, zIndex + zIndexDir,
+				cannonAimNum, drawPos.x, drawPos.y, getShootXDirSynced(),
+				1, getRenderEffectSet(), alpha, 1, 1, zIndex + 1,
 				getShaders(), actor: this
 			);
 		}
@@ -741,12 +756,10 @@ public class Vile : Character {
 	}
 
 	public override float getDashSpeed() {
-		float dashSpeed = 3.45f * 60f;
-
+		float dashSpeed = 3.45f;
 		if (hasSpeedDevil) {
 			dashSpeed *= 1.1f;
 		}
-	
 		return dashSpeed * getRunDebuffs();
 	}
 

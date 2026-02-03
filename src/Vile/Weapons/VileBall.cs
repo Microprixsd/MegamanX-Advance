@@ -457,7 +457,7 @@ public class VileBall : Weapon {
 			damage = "3";
 			hitcooldown = "0.5";
 			flinch = "6";
-			effect = "Splits,no destroy on hit.";
+			effect = "Splits on ground.";
 		}
 	}
 
@@ -498,6 +498,8 @@ public class AirBombAttack : VileState {
 		"air_bomb_attack", "", "", transitionSprite
 	) {
 		useDashJumpSpeed = true;
+		useGravity = false;
+		exitOnLanding = true;
 	}
 
 	public override void update() {
@@ -571,8 +573,6 @@ public class AirBombAttack : VileState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		character.useGravity = false;
-		character.vel = new Point();
 	}
 
 	public override void onExit(CharState? newState) {
@@ -594,17 +594,17 @@ public class AirBombNapalm : NapalmAttackTypes {
 			vile.setVileShootTime(vile.napalmWeapon);
 			if (vile.napalmWeapon.type == (int)NapalmType.RumblingBang) {
 				new NapalmGrenadeProj(
-					character.pos.add(poi), character.xDir, vile, character.player,
+					character.pos, character.xDir, vile, character.player,
 					character.player.getNextActorNetId(), rpc: true
 				);
 			} else if (vile.napalmWeapon.type == (int)NapalmType.FireGrenade) {
 				new MK2NapalmGrenadeProj(
-					character.pos.add(poi), character.xDir, vile, character.player,
+					character.pos, character.xDir, vile, character.player,
 					character.player.getNextActorNetId(), rpc: true
 				);
 			} else if (vile.napalmWeapon.type == (int)NapalmType.SplashHit) {
 				new SplashHitGrenadeProj(
-					character.pos.add(poi), character.xDir, vile, character.player,
+					character.pos, character.xDir, vile, character.player,
 					character.player.getNextActorNetId(), rpc: true
 				);
 			}

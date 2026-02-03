@@ -19,7 +19,7 @@ public class RakuhouhaWeapon : Weapon {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
 		maxAmmo = 28;
-		fireRate = 60;
+		fireRate = 120;
 		index = (int)WeaponIds.Rakuhouha;
 		weaponBarBaseIndex = 27;
 		weaponBarIndex = 33;
@@ -277,7 +277,7 @@ public class RekkohaProj : Projectile {
 		pos, xDir, owner, "rekkoha_proj", netId, player
 	) {
 		weapon = RekkohaWeapon.netWeapon;
-		damager.damage = 3;
+		damager.damage = 4;
 		damager.hitCooldown = 30;
 		damager.flinch = Global.defFlinch;
 		projId = (int)ProjIds.Rekkoha;
@@ -621,10 +621,11 @@ public abstract class ZeroGigaAttack : CharState {
 	}
 	
 	public override void onEnter(CharState oldState) {
+		character.clenaseDmgDebuffs();
 		base.onEnter(oldState);
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		weapon.shootCooldown = weapon.fireRate;
 		base.onExit(newState);
 	}
@@ -751,6 +752,7 @@ public class RekkohaState : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
+		character.clenaseAllDebuffs();
 		if (player.isMainPlayer) {
 			effect = new RekkohaEffect();
 		}
@@ -821,6 +823,11 @@ public class DarkHoldShootState : CharState {
 		}
 	}
 
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.clenaseDmgDebuffs();
+	}
+
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		gigaAttack.shootCooldown = gigaAttack.fireRate;
@@ -853,7 +860,7 @@ public class DarkHoldState : CharState {
 			character.changeToIdleOrFall();
 		}
 		// Does not stack with other time stops.
-		stunTime -= 1;
+		stunTime -= player.mashValue() * 60f;
 	}
 
 	public override bool canEnter(Character character) {
@@ -874,7 +881,7 @@ public class DarkHoldState : CharState {
 		specialId = oldState.specialId;
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
 		character.frameSpeed = 1;

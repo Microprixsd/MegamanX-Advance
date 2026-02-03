@@ -185,7 +185,7 @@ public class XUPParryMeleeState : CharState {
 	Actor counterAttackTarget;
 	float damage;
 	public RagingChargeX mmx = null!;
-	public XUPParryMeleeState(Actor counterAttackTarget, float damage) : base("unpo_parry_attack") {
+	public XUPParryMeleeState(Actor counterAttackTarget, float damage) : base("unpo_parry_newattack") {
 		invincible = true;
 		this.counterAttackTarget = counterAttackTarget;
 		this.damage = damage;

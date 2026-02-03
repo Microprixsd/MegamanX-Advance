@@ -14,10 +14,10 @@ public class Sprite {
 	public Collider[] hitboxes;
 	public Collider[][] frameHitboxes;
 
-	public static Texture[] xArmorBootsBitmap = new Texture[4];
-	public static Texture[] xArmorBodyBitmap = new Texture[4];
-	public static Texture[] xArmorHelmetBitmap = new Texture[4];
-	public static Texture[] xArmorArmBitmap = new Texture[4];
+	public static Texture[] xArmorBootsBitmap = new Texture[5];
+	public static Texture[] xArmorBodyBitmap = new Texture[5];
+	public static Texture[] xArmorHelmetBitmap = new Texture[5];
+	public static Texture[] xArmorArmBitmap = new Texture[5];
 	public static Texture[] xSaberBitmap = new Texture[2];
 	public static Texture axlArmBitmap = null!;
 

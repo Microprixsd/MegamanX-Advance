@@ -50,7 +50,7 @@ public class DenjinWeapon : Weapon {
 		damage = "3";
 		hitcooldown = "0.1";
 		flinch = "26";
-		effect = "None.";
+		effect = "";
 	}
 }
 
@@ -66,7 +66,7 @@ public class RisingFangWeapon : Weapon {
 		type = (int)RisingType.RisingFang;
 		displayName = "Rising";
 		description = new string[] { "A fast, element-neutral uppercut.", "Can be used in the air to gain height." };
-		damage = "2";
+		damage = "1";
 		hitcooldown = "0.5";
 		flinch = "0";
 		effect = "Can be used in the air to gain height.";
@@ -146,17 +146,17 @@ public class ZeroUppercut : ZeroState {
 			}
 			if (character.sprite.frameIndex >= 9) {
 				if (!isHeld) {
-					character.vel.y = character.vel.y/1.25f;
+					character.vel.y = character.vel.y/4f;
 					character.changeToIdleOrFall();
 				}
 			}
 		}
 		if (character.sprite.frameIndex >= 4 && character.sprite.frameIndex < 7) {
-			float speed = 100;
+			float speed = 1.65f;
 			if (type == RisingType.Denjin) {
-				speed = 120;
+				speed = 2;
 			}
-			character.move(new Point(character.xDir * speed, 0));
+			character.moveXY(character.xDir * speed, 0);
 		}
 
 		var wallAbove = Global.level.checkTerrainCollisionOnce(character, 0, -10);

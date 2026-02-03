@@ -57,7 +57,7 @@ public partial class Character : Actor, IDamagable {
 	public bool pushedByTornadoInFrame;
 
 	public float chargeTime;
-	public float charge1Time = 30;
+	public float charge1Time = 45;
 	public float charge2Time = 105;
 	public float charge3Time = 180;
 	public float charge4Time = 255;

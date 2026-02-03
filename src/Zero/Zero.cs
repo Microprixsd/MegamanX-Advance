@@ -55,6 +55,7 @@ public class Zero : Character {
 	public float dashAttackCooldown;
 	public float hadangekiCooldown;
 	public float genmureiCooldown;
+	public float airSlashCooldown;
 	public int airRisingUses;
 	public float tauntCooldown;
 	public int fSplasherUses;
@@ -171,6 +172,7 @@ public class Zero : Character {
 		Helpers.decrementFrames(ref hadangekiCooldown);
 		Helpers.decrementFrames(ref genmureiCooldown);
 		Helpers.decrementFrames(ref dashAttackCooldown);
+		Helpers.decrementFrames(ref airSlashCooldown);
 		Helpers.decrementFrames(ref aiAttackCooldown);
 		Helpers.decrementFrames(ref tauntCooldown);
 		Helpers.decrementFrames(ref fSplasherCooldown);
@@ -274,8 +276,6 @@ public class Zero : Character {
 	}
 
 	public override bool chargeButtonHeld() {
-		if (charState.normalCtrl && player.currency > 0 && !player.isMainPlayer &&
-		ai?.aiState.randomlyChargeWeapon == true && getChargeLevel() <= getMaxChargeLevel()) return true;
 		return player.input.isHeld(Control.Shoot, player);
 	}
 
@@ -450,8 +450,8 @@ public class Zero : Character {
 		}
 		// Guard! (You can thank Axl for this mess)
 		if (charState.attackCtrl && charState is not Dash && grounded && (
-				player.input.isHeld(Control.WeaponLeft, player) ||
-				(player.input.isHeld(Control.WeaponRight, player) && !isAwakened)
+				player.input.isPressed(Control.WeaponLeft, player) ||
+				(player.input.isPressed(Control.WeaponRight, player) && !isAwakened)
 			) && (
 				!isATrans ||
 				player.input.isHeld(Control.Down, player)
@@ -541,7 +541,7 @@ public class Zero : Character {
 			if (dashAttackCooldown > 0) {
 				return false;
 			}
-			dashAttackCooldown = 60;
+			dashAttackCooldown = 45;
 			slideVel = xDir * getDashSpeed();
 			if (specialPressTime > shootPressTime) {
 				changeState(new ZeroShippuugaState(), true);
@@ -600,7 +600,10 @@ public class Zero : Character {
 				if (kuuenzanCooldown <= 0) {
 					changeState(new ZeroRollingSlashtate(), true);
 				} else {
-					changeState(new ZeroAirSlashState(), true);
+					if (airSlashCooldown <= 0f) {
+						changeState(new ZeroAirSlashState(), true);
+						airSlashCooldown = 18f; // cambiar luego a no c
+					}
 				}
 			}
 			if (airSpecial.type != 0) {
@@ -613,7 +616,10 @@ public class Zero : Character {
 			if (charState is WallSlide wallSlide) {
 				changeState(new ZeroMeleeWall(wallSlide.wallDir, wallSlide.wallCollider), true);
 			} else {
-				changeState(new ZeroAirSlashState(), true);
+				if (airSlashCooldown <= 0f) {
+					changeState(new ZeroAirSlashState(), true);
+					airSlashCooldown = 18f;
+				}
 			}
 			return true;
 		}
@@ -661,10 +667,7 @@ public class Zero : Character {
 	}
 
 	public override float getDashSpeed() {
-		if (flag != null || !isDashing) {
-			return getRunSpeed();
-		}
-		float dashSpeed = 210;
+		float dashSpeed = 3.45f;
 		if (isBlack) {
 			dashSpeed *= 1.15f;
 		}
@@ -833,7 +836,7 @@ public class Zero : Character {
 			),
 			// Air
 			(int)MeleeIds.AirSlash => new GenericMeleeProj(
-				meleeWeapon, projPos, ProjIds.ZSaberAir, player, 2, 0, 15, isReflectShield: true,
+				meleeWeapon, projPos, ProjIds.ZSaberAir, player, 2, 0, 15, isShield: true,
 				isZSaberEffect: true, isZSaberClang: true,
 				addToLevel: addToLevel
 			),
@@ -866,21 +869,21 @@ public class Zero : Character {
 			),
 			// Up Specials
 			(int)MeleeIds.Ryuenjin => new GenericMeleeProj(
-				RyuenjinWeapon.staticWeapon, projPos, ProjIds.Ryuenjin, player, 4, 0, 15,
+				RyuenjinWeapon.staticWeapon, projPos, ProjIds.Ryuenjin, player, 4, 0, 30,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Denjin => new GenericMeleeProj(
-				DenjinWeapon.staticWeapon, projPos, ProjIds.Denjin, player, 3, Global.defFlinch, 6,
+				DenjinWeapon.staticWeapon, projPos, ProjIds.Denjin, player, 3, Global.defFlinch, 9,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.RisingFang => new GenericMeleeProj(
-				RisingFangWeapon.staticWeapon, projPos, ProjIds.RisingFang, player, 2, 0, 30,
+				RisingFangWeapon.staticWeapon, projPos, ProjIds.RisingFang, player, 1, 0, 10,
 				isZSaberEffect: true,
 				addToLevel: addToLevel
 			),
 			// Down specials
 			(int)MeleeIds.Hyouretsuzan => new GenericMeleeProj(
-				HyouretsuzanWeapon.staticWeapon, projPos, ProjIds.Hyouretsuzan2, player, 4, 12, 30,
+				HyouretsuzanWeapon.staticWeapon, projPos, ProjIds.Hyouretsuzan2, player, 3, 12, 30,
 				addToLevel: addToLevel
 			),
 			(int)MeleeIds.Danchien => new GenericMeleeProj(
@@ -1183,7 +1186,7 @@ public class Zero : Character {
 						break;
 					case 4 when charState is Dash && isTargetDistant:
 						changeState(new ZeroShippuugaState(), true);
-						slideVel = xDir * getDashSpeed() * 2f;
+						slideVel = xDir * getDashSpeed();
 						break;
 					case 5 when grounded && isTargetDistant:
 						if (gigaAttack.shootCooldown <= 0 && gigaAttack.ammo >= gigaAttack.getAmmoUsage(0)) {
@@ -1194,7 +1197,10 @@ public class Zero : Character {
 						changeState(new ZeroRollingSlashtate(), true);
 						break;
 					case 7 when charState is Fall or Jump && enemyDist <= 70 && !isBlocking:
-						changeState(new ZeroAirSlashState(), true);
+						if (airSlashCooldown <= 0f) {
+							changeState(new ZeroAirSlashState(), true);
+							airSlashCooldown = 18f;
+						}
 						break;
 					case 8 when charState is Fall:
 						changeState(new ZeroDownthrust(downThrustA.type), true);
@@ -1204,7 +1210,7 @@ public class Zero : Character {
 						break;
 					case 10 when charState is Dash && isTargetDistant && !isBlocking:
 						changeState(new ZeroDashSlashState(), true);
-						slideVel = xDir * getDashSpeed() * 2f;
+						slideVel = xDir * getDashSpeed();
 						break;
 					case 11 when grounded && isTargetDistant:
 						groundSpecial.attack(this);
@@ -1283,11 +1289,11 @@ public class Zero : Character {
 								break;
 							case 4:
 								changeState(new ZeroShippuugaState(), true);
-								slideVel = xDir * getDashSpeed() * 2f;
+								slideVel = xDir * getDashSpeed();
 								break;
 							case 5:
 								changeState(new ZeroDashSlashState(), true);
-								slideVel = xDir * getDashSpeed() * 2f;
+								slideVel = xDir * getDashSpeed();
 								break;
 						}
 						break;
@@ -1333,11 +1339,11 @@ public class Zero : Character {
 				switch (Helpers.randomRange(1, 3)) {
 					case 1:
 						changeState(new ZeroDashSlashState(), true);
-						slideVel = xDir * getDashSpeed() * 2f;
+						slideVel = xDir * getDashSpeed();
 						break;
 					case 2:
 						changeState(new ZeroShippuugaState(), true);
-						slideVel = xDir * getDashSpeed() * 2f;
+						slideVel = xDir * getDashSpeed();
 						break;
 					case 3:
 						changeState(new FSplasherState(), true);
@@ -1349,11 +1355,11 @@ public class Zero : Character {
 				switch (Helpers.randomRange(1, 3)) {
 					case 1:
 						changeState(new ZeroDashSlashState(), true);
-						slideVel = xDir * getDashSpeed() * 2f;
+						slideVel = xDir * getDashSpeed();
 						break;
 					case 2:
 						changeState(new ZeroShippuugaState(), true);
-						slideVel = xDir * getDashSpeed() * 2f;
+						slideVel = xDir * getDashSpeed();
 						break;
 					case 3:
 						changeState(new FSplasherState(), true);
@@ -1400,7 +1406,7 @@ public class Zero : Character {
 	public void WildDanceMove() {
 		if (charState.attackCtrl && !isInvulnerableAttack() && charState.attackCtrl) {
 			changeState(new ZeroShippuugaState(), true);
-			slideVel = xDir * getDashSpeed() * 2f;
+			slideVel = xDir * getDashSpeed();
 		}
 		if (!charState.attackCtrl) {
 			if (sprite.name == "zero_attack_dash2" && sprite.frameIndex >= 7) {
@@ -1409,7 +1415,7 @@ public class Zero : Character {
 			}
 			if (sprite.name == "zero_attack3" && sprite.frameIndex >= 6) {
 				changeState(new ZeroDashSlashState(), true);
-				slideVel = xDir * getDashSpeed() * 2f;
+				slideVel = xDir * getDashSpeed();
 			}
 			if (sprite.name == "zero_attack_dash" && sprite.frameIndex >= 3) {
 				playSound("gigaCrushAmmoFull");

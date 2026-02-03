@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using SFML.Graphics;
 
@@ -17,6 +17,10 @@ public class SoulBody : Weapon {
         weaponBarIndex = 63;
 		shootSounds = new string[] {"buster2X4","buster2X4","buster2X4","buster2X4"};
 		weaknessIndex = (int)WeaponIds.LightningWeb;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;	
 		/* damage = "1/3";
 		hitcooldown = "0.5/0.75";
 		Flinch = "0/13";

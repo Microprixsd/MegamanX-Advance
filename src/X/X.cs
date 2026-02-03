@@ -321,11 +321,12 @@ public class MegamanX : Character {
 			lastShootPressed = 100;
 		}
 		hyperChargeActive = currentWeapon is HyperCharge;
+		fastChipActivation();
 	}
 
 	public override bool normalCtrl() {
 		quickArmorUpgrade();
-		fastChipActivation();
+		//fastChipActivation();
 		if (grounded) {
 			if (legArmor == ArmorId.Max &&
 				player.input.isPressed(Control.Dash, player) &&
@@ -610,7 +611,7 @@ public class MegamanX : Character {
 	public void fastChipActivation() {
 		if (charState is not Die && fullArmor == ArmorId.Max &&
 			!hasFullHyperMaxArmor && !hasUltimateArmor &&
-			player.input.isPressed(Control.Special1, player)
+			player.input.isHeld(Control.Special1, player)
 		) {
 			if (player.input.isHeld(Control.Down, player)) {
 				fastChipActive(false, false, false, true);
@@ -648,7 +649,7 @@ public class MegamanX : Character {
 	// Movement related stuff.
 	public override float getRunSpeed() {
 		if (charState is XHover) {
-			return 2 * 60 * getRunDebuffs(); ;
+			return 2 * getRunDebuffs(); ;
 		}
 		return base.getRunSpeed();
 	}
@@ -657,7 +658,7 @@ public class MegamanX : Character {
 		if (flag != null || !isDashing) {
 			return getRunSpeed();
 		}
-		float dashSpeed = 3.5f * 60;
+		float dashSpeed = 3.45f;
 		return dashSpeed * getRunDebuffs();
 	}
 
@@ -894,7 +895,7 @@ public class MegamanX : Character {
 			chargedFrostShield?.destroyed == false ||
 			chargedTornadoFang?.destroyed == false ||
 			chargedSpinningBlade?.destroyed == false ||
-			linkedTriadThunder?.destroyed == false ||
+			//linkedTriadThunder?.destroyed == false ||
 			shootingRaySplasher != null
 		);
 	}
@@ -927,10 +928,10 @@ public class MegamanX : Character {
 			"mmx_nova_strike" or "mmx_nova_strike_down" or "mmx_nova_strike_up" => MeleeIds.NovaStrike,
 			// Light  Helmet.
 			"mmx_jump" or "mmx_jump_shoot" or "mmx_wall_kick" or "mmx_wall_kick_shoot"
-			when helmetArmor == ArmorId.Light && stingActiveTime == 0 => MeleeIds.LightHeadbutt,
+			when helmetArmor == ArmorId.Light && vel.y < 0 && stingActiveTime == 0 => MeleeIds.LightHeadbutt,
 			// Light Helmet when it up-dashes.
 			"mmx_up_dash" or "mmx_up_dash_shoot"
-			when helmetArmor == ArmorId.Light && stingActiveTime == 0 => MeleeIds.LightHeadbuttEX,
+			when helmetArmor == ArmorId.Light && vel.y < 0 && stingActiveTime == 0 => MeleeIds.LightHeadbuttEX,
 			// Nothing.
 			_ => MeleeIds.None
 		});
@@ -948,7 +949,7 @@ public class MegamanX : Character {
 			),
 			(int)MeleeIds.LightHeadbuttEX => new GenericMeleeProj(
 				LhHeadbutt.netWeapon, projPos, ProjIds.Headbutt, player,
-				4, Global.defFlinch, 30, addToLevel: addToLevel
+				4, Global.defFlinch, 60, addToLevel: addToLevel
 			),
 			(int)MeleeIds.Shoryuken => new GenericMeleeProj(
 				ShoryukenWeapon.netWeapon, projPos, ProjIds.Shoryuken, player,
@@ -964,7 +965,7 @@ public class MegamanX : Character {
 			),
 			(int)MeleeIds.ZSaberAir => new GenericMeleeProj(
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
-				2, 0, 30, addToLevel: addToLevel, isZSaberEffect: true
+				3, 0, 30, addToLevel: addToLevel, isZSaberEffect: true
 			),
 			(int)MeleeIds.NovaStrike => new GenericMeleeProj(
 				HyperNovaStrike.netWeapon, projPos, ProjIds.NovaStrike, player,

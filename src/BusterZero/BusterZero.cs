@@ -297,15 +297,14 @@ public class BusterZero : Character {
 	}
 
 	public override float getRunSpeed() {
-		float runSpeed = 90;
 		if (isBlackZero) {
-			runSpeed *= 1.15f;
+			return 1.15f * getRunDebuffs();
 		}
-		return runSpeed * getRunDebuffs();
+		return base.getRunSpeed();
 	}
 
 	public override float getDashSpeed() {
-		float dashSpeed = 3.45f * 60f;
+		float dashSpeed = 3.45f;
 		if (isBlackZero) {
 			dashSpeed *= 1.15f;
 		}

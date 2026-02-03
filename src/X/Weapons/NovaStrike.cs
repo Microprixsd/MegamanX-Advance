@@ -5,20 +5,20 @@ namespace MMXOnline;
 
 public class HyperNovaStrike : Weapon {
 	public static HyperNovaStrike netWeapon = new();
-	public const float ammoUsage = 14;
+	public const float ammoUsage = 0;
 
 	public HyperNovaStrike() : base() {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		shootSounds = new string[] { "", "", "", "" };
-		fireRate = 90;
+		fireRate = 210;
 		switchCooldown = 15;
 		index = (int)WeaponIds.NovaStrike;
 		weaponBarBaseIndex = 42;
 		weaponBarIndex = 36;
 		weaponSlotIndex = 95;
 		killFeedIndex = 104;
-		ammo = 28;
-		maxAmmo = 28;
+		ammo = 16;
+		maxAmmo = 16;
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
 	}

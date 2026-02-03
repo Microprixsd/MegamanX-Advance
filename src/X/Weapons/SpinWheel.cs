@@ -10,7 +10,7 @@ public class SpinWheel : Weapon {
 		displayName = "Spin Wheel";
 		shootSounds = new string[] { "spinWheel", "spinWheel", "spinWheel", "spinWheelCharged" };
 		fireRate = 60;
-		switchCooldown = 30;
+		switchCooldown = 40;
 		index = (int)WeaponIds.SpinWheel;
 		weaponBarBaseIndex = 12;
 		weaponBarIndex = weaponBarBaseIndex;

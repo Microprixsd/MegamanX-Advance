@@ -22,9 +22,9 @@ public class Damager {
 
 	public static readonly Dictionary<int, float> projectileFlinchCooldowns = new Dictionary<int, float>() {
 		{ (int)ProjIds.ElectricSpark, 60 },
-		{ (int)ProjIds.TriadThunder, 135 },
-		{ (int)ProjIds.TriadThunderBall, 135 },
-		{ (int)ProjIds.TriadThunderBeam, 135 },
+		{ (int)ProjIds.TriadThunder, 60 },
+		{ (int)ProjIds.TriadThunderBall, 60 },
+		{ (int)ProjIds.TriadThunderBeam, 60 },
 		{ (int)ProjIds.PlasmaGunBeamProj, 60 },
 		{ (int)ProjIds.VoltTornado, 60 },
 		{ (int)ProjIds.TornadoCharged, 60 },
@@ -370,6 +370,12 @@ public class Damager {
 				case (int)ProjIds.SpeedBurner:
 					character.addBurnTime(owner, SpeedBurner.netWeapon, 1);
 					break;
+				case (int)ProjIds.RisingFire:
+					character.addBurnTime(owner, RisingFire.netWeapon, 1);
+					break;
+				case (int)ProjIds.RisingFireChargedStart:
+					character.addBurnTime(owner, RisingFire.netWeapon, 2);
+					break;	
 				case (int)ProjIds.FlameRoundWallProj:
 				case (int)ProjIds.FlameRoundProj:
 					character.addBurnTime(owner, FireGrenade.netWeapon, 1); ;
@@ -1010,6 +1016,7 @@ public class Damager {
 			ProjIds.MetteurCrash => true,
 			ProjIds.AcidBurstPoison => true,
 			ProjIds.SelfTrueDmg => true,
+			ProjIds.Buster4 => true,
 			_ => false
 		};
 	}
