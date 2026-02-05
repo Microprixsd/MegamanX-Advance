@@ -74,7 +74,7 @@ public class FrostTowerState : CharState {
 			int xDir = character.getShootXDir();
 			Player player = character.player;
 
-			new FrostTowerProj(new FrostTower(), shootPos, xDir, player, player.getNextActorNetId(), true);
+			new FrostTowerProj(character, shootPos, xDir, player.getNextActorNetId(), true, player);
 			fired = true;
 		}
 
@@ -82,24 +82,19 @@ public class FrostTowerState : CharState {
 	}
 }
 
-public class FrostTowerProj : Projectile, IDamagable
-
-{
+public class FrostTowerProj : Projectile, IDamagable {
 	public float health = 5;
-
 	public float maxHealth = 5;
-
 	public bool landed;
 	float zTime;
-	int zMul = -1;
 
 	public FrostTowerProj(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 1, player, "frosttower_proj", 
-		0, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "frosttower_proj", netId, player
 	) {
+		weapon = FrostTower.netWeapon;
 		maxTime = 3f;
 		projId = (int)ProjIds.FrostTower;
 		grounded = false;
@@ -107,15 +102,25 @@ public class FrostTowerProj : Projectile, IDamagable
 		isShield = true;
 		destroyOnHit = false;
 		shouldShieldBlock = false;
-		collider.isClimbable = true;
+
+		damager.damage = 1;
+		damager.hitCooldown = 30;
+
+		if (collider != null) {
+			collider.isClimbable = true;
+		}
+		
 		zIndex = ZIndex.MainPlayer + 10;
 		
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		if (rpc) {
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+		}
+		
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new FrostTowerProj(
-			FrostTower.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -132,8 +137,8 @@ public class FrostTowerProj : Projectile, IDamagable
 		zIndex = zTime % 2 == 0 ? ZIndex.MainPlayer + 10 : ZIndex.Character - 10;
 		zTime += Global.speedMul;
 		
-		if (!ownedByLocalPlayer || base.owner == null || landed) return;
 	}
+
 	public void applyDamage(float damage, Player? owner, Actor? actor, int? weaponIndex, int? projId) {
 		health -= damage;
 		bool isRisingFire =
@@ -193,7 +198,7 @@ public class FrostTowerChargedState : CharState {
 		spawnPos = character.getCenterPos().addxy(0, -96);
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 		mmx.shootCooldown = 60;
@@ -218,7 +223,7 @@ public class FrostTowerChargedState : CharState {
 	void shoot(Point pos, int xDir, int l) {
 		for (int i = 0; i < l; i++) {
 			float extra = extraPos + (i * p * 2);
-			new FrostTowerProjCharged(new FrostTower(), pos.addxy(extra, 0), xDir, player, player.getNextActorNetId(), true); 
+			new FrostTowerProjCharged(character, pos.addxy(extra, 0), xDir, player.getNextActorNetId(), true, player); 
 			//{ canReleasePlasma = player.hasPlasma() && l == 1 };
 			character.playSound("frostTower", sendRpc: true);
 		}
@@ -236,22 +241,28 @@ public class FrostTowerProjCharged : Projectile, IDamagable {
 	public bool canReleasePlasma;
 
 	public FrostTowerProjCharged(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 2, player, "frosttowercharged_proj", 
-		Global.defFlinch, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "frosttowercharged_proj", netId, player
 	) {
+		weapon = FrostTower.netWeapon;
 		maxTime = 2f;
 		projId = (int)ProjIds.FrostTowerCharged;
 		isShield = false;
+
+		damager.damage = 2;
+		damager.flinch = Global.defFlinch;
+		damager.hitCooldown = 30;
 		
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		if (rpc) {
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+		}
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new FrostTowerProjCharged(
-			FrostTower.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -317,232 +328,5 @@ public class FrostTowerProjCharged : Projectile, IDamagable {
 			);
 			hasReleasedPlasma = true;
 		}*/
-	}
-}
-
-public class FrostTowerProjChargedMini : Projectile {
-	public FrostTowerProjChargedMini(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
-	) : base(
-		weapon, pos, xDir, 300f, 2, player, "frosttowercharged_proj_mini1", 
-		Global.halfFlinch, 1f, netProjId, player.ownedByLocalPlayer)
-	{
-		maxTime = 3f;
-		projId = 411;
-		isShield = true;
-		useGravity = true;
-		destroyOnHit = true;
-		vel.y = -100;
-		if (rpc)
-		{
-			rpcCreate(pos, player, netProjId, xDir);
-		}
-	}
-
-	public override void update() {	
-		base.update();
-	}
-	
-	public override void onHitWall(CollideData other) {
-		base.onHitWall(other);
-		destroySelf();
-	}
-
-	public override void onDestroy() {
-		base.onDestroy();
-		breakFreeze(owner);
-		int offsetX = 12 * xDir;
-		int offsetX2 = -12 * xDir;
-		Point adjustedPos = pos.addxy(offsetX, 0);
-		Point adjustedPos2 = pos.addxy(offsetX2, 0);
-		if (ownedByLocalPlayer)
-		{
-			new FrostTowerProjChargedMini2(weapon, adjustedPos, -xDir, base.owner, base.owner.getNextActorNetId(), rpc: true);
-			new FrostTowerProjChargedMini2(weapon, adjustedPos2, xDir, base.owner, base.owner.getNextActorNetId(), rpc: true);
-		}
-	}
-}
-
-
-public class FrostTowerProjChargedMini2 : Projectile
-
-{
-	public FrostTowerProjChargedMini2(Weapon weapon, Point pos, int xDir, Player player, ushort netProjId, bool rpc = false)
-		: base(weapon, pos, xDir, 200f, 1, player, "frosttowercharged_proj_mini2", 6, 1f, netProjId, player.ownedByLocalPlayer)
-	{
-		maxTime = 3f;
-		projId = 412;
-		isShield = true;
-		useGravity = true;
-		destroyOnHit = true;
-		vel.y = -100;
-		if (rpc)
-		{
-			rpcCreate(pos, player, netProjId, xDir);
-		}
-	}
-
-	public override void update()
-	{
-		base.update();
-	}
-	
-	public override void onHitWall(CollideData other)
-	{
-		base.onHitWall(other);
-		destroySelf();
-	}
-
-	public override void onDestroy() {
-		base.onDestroy();
-		//breakFreeze(owner);
-		int offsetX = 12 * xDir;
-		int offsetX2 = -12 * xDir;
-		Point adjustedPos = pos.addxy(offsetX, 0);
-		Point adjustedPos2 = pos.addxy(offsetX2, 0);
-		if (ownedByLocalPlayer)
-		{
-			new FrostTowerProjChargedMini3(weapon, adjustedPos, -xDir, base.owner, base.owner.getNextActorNetId(), rpc: true);
-			new FrostTowerProjChargedMini3(weapon, adjustedPos2, xDir, base.owner, base.owner.getNextActorNetId(), rpc: true);
-		}
-	}
-}
-
-public class FrostTowerProjChargedMini3 : Projectile
-
-{
-	public FrostTowerProjChargedMini3(Weapon weapon, Point pos, int xDir, Player player, ushort netProjId, bool rpc = false)
-		: base(weapon, pos, xDir, 100f, 0, player, "frosttowercharged_proj_mini3", 0, 1f, netProjId, player.ownedByLocalPlayer)
-	{
-		maxTime = 3f;
-		projId = 413;
-		isShield = true;
-		useGravity = true;
-		destroyOnHit = true;
-		vel.y = -100;
-		if (rpc)
-		{
-			rpcCreate(pos, player, netProjId, xDir);
-		}
-	}
-
-	public override void update()
-	{
-		base.update();
-	}
-	
-	public override void onHitWall(CollideData other)
-	{
-		base.onHitWall(other);
-		destroySelf();
-	}
-
-	public override void onDestroy() {
-	//	base.onDestroy();
-		breakFreeze(owner);
-	}
-}
-
-public class FrostTowerRainState : CharState
-{
-	private bool fired;
-
-	private float spikeTime;
-
-	private float endTime;
-
-	private int state;
-
-	public FrostTowerRainState()
-		: base("summon", "", "", "")
-	{
-		superArmor = true;
-	}
-
-	public override void update()
-	{
-		base.update();
-		if (base.player == null)
-		{
-			return;
-		}
-		if (state == 0)
-		{
-			if (stateTime > 0.25f)
-			{
-				state = 1;
-			}
-		}
-		else if (state == 1)
-		{
-			spikeTime += Global.spf;
-			if (spikeTime > 0.075f)
-			{
-				spikeTime = 0f;
-				int offsetY = 30;
-				float randY = offsetY;
-				float randX = Helpers.randomRange(-150, 150);
-				new FrostTowerRainProj(base.player.weapon, pos: new Point (character.pos.x + randX, randY), xDir: 1, player: base.player, netProjId: base.player.getNextActorNetId(), rpc: true);
-				character.shakeCamera(sendRpc: false);
-				//character.playSound("frostTower", forcePlay: false, sendRpc: true);
-			}
-			if (stateTime >= 4)
-			{
-				state = 2;
-			}
-		}
-		else if (state == 2)
-		{
-			endTime += Global.spf;
-			if (endTime > 0.25f)
-			{
-				character.changeToIdleOrFall();
-			}
-		}
-	}
-
-	public override void onEnter(CharState oldState)
-	{
-		base.onEnter(oldState);
-		character.useGravity = false;
-		character.vel = default(Point);
-	}
-
-	public override void onExit(CharState newState)
-	{
-		base.onExit(newState);
-		character.useGravity = true;
-	}
-}
-
-public class FrostTowerRainProj : Projectile
-
-{
-	public FrostTowerRainProj(Weapon weapon, Point pos, int xDir, Player player, ushort netProjId, bool rpc = false)
-		: base(weapon, pos, xDir, 0f, 0, player, "frosttowercharged_proj_mini1", 0, 0f, netProjId, player.ownedByLocalPlayer)
-	{
-		projId = 414;
-		isShield = true;
-		useGravity = true;
-		destroyOnHit = true;
-		vel.y = 100;
-		checkUnderwater();
-		if (rpc)
-		{
-			rpcCreate(pos, player, netProjId, xDir);
-		}
-	}
-
-	public override void update()
-	{
-		base.update();
-	}
-	public void checkUnderwater()
-	{
-		if (isUnderwater())
-		{
-			useGravity = false;
-		}
 	}
 }

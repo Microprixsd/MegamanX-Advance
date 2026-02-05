@@ -45,7 +45,6 @@ public class MegamanX : Character {
 	public List<Character> aLaserTargets = new();
 	public AimingLaserCursor? aLaserCursor;
 	public AimingLaserHud? aLaserHud;
-	public AimingLaserProj? aLaserProj;
 	public List<AimingLaserProj?> aLasers = new();
 	public AimingLaserChargedProj? aLaserChargedProj;
 	public DoubleCycloneChargedSpawn? dCycloneSpawn;
@@ -152,7 +151,7 @@ public class MegamanX : Character {
 	public const float maxHyperChargeAnimTime = 12;
 	public Sprite hyperChargePartSprite = new Sprite("hypercharge_part_1");
 	public Sprite hyperChargePart2Sprite = new Sprite("charge_part_3");
-	public Anim aLaserTargetAnim;
+	public Anim? aLaserTargetAnim;
 
 	// Creation code.
 	public MegamanX(
@@ -278,6 +277,25 @@ public class MegamanX : Character {
 					headChipHealthCooldown = 45;
 				} else {
 					headChipHealthCooldown -= speedMul;
+				}
+			}
+		}
+
+		//Aiming Laser
+		if (player.weapon is AimingLaser al && !hasLastingProj() && ownedByLocalPlayer && alive) {
+			if (aLaserCursor == null) {
+				new AimingLaserCursor(
+					this, getShootPos(), getShootXDir(),
+					player.getNextActorNetId(), player: this.player
+				);
+			}
+
+			if (aLaserHud == null) {
+				for (int i = 0; i < 11; i++) {
+					new AimingLaserHud(
+						getShootPos(), getShootXDir(),
+						player.getNextActorNetId(), player, i
+					);
 				}
 			}
 		}
@@ -886,6 +904,8 @@ public class MegamanX : Character {
 			chargedFrostShield?.destroyed == false ||
 			chargedTornadoFang?.destroyed == false ||
 			strikeChainProj?.destroyed == false ||
+			aLasers.Any(w => w?.destroyed == false) ||
+			aLaserChargedProj?.destroyed == false ||
 			shootingRaySplasher != null
 		);
 	}
@@ -909,6 +929,12 @@ public class MegamanX : Character {
 		chargedTornadoFang = null;
 		strikeChainProj?.destroySelf();
 		strikeChainProj = null;
+		foreach (AimingLaserProj? al in aLasers) {
+			al?.destroySelf();
+		}
+		aLasers.Clear();
+		aLaserChargedProj?.destroySelf();
+		aLaserChargedProj = null;
 	}
 
 	public void popAllBubbles() {

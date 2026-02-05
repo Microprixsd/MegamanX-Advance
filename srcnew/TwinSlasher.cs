@@ -48,15 +48,14 @@ public class TwinSlasher : Weapon {
 		Player player = character.player;
 
 		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
-			//player.setNextActorNetId(player.getNextActorNetId());
-			new TwinSlasherProj(this, pos, xDir, 0, player, player.getNextActorNetId(), true);
-			new TwinSlasherProj(this, pos, xDir, 1, player, player.getNextActorNetId(), true);
+			new TwinSlasherProj(mmx, pos, xDir, 0, player.getNextActorNetId(), true);
+			new TwinSlasherProj(mmx, pos, xDir, 1, player.getNextActorNetId(), true);
 		} else {
 			if (ammo >= 6) {
 				for (int i = 0; i < 9; i++) {
 					if (i != 4) {
-						var tsc = new TwinSlasherProjCharged(
-							this, pos, xDir, i, player, i, player.getNextActorNetId(), true) {
+						new TwinSlasherProjCharged(
+							mmx, pos, xDir, i, i, player.getNextActorNetId(), true) {
 						};
 					}
 				}
@@ -73,12 +72,12 @@ public class TwinSlasherProj : Projectile {
 	private bool changedSprite;
 
 	public TwinSlasherProj(
-		Weapon weapon, Point pos, int xDir, int type, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, int type, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 400f, 1, player, "twin_slasher_proj", 
-		0, 0, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "twin_slasher_proj", netId, player
 	) {
+		weapon = TwinSlasher.netWeapon;
 		maxTime = 0.35f;
 		projId = (int)ProjIds.TwinSlasher;
 		destroyOnHit = false;
@@ -87,13 +86,14 @@ public class TwinSlasherProj : Projectile {
 		shouldVortexSuck = false;
 		vel.y = type == 0 ? -100 : 100;
 		yDir = type == 0 ? 1 : -1;
-		/*fadeSprite = "twin_slasher_trail";
-		fadeOnAutoDestroy = true;*/
+		
+		vel.x = xDir * 400;
+		damager.damage = 1;
 		
 		if (rpc) {
 			byte[] extraArgs = new byte[] { (byte)type };
 
-			rpcCreate(pos, player, netProjId, xDir, extraArgs);
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir, extraArgs);
 		}
 
 		if (type == 1) projId = (int)ProjIds.TwinSlasher2;
@@ -101,8 +101,8 @@ public class TwinSlasherProj : Projectile {
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new TwinSlasherProj(
-			TwinSlasher.netWeapon, arg.pos, arg.xDir,
-			arg.extraData[0], arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir,
+			arg.extraData[0], arg.netId, player: arg.player
 		);
 	}
 
@@ -149,14 +149,15 @@ public class TwinSlasherProjCharged : Projectile {
 	float animCooldown;
 	float ang;
 	float ogAng;
+	float spd = 350;
 
 	public TwinSlasherProjCharged(
-		Weapon weapon, Point pos, int xDir, int type, 
-		Player player, int id, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, int type, 
+		int id, ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 350, 0.5f, player, "twin_slasher_charged_proj2", 
-		Global.defFlinch, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "twin_slasher_charged_proj2", netId, player
 	) {
+		weapon = TwinSlasher.netWeapon;
 		maxTime = 0.40f;
 		projId = (int)ProjIds.TwinSlasherCharged;
 		yDir *= 1;
@@ -164,6 +165,10 @@ public class TwinSlasherProjCharged : Projectile {
 		reflectable = false;
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
+
+		damager.damage = 0.5f;
+		damager.flinch = Global.defFlinch;
+		damager.hitCooldown = 30;
 
 		ang = -48 + (type * 12);
 
@@ -174,12 +179,12 @@ public class TwinSlasherProjCharged : Projectile {
 		ogAng = ang;
 		if (xDir < 0) ang = -ang + 128;
 
-		base.vel = Point.createFromByteAngle(ang) * speed;
+		base.vel = Point.createFromByteAngle(ang) * spd;
 
 		if (rpc) {
 			byte[] extraArgs = new byte[] { (byte)type, (byte)id };
 
-			rpcCreate(pos, player, netProjId, xDir, extraArgs);
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir, extraArgs);
 		}
 	
 		projId = (int)ProjIds.TwinSlasherCharged + id;
@@ -187,8 +192,8 @@ public class TwinSlasherProjCharged : Projectile {
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new TwinSlasherProjCharged(
-			TwinSlasher.netWeapon, arg.pos, arg.xDir,
-			arg.extraData[0], arg.player, arg.extraData[1], arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.extraData[0], 
+			arg.extraData[1], arg.netId, player: arg.player
 		);
 	}
 

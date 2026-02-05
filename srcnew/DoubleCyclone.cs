@@ -77,10 +77,10 @@ public class DoubleCycloneState : CharState {
 				int xDir = character.getShootXDir();
 				Player player = character.player;
 
-				new DoubleCycloneChargedSpawn(new DoubleCyclone(), shootPos1.Value, -xDir,
-					player, player.getNextActorNetId(), true);
-				new DoubleCycloneChargedSpawn(new DoubleCyclone(), shootPos2.Value, xDir,
-					player, player.getNextActorNetId(), true);
+				new DoubleCycloneChargedSpawn(mmx, shootPos1.Value, -xDir,
+					player.getNextActorNetId(), true, player);
+				new DoubleCycloneChargedSpawn(mmx, shootPos2.Value, xDir,
+					player.getNextActorNetId(), true, player);
 				
 				fired = true;
 			}
@@ -95,8 +95,8 @@ public class DoubleCycloneState : CharState {
 				int xDir = character.getShootXDir();
 				Player player = character.player;
 			
-				new DoubleCycloneProj(new DoubleCyclone(), shootPos1.Value, -xDir, player, player.getNextActorNetId(), true);
-				new DoubleCycloneProj(new DoubleCyclone(), shootPos2.Value, xDir, player, player.getNextActorNetId(), true);
+				new DoubleCycloneProj(mmx, shootPos1.Value, -xDir, player.getNextActorNetId(), true, player);
+				new DoubleCycloneProj(mmx, shootPos2.Value, xDir, player.getNextActorNetId(), true, player);
 				fired = true;
 				condition = true;
 			}
@@ -105,7 +105,7 @@ public class DoubleCycloneState : CharState {
 		}
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
 	}
@@ -117,14 +117,12 @@ public class DoubleCycloneProj : Projectile {
 	int screenFrames;
 
 	public DoubleCycloneProj(
-		Weapon weapon, Point pos, int xDir,
-		Player player, ushort? netProjId,
-		bool rpc = false
+		Actor owner,Point pos, int xDir,
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base (
-		weapon, pos, xDir, 0, 1,
-		player, "double_cyclone_proj", 0, 0.25f,
-		netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "double_cyclone_proj", netId, player
 	) {
+		weapon = DoubleCyclone.netWeapon;
 		projId = (int)ProjIds.DoubleCyclone;
 		maxTime = 1.2f;
 		fadeSprite = "double_cyclone_fade";
@@ -132,12 +130,15 @@ public class DoubleCycloneProj : Projectile {
 		destroyOnHit = false;
 		shouldShieldBlock = false;
 
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		damager.damage = 1;
+		damager.hitCooldown = 15;
+
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new DoubleCycloneProj(
-			DoubleCyclone.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -178,27 +179,27 @@ public class DoubleCycloneChargedSpawn : Projectile {
 	MegamanX mmx = null!;
 
 	public DoubleCycloneChargedSpawn(
-		Weapon weapon, Point pos, int xDir,
-		Player player, ushort? netProjId,
-		bool rpc = false
+		Actor owner, Point pos, int xDir,
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 0,
-		player, "double_cyclone_charged_spawn", 0, 0.33f,
-		netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "double_cyclone_charged_spawn", netId, player
 	) {
+		weapon = DoubleCyclone.netWeapon;
 		projId = (int)ProjIds.DoubleCycloneChargedSpawn;
 		maxTime = 2f;
 		destroyOnHit = false;
-		mmx = player.character as MegamanX ?? throw new NullReferenceException();
+		mmx = owner as MegamanX ?? throw new NullReferenceException();
 		mmx.dCycloneSpawn = this;
 		shouldShieldBlock = false;
 
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		damager.hitCooldown = 20;
+
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new DoubleCycloneChargedSpawn(
-			DoubleCyclone.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -208,7 +209,7 @@ public class DoubleCycloneChargedSpawn : Projectile {
 
 		if (shootCooldown <= 0) {
 
-			new DoubleCycloneChargedProj(weapon, pos, xDir, damager.owner, damager.owner.getNextActorNetId(), true);
+			new DoubleCycloneChargedProj(mmx, pos, xDir, damager.owner.getNextActorNetId(), true, damager.owner);
 			shootCooldown = 4;
 			shootCount++;
 		}
@@ -226,25 +227,27 @@ public class DoubleCycloneChargedSpawn : Projectile {
 
 public class DoubleCycloneChargedProj : Projectile {
 	public DoubleCycloneChargedProj(
-		Weapon weapon, Point pos, int xDir,
-		Player player, ushort? netProjId,
-		bool rpc = false
+		Actor owner, Point pos, int xDir,
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 180, 2,
-		player, "double_cyclone_charged_proj", 0, 0.3f,
-		netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "double_cyclone_charged_proj", netId, player
 	) {
+		weapon = DoubleCyclone.netWeapon;
 		projId = (int)ProjIds.DoubleCycloneCharged;
 		destroyOnHit = false;
 		maxTime = 1f;
 		shouldShieldBlock = false;
 
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		vel.x = 180 * xDir;
+		damager.damage = 2;
+		damager.hitCooldown = 18;
+
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new DoubleCycloneChargedProj(
-			DoubleCyclone.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 

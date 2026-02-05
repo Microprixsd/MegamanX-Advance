@@ -73,9 +73,9 @@ public class RisingFireState : CharState {
 			Player player = character.player;
 
 			if (!character.isUnderwater()) {
-				new RisingFireProj(new RisingFire(), shootPos, xDir, player, player.getNextActorNetId(), true);
+				new RisingFireProj(character, shootPos, xDir, player.getNextActorNetId(), true, player);
 			} else {
-				new RisingFireWaterProj(new RisingFire(), shootPos, xDir, player, player.getNextActorNetId(), true);
+				new RisingFireWaterProj(character, shootPos, xDir, player.getNextActorNetId(), true, player);
 			}
 			
 			fired = true;
@@ -99,7 +99,7 @@ public class RisingFireState : CharState {
 		character.changeSpriteFromName(sprite, true);
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
 	}
@@ -107,26 +107,28 @@ public class RisingFireState : CharState {
 
 public class RisingFireProj : Projectile {
 	public RisingFireProj(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 2, player, "risingfire_proj", 
-		0, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "risingfire_proj", netId, player
 	) {
+		weapon = RisingFire.netWeapon;
 		maxTime = 0.6f;
 		projId = (int)ProjIds.RisingFire;
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
 		destroyOnHit = false;
 		vel.y = -275;
+
+		damager.damage = 2;
+		damager.hitCooldown = 30;
 		
-		
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new RisingFireProj(
-			RisingFire.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -140,9 +142,7 @@ public class RisingFireProj : Projectile {
 public class RisingFireChargedState : CharState {
 	private bool jumpedYet;
 	private bool fired = false;
-
 	private float timeInWall;
-
 	private Projectile? proj;
 
     public RisingFireChargedState() : base("risingfire_charged") {
@@ -171,11 +171,11 @@ public class RisingFireChargedState : CharState {
 			if (proj == null) {
 				if (!character.isUnderwater()){
 					proj = new RisingFireProjChargedStart(
-						new RisingFire(), pos, xDir, player, player.getNextActorNetId(), true
+						character, pos, xDir, player.getNextActorNetId(), true, player
 					);
 				} else {
 					proj = new RisingFireProjChargedStart(
-						new RisingFire(), pos, xDir, player, player.getNextActorNetId(), true
+						character, pos, xDir, player.getNextActorNetId(), true, player
 					);
 				}
 			}
@@ -219,7 +219,7 @@ public class RisingFireChargedState : CharState {
 	}
 	
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		if (proj != null) {
 			proj.destroySelf();
@@ -228,46 +228,48 @@ public class RisingFireChargedState : CharState {
 	}
 
 	void releaseProj() {
-		Projectile? rf;
 		Point shootPos = character.getShootPos();
 		int xDir = character.xDir;
 
 		if (!character.isUnderwater()) {
-			rf = new RisingFireProjCharged(
-				new RisingFire(), shootPos, xDir, player, 
-				player.getNextActorNetId(), rpc: true
+			new RisingFireProjCharged(
+				character, shootPos, xDir, player.getNextActorNetId(), 
+				rpc: true, player
 			);
 		} else {
-			rf = new RisingFireWaterProjCharged(
-				new RisingFire(), shootPos, xDir, player, 
-				player.getNextActorNetId(), rpc: true
+			new RisingFireWaterProjCharged(
+				character, shootPos, xDir, player.getNextActorNetId(), 
+				rpc: true, player
 			);
 		}
-		
 	}
 }
 
 public class RisingFireProjChargedStart : Projectile {
 	public RisingFireProjChargedStart(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netProjId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0f, 2f, player, "risingfire_proj_charged",
-		Global.defFlinch, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "risingfire_proj_charged", netProjId, player
 	) {
+		weapon = RisingFire.netWeapon;
 		maxTime = 0.6f;
 		projId = (int)ProjIds.RisingFireChargedStart;
 		shouldShieldBlock = false;
 		destroyOnHit = false;
 		shouldVortexSuck = false;
 		canBeLocal = false;
+
+		damager.damage = 2;
+		damager.flinch = Global.defFlinch;
+		damager.hitCooldown = 30;
 		
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new RisingFireProjChargedStart(
-			RisingFire.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -281,12 +283,12 @@ public class RisingFireProjChargedStart : Projectile {
 
 public class RisingFireProjCharged : Projectile {
 	public RisingFireProjCharged(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 2, player, "risingfire_proj_charged", 
-		Global.defFlinch, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "risingfire_proj_charged", netId, player
 	) {
+		weapon = RisingFire.netWeapon;
 		maxTime = 0.6f;
 		projId = (int)ProjIds.RisingFireCharged;
 		shouldShieldBlock = false;
@@ -294,12 +296,16 @@ public class RisingFireProjCharged : Projectile {
 		vel.y = -275;
 		if (isUnderwater()) destroySelf();
 
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		damager.damage = 2;
+		damager.flinch = Global.defFlinch;
+		damager.hitCooldown = 30;
+
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new RisingFireProjCharged(
-			RisingFire.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -311,25 +317,30 @@ public class RisingFireProjCharged : Projectile {
 
 public class RisingFireWaterProj : Projectile {
 	public RisingFireWaterProj(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 1, player, "risingfire_proj_water", 
-		0, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "risingfire_proj_water", netId, player
 	) {
+		weapon = RisingFire.netWeapon;
 		maxTime = 0.6f;
 		projId = (int)ProjIds.RisingFireUnderwater;
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
 		vel.y = -275;
+
+		damager.damage = 1;
+		damager.hitCooldown = 30;
+
+
 		if (!isUnderwater()) destroySelf();
 		
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 	
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new RisingFireWaterProj(
-			RisingFire.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -341,25 +352,29 @@ public class RisingFireWaterProj : Projectile {
 
 public class RisingFireWaterProjCharged : Projectile {
 	public RisingFireWaterProjCharged(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netProjId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 1, player, "risingfire_proj_water", 
-		Global.halfFlinch, 0.5f, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "risingfire_proj_water", netProjId, player
 	) {
+		weapon = RisingFire.netWeapon;
 		maxTime = 0.6f;
 		projId = (int)ProjIds.RisingFireUnderwaterCharged;
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
 		vel.y = -275;
 		if (!isUnderwater()) destroySelf();
+
+		damager.damage = 1;
+		damager.flinch = Global.halfFlinch;
+		damager.hitCooldown = 30;
 		
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new RisingFireWaterProjCharged(
-			RisingFire.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 

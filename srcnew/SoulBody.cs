@@ -55,7 +55,7 @@ public class SoulBody : Weapon {
 			character.changeState(new ControlClone(), true);
 		} else
 		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
-			new SoulBodyHologram(this, pos, xDir, player, player.getNextActorNetId(), true);
+			new SoulBodyHologram(character, pos, xDir, player.getNextActorNetId(), true, player);
 		}
 	}
 }
@@ -68,14 +68,13 @@ public class SoulBodyHologram : Projectile {
 	const float maxDist = 96;
 	int frameCount;
 	public SoulBodyHologram(
-		Weapon weapon, Point pos, int xDir, 
-		Player player, ushort netProjId,  bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 1, player,
-		"empty", 0, 0.33f, netProjId,
-		player.ownedByLocalPlayer
+		pos, xDir, owner, "empty", netId, player
 	) {
-		mmx = player.character as MegamanX ?? throw new NullReferenceException();
+		weapon = SoulBody.netWeapon;
+		mmx = owner as MegamanX ?? throw new NullReferenceException();
 		projId = (int)ProjIds.SoulBodyHologram;
 		fadeSprite = "soul_body_fade";
 		fadeOnAutoDestroy = true;
@@ -87,12 +86,15 @@ public class SoulBodyHologram : Projectile {
 		setIndestructableProperties();
 		canBeLocal = false;
 
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		damager.damage = 1;
+		damager.hitCooldown = 20;
+
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new SoulBodyHologram(
-			SoulBody.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 	
@@ -164,7 +166,7 @@ public class ControlClone : CharState {
 		mmx.stopMoving();
 	}
 
-	public override void onExit(CharState newState) {
+	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.shootAnimTime = 0;
 		mmx.useGravity = true;
@@ -203,8 +205,8 @@ public class ControlClone : CharState {
 			if (target != null) ang = character.pos.directionTo(target.getCenterPos()).byteAngle;
 
 			new SoulBodyX5(
-            new SoulBody(), character.pos, character.xDir,
-            player, player.getNextActorNetId(), cloneCount + 1, ang, true
+            	character, character.pos, character.xDir,
+            	player.getNextActorNetId(), cloneCount + 1, ang, true, player
             );
 
 			cloneCount++;
@@ -217,31 +219,36 @@ public class ControlClone : CharState {
 public class SoulBodyX5 : Projectile {
 
 	int color;
+	float spd = 360;
 
 	public SoulBodyX5(
-		Weapon weapon, Point pos, int xDir, Player player,
-		ushort? netId, int color, float ang, bool rpc = false
+		Actor owner, Point pos, int xDir, 
+		ushort? netId, int color, float ang, 
+		bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, 1, 360, 2,
-		player, "soul_body_x5", Global.halfFlinch, 0.5f,
-		netId, player.ownedByLocalPlayer
+		pos, xDir, owner, "soul_body_x5", netId, player
 	) {
+		weapon = SoulBody.netWeapon;
 		projId = (int)ProjIds.SoulBodyX5;
 		maxTime = 0.75f;
 		destroyOnHit = false;
-		vel = Point.createFromByteAngle(ang).times(speed);
+		vel = Point.createFromByteAngle(ang).times(spd);
 		this.color = color;
 		byteAngle = ang;
 
+		damager.damage = 2;
+		damager.flinch = Global.halfFlinch;
+		damager.hitCooldown = 30;
+
 		if (rpc) {
-			rpcCreate(pos, player, netId, xDir, new byte[] { (byte)color, (byte)ang });
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir, new byte[] { (byte)color, (byte)ang });
 		}
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new SoulBodyX5(
-			SoulBody.netWeapon, arg.pos, arg.xDir, arg.player,
-			arg.netId, arg.extraData[0], arg.extraData[1]
+			arg.owner, arg.pos, arg.xDir, arg.netId, arg.extraData[0],
+			 arg.extraData[1], player: arg.player
 		);
 	}
 

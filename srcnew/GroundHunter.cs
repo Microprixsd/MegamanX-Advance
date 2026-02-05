@@ -49,9 +49,9 @@ public class GroundHunter : Weapon {
 		bool down = player.input.isHeld(Control.Down, player);
 
 		if (chargeLevel >= 3 && ammo >= 6) {
-			new GroundHunterChargedProj(this, pos, xDir, player, player.getNextActorNetId(), true);
+			new GroundHunterChargedProj(mmx, pos, xDir, player.getNextActorNetId(), true, player);
 		} else {
-			new GroundHunterProj(this, pos, xDir, player, player.getNextActorNetId(), true) { downPressed = down };
+			new GroundHunterProj(mmx, pos, xDir, player.getNextActorNetId(), true, player) { downPressed = down };
 		}
 	}
 }
@@ -93,36 +93,37 @@ public class GroundHunterProj : Projectile {
 	const float projSpeed = 200;
 	public bool downPressed;
 	bool down;
-	Player player;
+	Player? player;
 	bool groundedOnce;
 	public Anim? sparks;
 
 	public GroundHunterProj(
-		Weapon weapon, Point pos, int xDir,
-		Player player, ushort? netProjId,
-		bool rpc = false
+		Actor owner, Point pos, int xDir,
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, projSpeed, 2,
-		player, "ground_hunter_proj", 0, 0,
-		netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "ground_hunter_proj", netId, player
 	) {
+		weapon = GroundHunter.netWeapon;
 		projId = (int)ProjIds.GroundHunter;
-		this.player = player;
 		wallCrawlSpeed = projSpeed;
 		maxDistance = 250;
 		useGravity = false;
-		// gravityModifier = 0.5f;
 		vel.y = 25;
 		fadeSprite = "ground_hunter_fade";
 		fadeOnAutoDestroy = true;
 		canBeLocal = false;
 
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		vel.x = projSpeed * xDir;
+		damager.damage = 2;
+
+		if (ownedByLocalPlayer) this.player = player;
+
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new GroundHunterProj(
-			GroundHunter.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
@@ -165,7 +166,7 @@ public class GroundHunterProj : Projectile {
 			}
 		}
 
-		downPressed = player.input.isPressed(Control.Down, player);
+		downPressed = player?.input.isPressed(Control.Down, player) == true;
 	}
 
 	public override void onHitWall(CollideData other) {
@@ -191,43 +192,50 @@ public class GroundHunterProj : Projectile {
 public class GroundHunterChargedProj : Projectile {
 
 	bool fired;
-	Player player;
+	Player? player;
+	Character? chr = null;
 	int shootCount;
 	int shootCooldown;
 
 	public GroundHunterChargedProj(
-		Weapon weapon, Point pos, int xDir,
-		Player player, ushort? netProjId,
-		bool rpc = false
+		Actor owner, Point pos, int xDir,
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 300, 2,
-		player, "ground_hunter_charged_proj", 0, 0.5f,
-		netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "ground_hunter_charged_proj", netId, player
 	) {
+		weapon = GroundHunter.netWeapon;
 		projId = (int)ProjIds.GroundHunterCharged;
 		maxTime = 1f;
-		this.player = player;
 		destroyOnHit = false;
 		fadeSprite = "ground_hunter_fade";
 		fadeOnAutoDestroy = true;
 		canBeLocal = false;
 
-		if (rpc) rpcCreate(pos, player, netProjId, xDir);
+		vel.x = 300 * xDir;
+		damager.damage = 2;
+		damager.hitCooldown = 30;
+
+		if (ownedByLocalPlayer) {
+			this.player = player;
+			chr = owner as Character;
+		} 
+
+		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new GroundHunterChargedProj(
-			GroundHunter.netWeapon, arg.pos, arg.xDir, arg.player, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId, player: arg.player
 		);
 	}
 
 	public override void update() {
 		base.update();
-		if (!ownedByLocalPlayer) return;
+		if (!ownedByLocalPlayer || player == null || chr == null) return;
 
 		if (shootCooldown > 0) shootCooldown--;
 
-		if (player.input.getYDir(player) != 0 && !fired) {
+		if (player?.input.getYDir(player) != 0 && !fired) {
 			fired = true;
 			time = 0;
 		}
@@ -236,8 +244,8 @@ public class GroundHunterChargedProj : Projectile {
 			shootCooldown = 4;
 			shootCount++;
 			
-			new GroundHunterSmallProj(weapon, pos, xDir, player, 1, player.getNextActorNetId(), true);
-			new GroundHunterSmallProj(weapon, pos, xDir, player, 2, player.getNextActorNetId(), true);
+			new GroundHunterSmallProj(chr, pos, xDir, 1, player?.getNextActorNetId(), true, player);
+			new GroundHunterSmallProj(chr, pos, xDir, 2, player?.getNextActorNetId(), true, player);
 		}
 
 		else if (shootCount >= 5) destroySelf();
@@ -248,14 +256,12 @@ public class GroundHunterChargedProj : Projectile {
 public class GroundHunterSmallProj : Projectile {
 	
 	public GroundHunterSmallProj(
-		Weapon weapon, Point pos, int xDir,
-		Player player, int type, ushort? netProjId,
-		bool rpc = false
+		Actor owner, Point pos, int xDir, int type, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 1,
-		player, "ground_hunter_small_proj", 0, 0,
-		netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "ground_hunter_small_proj", netId, player
 	) {
+		weapon = GroundHunter.netWeapon;
 		projId = (int)ProjIds.GroundHunterSmall;
 		maxTime = 0.33f;
 		fadeSprite = "ground_hunter_fade";
@@ -263,17 +269,19 @@ public class GroundHunterSmallProj : Projectile {
 		if (type == 2) yScale *= -1;
 		vel.y = -yScale * 300;
 
+		damager.damage = 1;
+
 		if (rpc) {
 			byte[] extraArgs = new byte[] { (byte)type };
 
-			rpcCreate(pos, player, netProjId, xDir, extraArgs);
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir, extraArgs);
 		}
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new GroundHunterSmallProj(
-			GroundHunter.netWeapon, arg.pos, arg.xDir, 
-			arg.player, arg.extraData[0], arg.netId
+			arg.owner, arg.pos, arg.xDir, 
+			arg.extraData[0], arg.netId, player: arg.player
 		);
 	}
 }

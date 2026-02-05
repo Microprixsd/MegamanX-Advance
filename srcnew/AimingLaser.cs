@@ -51,14 +51,14 @@ public class AimingLaser : Weapon {
 
 			foreach(var targ in mmx.aLaserTargets) {
 				if (targ.pos.distanceTo(pos) <= 320) {
-					new AimingLaserProj(this, pos, xDir, player, type, player.getNextActorNetId(), targ, true);
+					new AimingLaserProj(mmx, pos, xDir, type, player.getNextActorNetId(), targ, true, player);
 					addAmmo(-1, player);
 					type++;
 				}
 			}
 		} else {
 			float angle = xDir > 0 ? 0 : 128;
-			new AimingLaserChargedProj(this, pos, xDir, player, angle, player.getNextActorNetId(), true);
+			new AimingLaserChargedProj(mmx, pos, xDir, angle, player.getNextActorNetId(), true, player);
 
 			mmx.aLaserTargets.Clear();
 		}
@@ -70,18 +70,21 @@ public class AimingLaser : Weapon {
 
 
 public class AimingLaserTargetAnim : Anim {
-	MegamanX? chara;
+	Character? chara;
+	MegamanX? owner;
 
 	public AimingLaserTargetAnim(
-		Point pos, int xDir, ushort? netId, Character chara
+		Actor owner, Point pos, int xDir, ushort? netId, Character chara
 	) : base (
 		pos, "aiming_laser_cursor", xDir, netId, false, true
 	) {
-		this.chara = chara as MegamanX;
+		this.chara = chara;
+		this.owner = owner as MegamanX;
 	}
 
 	public override void update() {
 		base.update();
+		if (!ownedByLocalPlayer || chara == null) return;
 
 		changePos(chara.getCenterPos());
 
@@ -90,7 +93,9 @@ public class AimingLaserTargetAnim : Anim {
 
 	public override void onDestroy() {
 		base.onDestroy();
-		chara.aLaserTargetAnim = null!;
+		if (!ownedByLocalPlayer) return;
+		
+		owner?.aLaserTargetAnim = null!;
 	}
 }
 
@@ -149,42 +154,44 @@ public class AimingLaserHud : Anim {
 
 public class AimingLaserCursor : Projectile {
 	MegamanX mmx = null!;
-	Player player;
+	Player? player;
 	float ogAngle = 0;
 	float laserAngle;
 	const float laserDistance = 64;
 
 	public AimingLaserCursor(
-		Weapon weapon, Point pos, int xDir, Player player, ushort? netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir, ushort? netId, 
+		bool rpc = false, Player? player = null 
 	) : base (
-		AimingLaser.netWeapon, pos, xDir, 0, 0, player, 
-		"aiming_laser_cursor", 0, 0, netProjId, player.ownedByLocalPlayer
+		pos, xDir, owner, "aiming_laser_cursor", netId, player
 	) {
+		weapon = AimingLaser.netWeapon;
 		this.player = player;
-		mmx = player.character as MegamanX ?? throw new NullReferenceException();
+		mmx = owner as MegamanX ?? throw new NullReferenceException();
 		mmx.aLaserCursor = this;
 		setIndestructableProperties();
 
 		laserAngle = xDir > 0 ? 0 : 128;
 		changePos(mmx.getCenterPos().add(Point.createFromByteAngle(laserAngle).times(laserDistance)));
+
 	}
 
 	public override void update() {
 		base.update();
-		if (!ownedByLocalPlayer) return;
+		if (!ownedByLocalPlayer || mmx == null) return;
 
-		if (player.weapon is not AimingLaser) destroySelf();
+		if (player?.weapon is not AimingLaser || mmx?.alive == false) destroySelf();
 
-		int dirY = player.input.getYDir(player);
+		int dirY = player?.input.getYDir(player) ?? 0;
 		if (dirY != 0) ogAngle += dirY * 8;
 
 		if (ogAngle < -64) ogAngle = -64;
 		if (ogAngle > 64) ogAngle = 64;
 
-		laserAngle = mmx.getShootXDir() > 0 ? ogAngle : -ogAngle + 128;
+		laserAngle = mmx?.getShootXDir() > 0 ? ogAngle : -ogAngle + 128;
 
-		float posX = mmx.getCenterPos().x + (laserDistance * Helpers.cosb(laserAngle));
-		float posY = mmx.getCenterPos().y + (laserDistance * Helpers.sinb(laserAngle));
+		float posX = mmx?.getCenterPos().x + (laserDistance * Helpers.cosb(laserAngle)) ?? 0;
+		float posY = mmx?.getCenterPos().y + (laserDistance * Helpers.sinb(laserAngle)) ?? 0;
 
 		changePos(new Point(posX, posY));
 	}
@@ -195,14 +202,14 @@ public class AimingLaserCursor : Projectile {
 
 		if (chr != null && 
 			mmx.aLaserTargets.Count < 3 &&
-			chr.canBeDamaged(player.alliance, player.id, projId)) {
+			chr.canBeDamaged(damager.owner.alliance, damager.owner.id, projId)) {
 
 				if (!mmx.aLaserTargets.Any(c => c == chr)) {
 					mmx.aLaserTargets.Add(chr);
 					//chr.addALaserAttacker(mmx);
 					if (mmx.aLaserTargetAnim == null) {
 						mmx.aLaserTargetAnim = new AimingLaserTargetAnim(
-							chr.getCenterPos(), 1, null, chr
+							mmx, chr.getCenterPos(), 1, null, chr
 						);
 					}
 					playSound("axlTarget");
@@ -230,13 +237,12 @@ public class AimingLaserProj : Projectile {
 	float ang;
 
 	public AimingLaserProj(
-		Weapon weapon, Point pos, int xDir, Player player, int type,
-		ushort? netProjId, Character target = null!, bool rpc = false
+		Actor owner, Point pos, int xDir, int type, ushort? netId, 
+		Character target = null!, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 1, player,
-		"empty", 0, 0.34f, netProjId,
-		player.ownedByLocalPlayer
+		pos, xDir, owner, "empty", netId, player
 	) {
+		weapon = AimingLaser.netWeapon;
 		projId = (int)ProjIds.AimingLaser;
 		destroyOnHit = false;
 		maxTime = 1f;
@@ -244,16 +250,17 @@ public class AimingLaserProj : Projectile {
 		this.target = target;
 		this.type = type;
 		//endPos = target.pos. ?? target.getCenterPos();
-		mmx = player.character as MegamanX ?? throw new NullReferenceException();
+		mmx = owner as MegamanX ?? throw new NullReferenceException();
 		//mmx.aLaserProj = this;
 		mmx.aLasers.Add(this);
 
-		setEndPos(endPos);
+		damager.damage = 1;
+		damager.hitCooldown = 20;
 
 		if (rpc) {
 			byte[] extraArgs = new byte[] { (byte)type  };
 
-			rpcCreate(pos, player, netProjId, xDir, extraArgs);
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir, extraArgs);
 		}
 
 		canBeLocal = false;
@@ -261,9 +268,20 @@ public class AimingLaserProj : Projectile {
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new AimingLaserProj(
-			AimingLaser.netWeapon, arg.pos, arg.xDir, 
-			arg.player, arg.extraData[0], arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.extraData[0], 
+			arg.netId, player: arg.player
 		);
+	}
+
+	public override void onStart() {
+		base.onStart();
+
+		changePos(mmx.getShootPos());
+		endPos = target.getCenterPos();
+		setEndPos(endPos);
+		length = pos.distanceTo(endPos);
+		l = MathF.Max(length - 24, 0);
+		ang = pos.directionTo(endPos).byteAngle;
 	}
 
 	public override void update() {
@@ -368,7 +386,6 @@ public class AimingLaserProj : Projectile {
 		base.onDestroy();
 		mmx.aLaserTargets.Remove(target);
 		mmx.aLasers.Remove(this);
-		mmx.shootAnimTime = 0;
 	}
 }
 
@@ -379,34 +396,41 @@ public class AimingLaserChargedProj : Projectile {
 	float ang = 0;
 	float finalAng;
 	float length = 0;
-	Player player;
+	Player? player;
 	Point endPos;
 	Point shootDir;
 	float l;
 	float angDif = 15;
+	float[] angs = new float[5];
 
 	public AimingLaserChargedProj(
-		Weapon weapon, Point pos, int xDir, Player player,
-		float byteAngle, ushort? netProjId, bool rpc = false
+		Actor owner, Point pos, int xDir,float byteAngle, 
+		ushort? netId, bool rpc = false, Player? player = null
 	) : base(
-		weapon, pos, xDir, 0, 1, player,
-		"empty", 0, 0.3f, netProjId,
-		player.ownedByLocalPlayer
+		pos, xDir, owner, "empty", netId, player
 	) {
+		weapon = AimingLaser.netWeapon;
 		projId = (int)ProjIds.AimingLaserCharged;
 		maxTime = 3f;
 		setIndestructableProperties();
-		mmx = player.character as MegamanX ?? throw new NullReferenceException();
-		mmx.aLaserChargedProj = this;
-		this.byteAngle = byteAngle;
-		this.player = player;
+
+		if (ownedByLocalPlayer) {
+			mmx = owner as MegamanX ?? throw new NullReferenceException();
+			mmx.aLaserChargedProj = this;
+			this.byteAngle = byteAngle;
+			this.player = player;
+		}
+		
 		shootDir = new Point(xDir, 0);
 		endPos = pos.add(shootDir.normalize().times(length));
+
+		damager.damage = 1;
+		damager.hitCooldown = 18;
 
 		setEndPos(endPos);
 
 		if (rpc) {
-			rpcCreateByteAngle(pos, player, netProjId, byteAngle);
+			rpcCreateByteAngle(pos, owner, ownerPlayer, netId, byteAngle);
 		}
 
 		canBeLocal = false;
@@ -414,8 +438,8 @@ public class AimingLaserChargedProj : Projectile {
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new AimingLaserChargedProj(
-			AimingLaser.netWeapon, arg.pos, arg.xDir, 
-			arg.player, arg.byteAngle, arg.netId
+			arg.owner, arg.pos, arg.xDir, 
+			arg.byteAngle, arg.netId, player: arg.player
 		);
 	}
 
@@ -424,7 +448,7 @@ public class AimingLaserChargedProj : Projectile {
 		if (length < 128) length += 2;
 		l = MathF.Max(length * 0.75f, 0);
 
-		int dirY = player.input.getYDir(player);
+		int dirY = damager.owner.input.getYDir(damager.owner);
 		if (dirY != 0) ang += dirY * 8;
 
 		if (ang < -64) ang = -64;
@@ -433,13 +457,18 @@ public class AimingLaserChargedProj : Projectile {
 		byteAngle = mmx.getShootXDir() > 0 ? ang : -ang + 128;
 
 		if (!ownedByLocalPlayer) return;
-		if (player.weapon is not AimingLaser) destroySelf();
+		if (damager.owner.weapon is not AimingLaser) destroySelf();
 	}
 
 	public override void postUpdate() {
 		base.postUpdate();
-		if (byteAngle == null) return;
+		//if (byteAngle == null) return;
 		if (!ownedByLocalPlayer) return;
+
+		for (int i = 3; i >= 0; i--) {
+			angs[i + 1] = angs[i];
+		}
+		angs[0] = byteAngle;
 
 		changePos(mmx.getShootPos());
 		endPos = pos.add(Point.createFromByteAngle(byteAngle) * length);
@@ -449,13 +478,13 @@ public class AimingLaserChargedProj : Projectile {
 	public void setEndPos(Point endPos) {
 		this.endPos = endPos;
 
-		globalCollider = new Collider(getPoints(), true, null!, false, false, HitboxFlag.Hitbox, Point.zero);
+		globalCollider = new Collider(getPoints(angs[0]), true, null!, false, false, HitboxFlag.Hitbox, Point.zero);
 	}
 
-	List<Point> getPoints() {
-		if (byteAngle == null) return new List<Point>();
-		Point pointA = pos.add(Point.createFromByteAngle(byteAngle - angDif).times(l));
-		Point pointB = pos.add(Point.createFromByteAngle(byteAngle + angDif).times(l));
+	List<Point> getPoints(float ang) {
+		//if (byteAngle == null) return new List<Point>();
+		Point pointA = pos.add(Point.createFromByteAngle(ang - angDif).times(l));
+		Point pointB = pos.add(Point.createFromByteAngle(ang + angDif).times(l));
 
 		return new List<Point>() {
 			pos,
@@ -467,9 +496,11 @@ public class AimingLaserChargedProj : Projectile {
 
 	public override void render(float x, float y) {
 		base.render(x,y);
-		var color = new Color(39, 255, 230, 255);
 
-		DrawWrappers.DrawPolygon(getPoints(), color, true, ZIndex.Actor);
+		for (int i = 0; i < angs.Length; i++) {
+			Color color = new(39, 255, 230, (byte)(255 - (i * 51)));
+			DrawWrappers.DrawPolygon(getPoints(angs[i]), color, true, ZIndex.Actor);
+		}
 	}
 
 	public override List<byte> getCustomActorNetData() {
@@ -490,6 +521,5 @@ public class AimingLaserChargedProj : Projectile {
 	public override void onDestroy() {
 		base.onDestroy();
 		mmx.aLaserChargedProj = null!;
-		mmx.shootAnimTime = 0;
 	}
 }
