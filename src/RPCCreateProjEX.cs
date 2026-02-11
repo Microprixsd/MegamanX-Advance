@@ -186,6 +186,7 @@ public partial class RPCCreateProj : RPC {
 		{ (int)ProjIds.Rekkoha, RekkohaProj.rpcInvoke },
 		{ (int)ProjIds.ShinMessenkou, ShinMessenkouProj.rpcInvoke },
 		{ (int)ProjIds.DarkHold, DarkHoldProj.rpcInvoke },
+		{ (int)ProjIds.Tenshouha, TenshouhaProj.rpcInvoke },
 		{ (int)ProjIds.QuakeBlazer, DanchienExplosionProj.rpcInvoke },
 		{ (int)ProjIds.QuakeBlazerFlame, QuakeBlazerFlamePart.rpcInvoke },
 		{ (int)ProjIds.HyorogaProj, HyorogaProj.rpcInvoke },

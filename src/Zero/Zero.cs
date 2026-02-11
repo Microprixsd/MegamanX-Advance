@@ -102,7 +102,8 @@ public class Zero : Character {
 		gigaAttack = loadout.gigaAttack switch {
 			1 => new Messenkou(),
 			2 => new RekkohaWeapon(),
-			_ => new RakuhouhaWeapon(),
+			3 => new RakuhouhaWeapon(),
+			_ => new TenshouhaWeapon(),
 		};
 
 		hyperMode = loadout.hyperMode;
@@ -202,7 +203,8 @@ public class Zero : Character {
 					gigaAttack = gigaAttackSelected switch {
 						1 => new Messenkou(),
 						2 => new RekkohaWeapon(),
-						_ => new RakuhouhaWeapon(),
+						3 => new RakuhouhaWeapon(),
+						_ => new TenshouhaWeapon(),
 					};
 					gigaAttack.ammo = oldAmmo;
 				}
@@ -1267,7 +1269,7 @@ public class Zero : Character {
 		base.aiDodge(target);
 	}
 	public void ComboAttacks(Actor? target) {
-		if (!(charState is HyperZeroStart or DarkHoldState or Hurt or RakuhouhaState or RekkohaState) &&
+		if (!(charState is HyperZeroStart or DarkHoldState or Hurt or RakuhouhaState or RekkohaState or TenshouhaState) &&
 			sprite.name != null && !player.isMainPlayer && !isWildDance
 		) { //least insane else if chain be like:	
 			if (sprite.name == "zero_attack3") {
@@ -1351,7 +1353,8 @@ public class Zero : Character {
 				}
 			}
 			if (charState is RakuhouhaState && sprite.frameIndex >= 16 ||
-				charState is RekkohaState && sprite.frameIndex >= 14) {
+				charState is RekkohaState && sprite.frameIndex >= 14 ||
+				charState is TenshouhaState && sprite.frameIndex >= 14) {
 				switch (Helpers.randomRange(1, 3)) {
 					case 1:
 						changeState(new ZeroDashSlashState(), true);

@@ -38,7 +38,8 @@ public class SelectZeroWeaponMenu : IMainMenu {
 	public static List<Weapon> gigaAttackWeapons = new List<Weapon>() {
 		new RakuhouhaWeapon(),
 		new Messenkou(),
-		new RekkohaWeapon()
+		new RekkohaWeapon(),
+		new TenshouhaWeapon()
 	};
 
 	public static List<Tuple<string, List<Weapon>>> zeroWeaponCategories = new List<Tuple<string, List<Weapon>>>() {

@@ -10,6 +10,7 @@ public enum ZeroGigaType {
 	Rekkoha,
 	ShinMessenkou,
 	DarkHold,
+	Tenshouha,
 }
 
 public class RakuhouhaWeapon : Weapon {
@@ -46,6 +47,7 @@ public class RakuhouhaWeapon : Weapon {
 			(int)ZeroGigaType.Rakuhouha => new RakuhouhaWeapon(),
 			(int)ZeroGigaType.Messenkou => new Messenkou(),
 			(int)ZeroGigaType.Rekkoha => new RekkohaWeapon(),
+			(int)ZeroGigaType.Tenshouha => new TenshouhaWeapon(),
 			_ => throw new Exception("Invalid Zero hyouretsuzan weapon index!")
 		};
 	}
@@ -182,6 +184,37 @@ public class DarkHoldWeapon : Weapon {
 	public override void shoot(Character character, int[] args) {
 		addAmmo(-getAmmoUsage(0), character.player);
 		character.changeState(new DarkHoldShootState(this), true);
+	}
+}
+public class TenshouhaWeapon : Weapon {
+	public static TenshouhaWeapon netWeapon = new();
+	public TenshouhaWeapon() : base() {
+		ammo = 0;
+		maxAmmo = 28;
+		fireRate = 60;
+		index = (int)WeaponIds.Tenshouha;
+		type = (int)ZeroGigaType.Tenshouha;
+		displayName = "Tenshouha";
+		description = new string[] { "A powerful beam that stays for a while. Energy cost: 14." };
+		damage = "2";
+		hitcooldown = "0.5";
+		flinch = "26";
+		effect = "42 Frames of Invincibility.";
+		killFeedIndex = 181;
+		weaponBarBaseIndex = 80;
+		weaponBarIndex = 59;
+		weaponSlotIndex = 131;
+		drawGrayOnLowAmmo = true;
+		drawRoundedDown = true;
+		allowSmallBar = false;
+	}
+	public override float getAmmoUsage(int chargeLevel) {
+		return 14;
+	}
+
+	public override void shoot(Character character, int[] args) {
+		addAmmo(-getAmmoUsage(0), character.player);
+		character.changeState(new TenshouhaState(this), true);
 	}
 }
 
@@ -568,6 +601,37 @@ public class DarkHoldProj : Projectile {
 		Global.level.darkHoldProjs.Remove(this);
 	}
 }
+public class TenshouhaProj : Projectile {
+	public TenshouhaProj(
+		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
+	) : base(
+		pos, xDir, owner, "Tenshouha_proj", netId, player
+	) {
+		weapon = TenshouhaWeapon.netWeapon;
+		damager.damage = 2;
+		damager.hitCooldown = 30;
+		damager.flinch = Global.defFlinch;
+		projId = (int)ProjIds.Tenshouha;
+		vel.y = 400;
+		maxTime = 2f;
+		destroyOnHit = false;
+		shouldShieldBlock = false;
+		netcodeOverride = NetcodeModel.FavorDefender;
+		isOwnerLinked = true;
+		if (rpc) {
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+		}
+		if (ownerPlayer?.character != null) {
+			ownerActor = ownerPlayer.character;
+		}
+	}
+	public static Projectile rpcInvoke(ProjParameters args) {
+		return new TenshouhaProj(
+			args.pos, args.xDir, args.owner, args.player, args.netId
+		);
+	}
+}
+
 
 public abstract class ZeroGigaAttack : CharState {
 	// General varaibles.
@@ -887,5 +951,47 @@ public class DarkHoldState : CharState {
 		character.frameSpeed = 1;
 		character.darkHoldInvulnTime = 1;
 		character.isDarkHoldState = false;
+	}
+}
+public class TenshouhaState : CharState {
+	public bool shotModeActive;
+	public Weapon weapon;
+	public int attackMaxTime = 30;
+	public bool exiting;
+	public TenshouhaState(Weapon weapon) : base("rekkoha") {
+		invincible = true;
+		stunImmune = true;
+		this.weapon = weapon;
+	}
+
+	public override void update() {
+		weapon.shootCooldown = weapon.fireRate;
+		base.update();
+		if (exiting) {
+			if (character.isAnimOver()) {
+				character.changeToIdleOrFall();
+			}
+			return;
+		}
+		if (character.frameIndex >= 8 && !shotModeActive) {
+			shotModeActive = true;
+			character.playSound("rekkoha", sendRpc: true);
+			character.playSound("crashX2", sendRpc: true);
+			new TenshouhaProj(
+				new Point(character.pos.x, character.pos.y),
+				character.xDir, character,
+				player, player.getNextActorNetId(),
+				rpc: true
+			);
+		}
+		if (stateFrames >= attackMaxTime) {
+			exiting = true;
+			character.changeSpriteFromName("giga_end", true);
+		}
+	}
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.clenaseAllDebuffs();
 	}
 }

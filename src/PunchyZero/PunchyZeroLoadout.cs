@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using ProtoBuf;
 using SFML.Graphics;
 
@@ -142,6 +142,7 @@ public class SelectPunchyZeroWeaponMenu : IMainMenu {
 				0 => "Rakuhouha",
 				1 => "Messenkou",
 				2 => "Rekkouha",
+				3 => "Tenshouha",
 				_ => "ERROR"
 			};
 			weaponDescription = gigaAttack switch {

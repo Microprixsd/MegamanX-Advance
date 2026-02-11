@@ -64,6 +64,7 @@ public class Damager {
 		{ (int)ProjIds.Rekkoha, 60 },
 		{ (int)ProjIds.HexaInvolute, 60 },
 		{ (int)ProjIds.ZSaber3, 60 },
+		{ (int)ProjIds.Tenshouha, 60 },
 	};
 
 	public Damager(Player owner, float damage, int flinch, float hitCooldown, float knockback = 0) {

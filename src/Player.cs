@@ -328,6 +328,7 @@ public partial class Player {
 
 	// Note: Every time you add an armor, add an "old" version and update DNA Core code appropriately
 	public ushort armorFlag;
+	public int[] armorEra = [0, 0, 0, 0];
 	public bool frozenCastle;
 	public bool speedDevil;
 
@@ -452,10 +453,10 @@ public partial class Player {
 	public ExplodeDieEffect? explodeDieEffect;
 	public bool suicided;
 
-	public bool[] headArmorsPurchased = new bool[] { false, false, false };
-	public bool[] bodyArmorsPurchased = new bool[] { false, false, false };
-	public bool[] armArmorsPurchased = new bool[] { false, false, false };
-	public bool[] bootsArmorsPurchased = new bool[] { false, false, false };
+	public bool[] headArmorsPurchased = new bool[] { false, false, false, false };
+	public bool[] bodyArmorsPurchased = new bool[] { false, false, false, false };
+	public bool[] armArmorsPurchased = new bool[] { false, false, false, false };
+	public bool[] bootsArmorsPurchased = new bool[] { false, false, false, false };
 
 	public float lastMashAmount;
 	public int lastMashAmountSetFrame;
@@ -2003,7 +2004,7 @@ public partial class Player {
 	}
 
 	public bool hasAllX3Armor() {
-		return bodyArmorNum >= 3 && legArmorNum >= 3 && armArmorNum >= 3 && helmetArmorNum >= 3;
+		return bodyArmorNum == 3 && legArmorNum == 3 && armArmorNum == 3 && helmetArmorNum == 3;
 	}
 
 	public void destroy() {
@@ -2524,7 +2525,7 @@ public partial class Player {
 		if (armorIndex == 3) bitStr = bits[12] + bits[13] + bits[14] + bits[15];
 
 		int retVal = Convert.ToInt32(bitStr, 2);
-		if (retVal > 3 && !isChipCheck) retVal = 3;
+		if (retVal > 4 && !isChipCheck) retVal = 4;
 		return retVal;
 	}
 

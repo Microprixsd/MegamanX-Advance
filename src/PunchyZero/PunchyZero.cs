@@ -73,7 +73,8 @@ public class PunchyZero : Character {
 		gigaAttack = loadout.gigaAttack switch {
 			1 => new Messenkou(),
 			2 => new RekkohaWeapon(),
-			_ => new RakuhouhaWeapon(),
+			3 => new RakuhouhaWeapon(),
+			_ => new TenshouhaWeapon(),
 		};
 		hyperMode = loadout.hyperMode;
 		altSoundId = AltSoundIds.X3;
@@ -154,7 +155,8 @@ public class PunchyZero : Character {
 					gigaAttack = gigaAttackSelected switch {
 						1 => new Messenkou(),
 						2 => new RekkohaWeapon(),
-						_ => new RakuhouhaWeapon(),
+						3 => new RakuhouhaWeapon(),
+						_ => new TenshouhaWeapon(),
 					};
 					gigaAttack.ammo = oldAmmo;
 				}
