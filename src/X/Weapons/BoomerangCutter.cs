@@ -74,6 +74,7 @@ public class BoomerangCutter : Weapon {
 				twin4.twin = d;
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

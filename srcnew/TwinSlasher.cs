@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MMXOnline;
@@ -61,6 +61,7 @@ public class TwinSlasher : Weapon {
 				}
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

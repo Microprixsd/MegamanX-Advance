@@ -59,6 +59,7 @@ public class SonicSlicer : Weapon {
 				new SonicSlicerProjCharged(pos, 4, xDir, mmx, player, player.getNextActorNetId(true), true);
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 }
 

@@ -43,13 +43,14 @@ public class RisingFire : Weapon {
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 
-		if (chargeLevel < 3f || chargeLevel >= 3 && ammo <6) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo <6) {
 			character.changeState(new RisingFireState(), true);
 		} else {
 			if (ammo >= 6) {
 				character.changeState(new RisingFireChargedState(), true);
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

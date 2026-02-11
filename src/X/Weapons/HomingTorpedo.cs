@@ -58,6 +58,8 @@ public class HomingTorpedo : Weapon {
 				new TorpedoProjChargedX(pos.addxy(0, -2), xDir, mmx, player, player.getNextActorNetId(true), -30, new Point(25, 100), true);
 			}
 		}
+		rechargeCooldown = 1;
+
 	}
 } 
 public class TorpedoProjX : Projectile, IDamagable {

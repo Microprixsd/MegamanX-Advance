@@ -66,6 +66,7 @@ public class RollingShield : Weapon {
 				}
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 }
 

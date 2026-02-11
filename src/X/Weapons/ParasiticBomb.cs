@@ -64,6 +64,7 @@ public class ParasiticBomb : Weapon {
 				mmx.chargedParasiticBomb = new BeeSwarm(mmx);
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

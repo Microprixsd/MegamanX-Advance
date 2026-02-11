@@ -112,6 +112,7 @@ public class BubbleSplash : Weapon {
 				}
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

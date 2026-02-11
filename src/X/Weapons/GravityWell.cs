@@ -55,6 +55,7 @@ public class GravityWell : Weapon {
 				character.changeState(new GravityWellChargedState(), true);
 			}
 		}
+		rechargeCooldown = 1;
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {

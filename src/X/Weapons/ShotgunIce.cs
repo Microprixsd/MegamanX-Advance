@@ -61,6 +61,7 @@ public class ShotgunIce : Weapon {
 				new ShotgunIceProjSled(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
 			}
+			rechargeCooldown = 1f;
 	}
 }
 

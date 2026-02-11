@@ -53,9 +53,9 @@ public class SoulBody : Weapon {
 
 		if (chargeLevel >= 3 && ammo >= 6) {
 			character.changeState(new ControlClone(), true);
-		} else
-		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
+		} else {
 			new SoulBodyHologram(character, pos, xDir, player.getNextActorNetId(), true, player);
+			rechargeCooldown = 1;
 		}
 	}
 }

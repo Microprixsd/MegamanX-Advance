@@ -60,6 +60,7 @@ public class FrostShield : Weapon {
 				}
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

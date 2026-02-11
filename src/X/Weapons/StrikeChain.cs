@@ -57,6 +57,7 @@ public class StrikeChain : Weapon {
 		}
 
 		mmx.strikeChainProj = proj;
+		rechargeCooldown = 1f;
 	}
 }
 

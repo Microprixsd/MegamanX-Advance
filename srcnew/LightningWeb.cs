@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MMXOnline;
@@ -53,6 +53,7 @@ public class LightningWeb : Weapon {
 				new LightningWebProjCharged(mmx, pos, xDir, player.getNextActorNetId(), true, player);
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

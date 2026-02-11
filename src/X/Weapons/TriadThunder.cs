@@ -65,6 +65,7 @@ public class TriadThunder : Weapon {
 				}
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 }
 

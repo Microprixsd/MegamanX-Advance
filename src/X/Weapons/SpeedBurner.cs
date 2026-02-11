@@ -62,6 +62,7 @@ public class SpeedBurner : Weapon {
 				}
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 }
 

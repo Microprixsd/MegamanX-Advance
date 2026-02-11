@@ -60,6 +60,7 @@ public class MagnetMine : Weapon {
 			new MagnetMineProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

@@ -22,19 +22,34 @@ public class RaySplasher : Weapon {
 		effect = "C:Grants Flinch Immunity.";
 		hitcooldown = "5";
 		hasCustomChargeAnim = true;
+
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
+	public override float getAmmoUsage(int chargeLevel) {
+		if (chargeLevel >= 3 && ammo >=6) { return 6; }
+		return 0;
+	}
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
+	}
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			mmx.shootingRaySplasher = this;
 		} else {
 			if (character.ownedByLocalPlayer) {
 				character.changeState(new RaySplasherChargedState(), true);
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 
 	public void burstLogic(MegamanX mmx) {

@@ -24,8 +24,17 @@ public class AimingLaser : Weapon {
 		Flinch = "0";
 		FlinchCD = "0";
 		effect = "Focuses scanned enemies."; */
+		ammoDisplayScale = 1;
+		maxAmmo = 16;
+		ammo = maxAmmo;
 	}
 
+	public override void update() {
+		base.update();
+    	if (ammo < maxAmmo) {
+        	rechargeAmmo(2);
+    	}
+	}
 	public override bool canShoot(int chargeLevel, Player player) {
 		MegamanX? mmx = player.character as MegamanX;
 
@@ -35,8 +44,10 @@ public class AimingLaser : Weapon {
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (chargeLevel < 3) return 0;
-		return base.getAmmoUsage(chargeLevel);
+		if (chargeLevel >= 3 && ammo >= 6) {
+			return 6;
+		}
+		return 0;
 	}
 	
 	public override void shoot(Character character, int[] args) {
@@ -46,7 +57,7 @@ public class AimingLaser : Weapon {
 		Player player = character.player;
 		MegamanX mmx = player.character as MegamanX ?? throw new NullReferenceException();
 		
-		if (chargeLevel < 3) {
+		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			int type = 0;
 
 			foreach(var targ in mmx.aLaserTargets) {
@@ -56,7 +67,8 @@ public class AimingLaser : Weapon {
 					type++;
 				}
 			}
-		} else {
+			rechargeCooldown = 0.5f;
+		} else if (chargeLevel >= 3 && ammo >= 6) {
 			float angle = xDir > 0 ? 0 : 128;
 			new AimingLaserChargedProj(mmx, pos, xDir, angle, player.getNextActorNetId(), true, player);
 
@@ -65,6 +77,7 @@ public class AimingLaser : Weapon {
 
 		mmx.aLaserCursor?.destroySelf();
 		mmx.aLaserCursor = null!;
+		rechargeCooldown = 1;
 	}
 }
 

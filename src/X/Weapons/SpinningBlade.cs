@@ -60,6 +60,7 @@ public class SpinningBlade : Weapon {
 				}
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 }
 

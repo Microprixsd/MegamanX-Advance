@@ -55,6 +55,7 @@ public class ElectricSpark : Weapon {
 				new ElectricSparkProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
 			}
+			rechargeCooldown = 1;
 	}
 }
 

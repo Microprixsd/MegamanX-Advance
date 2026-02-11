@@ -70,6 +70,7 @@ public class TornadoFang : Weapon {
 			}
 			doubleShootCooldown = 0;
 		}
+		rechargeCooldown = 1f;
 	}
 
 	public override float getFireRate(Character character, int chargeLevel, int[] args) {

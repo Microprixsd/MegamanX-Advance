@@ -53,6 +53,7 @@ public class SpinWheel : Weapon {
 				new SpinWheelProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 }
 

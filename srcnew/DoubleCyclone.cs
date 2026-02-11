@@ -40,9 +40,18 @@ public class DoubleCyclone : Weapon {
 	}
 
 	public override void shoot(Character character, int[] args) {
+		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 		int chargeLevel = args[0];
+		Point pos = character.getShootPos();
+		int xDir = character.getShootXDir();
+		Player player = character.player;
 
 		character.changeState(new DoubleCycloneState(chargeLevel), true);
+		if (chargeLevel >= 3 && ammo >= 6) {
+			new DoubleCycloneChargedProj(mmx, pos, xDir, player.getNextActorNetId(), true, player);
+		} else {
+			rechargeCooldown = 1;
+		}
 	}
 }
 

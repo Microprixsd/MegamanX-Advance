@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MMXOnline;
@@ -53,6 +53,8 @@ public class GroundHunter : Weapon {
 		} else {
 			new GroundHunterProj(mmx, pos, xDir, player.getNextActorNetId(), true, player) { downPressed = down };
 		}
+		
+		rechargeCooldown = 1;
 	}
 }
 

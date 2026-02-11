@@ -65,6 +65,7 @@ public class ChameleonSting : Weapon {
 			}
 			mmx.stingActiveTime = 210;
 		}
+		rechargeCooldown = 1;
 	}
 }
 

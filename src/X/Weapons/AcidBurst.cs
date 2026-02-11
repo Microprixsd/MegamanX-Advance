@@ -53,6 +53,7 @@ public class AcidBurst : Weapon {
 			new AcidBurstProjCharged(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

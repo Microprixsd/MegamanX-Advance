@@ -55,6 +55,7 @@ public class CrystalHunter : Weapon {
 				);
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

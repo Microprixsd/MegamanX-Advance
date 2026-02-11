@@ -49,6 +49,7 @@ public class SilkShot : Weapon {
 		else {
 			new SilkShotProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
+		rechargeCooldown = 1f;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {

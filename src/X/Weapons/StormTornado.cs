@@ -52,6 +52,7 @@ public class StormTornado : Weapon {
 			new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
 		}
+		rechargeCooldown = 1f;
 	}
 }
 

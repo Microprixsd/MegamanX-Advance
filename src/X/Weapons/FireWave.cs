@@ -60,6 +60,7 @@ public class FireWave : Weapon {
 			}
 			}
 		}
+		rechargeCooldown = 1;
 	}
 }
 

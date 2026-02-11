@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MMXOnline;
@@ -48,6 +48,7 @@ public class FrostTower : Weapon {
 			if (chargeLevel >= 3 && ammo >= 6)
 			character.changeState(new FrostTowerChargedState(), true);
 		}
+		rechargeCooldown = 1;
 	}
 }
 
