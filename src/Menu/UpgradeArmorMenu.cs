@@ -187,7 +187,7 @@ public class UpgradeArmorMenu : IMainMenu {
 				}
 			}
 			else if (selectArrowPosY == 2) {
-				if (mainPlayer.armArmorNum == xGame) {
+				if (mainPlayer.armArmorNum == xGame || (mainPlayer.armArmorNum == 5 && xGame == 4)) {
 					upgradeArmArmor(mainPlayer, 0);
 				}
 			}
