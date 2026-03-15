@@ -153,6 +153,9 @@ public class XBuster : Weapon {
 			} else if (mmx.armArmor == ArmorId.Max) {
 				new Buster3MaxProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 				new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
+			} else if (mmx.armArmor == ArmorId.Plasma) {
+				new ForceBuster3Proj(mmx, pos, xDir, player.getNextActorNetId(), true);
+				new Anim(pos.addxy(character.xDir + 2, 0), "buster4_x3_muzzle", xDir, null, destroyOnEnd: true);
 			}
 		} else if (chargeLevel >= 3) {
 			if (isStock) {
@@ -183,6 +186,8 @@ public class XBuster : Weapon {
 					}
 				} else if (mmx.armArmor == ArmorId.Giga) {
 					new Buster4GigaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				} else if (mmx.armArmor == ArmorId.Plasma) {
+					new BusterForcePlasmaProj(mmx, pos, xDir, player.getNextActorNetId(), true);
 				} else {
 					shootLightBuster4(mmx, pos, xDir);
 				}

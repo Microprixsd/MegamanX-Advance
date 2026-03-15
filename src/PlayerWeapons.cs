@@ -292,12 +292,23 @@ label:
 			weapons.Insert(getLastWeaponIndex(), new HyperCharge());
 		}
 	}
+	public void addForceNovaStrike() {
+		if (!weapons.Any(w => w is ForceNovaStrike)) {
+			weapons.Insert(getLastWeaponIndex(), new ForceNovaStrike());
+		}
+	}
 
 	public void removeNovaStrike() {
 		if (weapon is HyperNovaStrike) {
 			weaponSlot = 0;
 		}
 		weapons.RemoveAll(w => w is HyperNovaStrike);
+	}
+	public void removeForceNovaStrike() {
+		if (weapon is ForceNovaStrike) {
+			weaponSlot = 0;
+		}
+		weapons.RemoveAll(w => w is ForceNovaStrike);
 	}
 
 	public void removeHyperCharge() {

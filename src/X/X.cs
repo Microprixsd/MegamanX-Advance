@@ -377,7 +377,7 @@ public class MegamanX : Character {
 				changeState(new GigaAirDash(dashControlG), true);
 				return true;
 			}
-			if (!player.isAI && hasUltimateArmor &&
+			if (!player.isAI && (hasUltimateArmor || legArmor == ArmorId.Force) &&
 				player.input.isPressed(Control.Jump, player) &&
 				canJump() && !isDashing && canAirDash() && flag == null
 			) {
@@ -400,14 +400,16 @@ public class MegamanX : Character {
 			changeState(new XMaxWaveSaberState(), true);
 			return true;
 		}
-		if (player.input.isPressed(Control.Special1, player) && !hasAnyArmor &&
-			stingActiveTime <= 0
+		if (player.input.isPressed(Control.Special1, player) && stingActiveTime <= 0
 		) {
-			if (specialButtonMode == 1 && specialSaberCooldown <= 0 && !hasLockingProj()) {
+			if (specialButtonMode == 1 && specialSaberCooldown <= 0 && !hasLockingProj() && !hasAnyArmor) {
 				changeState(new X6SaberState(grounded), true);
 				specialSaberCooldown = 60;
 				return true;
-			} else if (specialButtonMode == 0 && specialBuster.shootCooldown <= 0 && !isCharging()) {
+			} else if (
+				specialButtonMode == 0 && specialBuster.shootCooldown <= 0 && !isCharging() && 
+				(!hasAnyArmor || player.hasAllForceArmor())
+			) {
 				shoot(0, specialBuster, false);
 				return true;
 			}
@@ -569,9 +571,11 @@ public class MegamanX : Character {
 			shootCooldown = weapon.shootCooldown;
 		}
 		// Add ammo.
-		weapon.addAmmo(-weapon.getAmmoUsageEX(chargeLevel, this), player);
+		if (helmetArmor != ArmorId.Force || chargeLevel >= 3 || !weapon.useForceHelmetBuff) {
+			weapon.addAmmo(-weapon.getAmmoUsageEX(chargeLevel, this), player);
+		}
 		//Change to shoot sprite
-		if (!player.weapon.hasCustomAnim) setShootAnim();
+		if (player.weapon?.hasCustomAnim == false) setShootAnim();
 		// Play sound if any.
 		if (shootSound != "") {
 			playSound(shootSound, sendRpc: true);
@@ -619,6 +623,7 @@ public class MegamanX : Character {
 		// Ultimate or Seraph armor.
 		player.currency -= Player.ultimateArmorCost;
 		hasUltimateArmor = true;
+		player.removeForceNovaStrike();
 		if (!weapons.Any(w => w is HyperNovaStrike)) {
 			weapons.Add(new HyperNovaStrike());
 		}
@@ -771,7 +776,7 @@ public class MegamanX : Character {
 	}
 
 	public override bool chargeButtonHeld() {
-		if (specialButtonMode == 0 && !hasAnyArmor &&
+		if (specialButtonMode == 0 && (!hasAnyArmor || player.hasAllForceArmor()) &&
 			player.input.isHeld(Control.Special1, player)
 		) {
 			isSpecialButtonCharge = true;
@@ -951,7 +956,8 @@ public class MegamanX : Character {
 			"mmx_beam_saber" or "mmx_beam_saber_air" => MeleeIds.MaxZSaber,
 			"mmx_beam_saber2" => MeleeIds.ZSaber,
 			"mmx_beam_saber_air2" => MeleeIds.ZSaberAir,
-			"mmx_nova_strike" or "mmx_nova_strike_down" or "mmx_nova_strike_up" => MeleeIds.NovaStrike,
+			"mmx_nova_strike" or "mmx_nova_strike_down" or "mmx_nova_strike_up" when hasUltimateArmor => MeleeIds.NovaStrike,
+			"mmx_nova_strike" or "mmx_nova_strike_down" or "mmx_nova_strike_up"  => MeleeIds.ForceNovaStrike,
 			// Light  Helmet.
 			"mmx_jump" or "mmx_jump_shoot" or "mmx_wall_kick" or "mmx_wall_kick_shoot"
 			when helmetArmor == ArmorId.Light && vel.y < 0 && stingActiveTime == 0 => MeleeIds.LightHeadbutt,
@@ -993,6 +999,10 @@ public class MegamanX : Character {
 				ZXSaber.netWeapon, projPos, ProjIds.X6Saber, player,
 				3, 0, 30, addToLevel: addToLevel, isZSaberEffect: true
 			),
+			(int)MeleeIds.ForceNovaStrike => new GenericMeleeProj(
+				ForceNovaStrike.netWeapon, projPos, ProjIds.ForceNovaStrike, player,
+				3, Global.defFlinch, 30, addToLevel: addToLevel
+			),
 			(int)MeleeIds.NovaStrike => new GenericMeleeProj(
 				HyperNovaStrike.netWeapon, projPos, ProjIds.NovaStrike, player,
 				4, Global.defFlinch, 30, addToLevel: addToLevel
@@ -1010,6 +1020,7 @@ public class MegamanX : Character {
 		MaxZSaber,
 		ZSaber,
 		ZSaberAir,
+		ForceNovaStrike,
 		NovaStrike,
 	}
 
@@ -1680,6 +1691,7 @@ public class MegamanX : Character {
 				if (!hasUltimateArmor && player.currency >= Player.ultimateArmorCost) {
 					player.currency -= Player.ultimateArmorCost;
 					hasUltimateArmor = true;
+					player.removeForceNovaStrike();
 					if (!weapons.Any(w => w is HyperNovaStrike)) {
 						weapons.Add(new HyperNovaStrike());
 					}

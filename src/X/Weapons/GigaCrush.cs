@@ -15,6 +15,7 @@ public class GigaCrush : Weapon {
 		allowSmallBar = false;
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
+		useForceHelmetBuff = false;
 		index = (int)WeaponIds.GigaCrush;
 		weaponBarBaseIndex = 25;
 		weaponBarIndex = weaponBarBaseIndex;

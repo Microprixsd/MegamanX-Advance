@@ -2892,6 +2892,9 @@ public partial class Character : Actor, IDamagable {
 				if (mmx.chestArmor == ArmorId.Giga) {
 					damageSavings += (calcDamage * 0.125m);
 				}
+				if (mmx.chestArmor == ArmorId.Force) {
+					damageSavings += (calcDamage * 0.125m);
+				}
 			}
 			if (vile != null && vile.hasFrozenCastle) {
 				damageSavings += calcDamage * Vile.frozenCastlePercent;
@@ -3014,6 +3017,17 @@ public partial class Character : Actor, IDamagable {
 						Weapon.gigaAttackSoundLogic(
 							this, currentAmmo, novaStrike.ammo,
 							novaStrike.getAmmoUsage(0), novaStrike.maxAmmo
+						);
+					}
+				}
+				Weapon? forceNovaStrike = weapons.FirstOrDefault(w => w is ForceNovaStrike);
+				if (forceNovaStrike != null) {
+					float currentAmmo = forceNovaStrike.ammo;
+					forceNovaStrike.addAmmo(gigaAmmoToAdd, player);
+					if (player.isMainPlayer) {
+						Weapon.gigaAttackSoundLogic(
+							this, currentAmmo, forceNovaStrike.ammo,
+							forceNovaStrike.getAmmoUsage(0), forceNovaStrike.maxAmmo
 						);
 					}
 				}

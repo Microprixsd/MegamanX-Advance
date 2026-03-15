@@ -101,6 +101,7 @@ public enum WeaponIds {
 	UPKickCharge,
 	UPParry,
 	UnlimitedCrush,
+	ForceNovaStrike,
 	NovaStrike,
 	X6Saber,
 	RagingChargeBuster,
@@ -330,6 +331,10 @@ public enum ProjIds {
 	BusterX3Proj2,
 	BusterX3Plasma,
 	BusterX3PlasmaHit,
+	BusterForce3,
+	BusterForceStock,
+	BusterForcePlasma,
+	BusterForcePlasmaHit,
 	//Mega Man X1
 	Torpedo,
 	TorpedoCharged,
@@ -453,6 +458,7 @@ public enum ProjIds {
 	UPParryMelee,
 	UPParryProj,
 	UPGrabDamage,
+	ForceNovaStrike,
 	NovaStrike,
 	X6Saber,
 

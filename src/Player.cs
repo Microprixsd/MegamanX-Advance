@@ -453,10 +453,10 @@ public partial class Player {
 	public ExplodeDieEffect? explodeDieEffect;
 	public bool suicided;
 
-	public bool[] headArmorsPurchased = new bool[] { false, false, false, false };
-	public bool[] bodyArmorsPurchased = new bool[] { false, false, false, false };
-	public bool[] armArmorsPurchased = new bool[] { false, false, false, false };
-	public bool[] bootsArmorsPurchased = new bool[] { false, false, false, false };
+	public bool[] headArmorsPurchased = new bool[] { false, false, false, false, false };
+	public bool[] bodyArmorsPurchased = new bool[] { false, false, false, false, false };
+	public bool[] armArmorsPurchased = new bool[] { false, false, false, false, false };
+	public bool[] bootsArmorsPurchased = new bool[] { false, false, false, false, false };
 
 	public float lastMashAmount;
 	public int lastMashAmountSetFrame;
@@ -2007,6 +2007,17 @@ public partial class Player {
 		return bodyArmorNum == 3 && legArmorNum == 3 && armArmorNum == 3 && helmetArmorNum == 3;
 	}
 
+	public bool hasPlasma() {
+		return armArmorNum == (int)ArmorId.Plasma;
+	}
+
+	public bool hasAllForceArmor() {
+		return (
+			bodyArmorNum == (int)ArmorId.Force && legArmorNum == (int)ArmorId.Force && 
+			(armArmorNum == (int)ArmorId.Force || armArmorNum == (int)ArmorId.Plasma) && helmetArmorNum == (int)ArmorId.Force
+		);
+	}
+
 	public void destroy() {
 		character?.destroySelf();
 		character = null;
@@ -2525,7 +2536,7 @@ public partial class Player {
 		if (armorIndex == 3) bitStr = bits[12] + bits[13] + bits[14] + bits[15];
 
 		int retVal = Convert.ToInt32(bitStr, 2);
-		if (retVal > 4 && !isChipCheck) retVal = 4;
+		if (retVal > 5 && !isChipCheck) retVal = 5;
 		return retVal;
 	}
 

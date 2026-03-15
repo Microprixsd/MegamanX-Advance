@@ -5,7 +5,8 @@ public enum ArmorId {
 	Light = 1,
 	Giga = 2,
 	Max = 3,
-	Force = 4
+	Force = 4,
+	Plasma = 5,
 }
 
 public enum ArmorP {

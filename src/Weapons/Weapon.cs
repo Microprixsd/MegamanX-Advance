@@ -79,6 +79,7 @@ public class Weapon {
 	public float rechargeAmmoCooldown;
 	public float altRechargeAmmoCooldown;
 	public bool hasCustomAnim;
+	public bool useForceHelmetBuff = true;
 
 	public Weapon() {
 		ammo = 32;
@@ -107,6 +108,7 @@ public class Weapon {
 		var weaponList = new List<Weapon>() {
 			new GigaCrush(),
 			new HyperCharge(),
+			new ForceNovaStrike(),
 			new HyperNovaStrike(),
 			new DoubleBullet(),
 			new DNACore(),

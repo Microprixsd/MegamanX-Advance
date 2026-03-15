@@ -21,6 +21,7 @@ public class HyperNovaStrike : Weapon {
 		maxAmmo = 16;
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
+		useForceHelmetBuff = false;
 	}
 
 	public override void shoot(Character character, int[] args) {

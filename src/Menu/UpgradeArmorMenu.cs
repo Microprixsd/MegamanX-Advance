@@ -197,6 +197,27 @@ public class UpgradeArmorMenu : IMainMenu {
 				}
 			}
 		}
+
+		else if (Global.input.isPressedMenu(Control.Special1)) {
+			int plasmaXGame = 5;
+			if (selectArrowPosY == 2 && xGame == 4) {
+				if (mainPlayer.armArmorNum != plasmaXGame) {
+					if (!mainPlayer.isArmArmorPurchased(plasmaXGame)) {
+						if (mainPlayer.currency >= MegamanX.armArmorCost) {
+							purchaseArmArmor(mainPlayer, plasmaXGame);
+							Global.playSound("ching");
+							if (mainPlayer.armArmorNum == 0) {
+								upgradeArmArmor(mainPlayer, plasmaXGame);
+							}
+						}
+					} else {
+						upgradeArmArmor(mainPlayer, 0);
+						upgradeArmArmor(mainPlayer, plasmaXGame);
+						Global.playSound("ching");
+					}
+				} 
+			}
+		}
 	}
 	
 	public static void clearAllHyperArmor(MegamanX mmx) {
@@ -228,6 +249,13 @@ public class UpgradeArmorMenu : IMainMenu {
 		} else {
 			player.removeGigaCrush();
 		}
+
+		if (type == (int)ArmorId.Force) {
+			player.addForceNovaStrike();
+		} else {
+			player.removeForceNovaStrike();
+		}
+
 		if (player.character is MegamanX mmx) {
 			mmx.chestArmor = (ArmorId)type;
 			clearAllHyperArmor(mmx);
@@ -360,6 +388,7 @@ public class UpgradeArmorMenu : IMainMenu {
 			case 2: Global.sprites["menu_xarm2"].drawToHUD(0, 300, 110); break;
 			case 3: Global.sprites["menu_xarm3"].drawToHUD(0, 300, 110); break;
 			case 4: Global.sprites["menu_xarm4"].drawToHUD(0, 300, 110); break;
+			case 5: Global.sprites["menu_xarm5"].drawToHUD(0, 300, 110); break;
 		}
 		switch (mainPlayer.legArmorNum) {
 			case 1: Global.sprites["menu_xboots"].drawToHUD(0, 300, 110); break;

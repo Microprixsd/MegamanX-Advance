@@ -21,6 +21,7 @@ public class HyperCharge : Weapon {
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
 		allowSmallBar = false;
+		useForceHelmetBuff = false;
 	}
 
 	public override void update() {

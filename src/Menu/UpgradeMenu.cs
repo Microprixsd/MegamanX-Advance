@@ -97,7 +97,7 @@ public class UpgradeMenu : IMainMenu {
 		if (Global.input.isPressedMenu(Control.MenuLeft) || Global.input.isPressedMenu(Control.WeaponLeft)) {
 			if (mainPlayer.realCharNum == 0) {
 				if (mainPlayer.canUpgradeXArmor()) {		
-					UpgradeArmorMenu.xGame = 3;
+					UpgradeArmorMenu.xGame = 4;
 					Menu.change(new UpgradeArmorMenu(this));
 					onUpgradeMenu = false;
 					return;
