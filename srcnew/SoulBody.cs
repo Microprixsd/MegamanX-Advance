@@ -207,7 +207,7 @@ public class ControlClone : CharState {
 			new SoulBodyX5(
             	character, character.pos, character.xDir,
             	player.getNextActorNetId(), cloneCount + 1, ang, true, player
-            );
+            ) { releasePlasma = player.hasPlasma() && cloneCount == 0 };
 
 			cloneCount++;
 			cloneCooldown = 20;

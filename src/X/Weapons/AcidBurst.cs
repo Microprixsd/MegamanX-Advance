@@ -48,9 +48,10 @@ public class AcidBurst : Weapon {
 			new AcidBurstProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else {
 			if (ammo >=6) {
-			player.setNextActorNetId(player.getNextActorNetId());
-			new AcidBurstProjCharged(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true);
-			new AcidBurstProjCharged(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
+				player.setNextActorNetId(player.getNextActorNetId());
+				new AcidBurstProjCharged(pos, xDir, 1, mmx, player, player.getNextActorNetId(true), true);
+				new AcidBurstProjCharged(pos, xDir, 0, mmx, player, player.getNextActorNetId(true), true)
+				{ releasePlasma = player.hasPlasma() };
 			}
 		}
 		rechargeCooldown = 1;

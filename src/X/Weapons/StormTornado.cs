@@ -195,6 +195,7 @@ public class TornadoProjCharged : Projectile {
 		//this.ground();
 		destroyOnHit = false;
 		shouldShieldBlock = false;
+		releasePlasma = player.hasPlasma();
 
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);

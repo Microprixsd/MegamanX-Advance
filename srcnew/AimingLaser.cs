@@ -319,26 +319,6 @@ public class AimingLaserProj : Projectile {
 		ang = pos.directionTo(endPos).byteAngle;
 	}
 
-
-	/* public override void onCollision(CollideData other) {
-		base.onCollision(other);
-		if (!ownedByLocalPlayer) return;
-
-		var damagable = other.gameObject as Character;
-		if (damagable == null || damagable != target) return;
-
-		if (damagable.canBeDamaged(damager.owner.alliance, damager.owner.id, projId)) {
-			if (damagable.projectileCooldown.ContainsKey(projId + "_" + owner.id) && 
-				damagable.projectileCooldown[projId + "_" + owner.id] >= damager.hitCooldown
-			) {
-
-				playSound("axlTarget");
-				damagable.applyDamage(1, mmx.player, this, (int)WeaponIds.AimingLaser, projId);
-				
-			}
-		} 
-	} */
-
 	public void setEndPos(Point end) {
 		this.endPos = end;
 
@@ -432,6 +412,7 @@ public class AimingLaserChargedProj : Projectile {
 			mmx.aLaserChargedProj = this;
 			this.byteAngle = byteAngle;
 			this.player = player;
+			
 		}
 		
 		shootDir = new Point(xDir, 0);
@@ -439,6 +420,7 @@ public class AimingLaserChargedProj : Projectile {
 
 		damager.damage = 1;
 		damager.hitCooldown = 18;
+		releasePlasma = ownerPlayer.hasPlasma();
 
 		setEndPos(endPos);
 

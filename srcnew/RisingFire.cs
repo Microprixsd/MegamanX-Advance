@@ -179,6 +179,7 @@ public class RisingFireChargedState : CharState {
 						character, pos, xDir, player.getNextActorNetId(), true, player
 					);
 				}
+				proj.releasePlasma = player.hasPlasma();
 			}
 			else proj.changePos(firePos);
 		}
@@ -229,19 +230,24 @@ public class RisingFireChargedState : CharState {
 	}
 
 	void releaseProj() {
+		Projectile? rf;
 		Point shootPos = character.getShootPos();
 		int xDir = character.xDir;
 
 		if (!character.isUnderwater()) {
-			new RisingFireProjCharged(
+			rf = new RisingFireProjCharged(
 				character, shootPos, xDir, player.getNextActorNetId(), 
 				rpc: true, player
 			);
 		} else {
-			new RisingFireWaterProjCharged(
+			rf = new RisingFireWaterProjCharged(
 				character, shootPos, xDir, player.getNextActorNetId(), 
 				rpc: true, player
 			);
+		}
+
+		if (proj != null && proj.releasePlasma && !proj.hasReleasedPlasma && rf != null) {
+			rf.releasePlasma = true;
 		}
 	}
 }

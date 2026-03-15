@@ -50,9 +50,14 @@ public class CrystalHunter : Weapon {
 			new CrystalHunterProj(pos, xDir, mmx, player, player.getNextActorNetId(), rpc: true);
 		} else {
 			if (ammo >= 6) {
-				new CrystalHunterCharged(
+				var cHunterCharge = new CrystalHunterCharged(
 					pos, player, player.getNextActorNetId(), player.ownedByLocalPlayer, sendRpc: true
 				);
+
+				if (player.hasPlasma()) {
+					var plasma = new BusterForcePlasmaHit(1, mmx, pos, xDir, player.getNextActorNetId(), true);
+					cHunterCharge.followActor = plasma;
+				}
 			}
 		}
 		rechargeCooldown = 1;
@@ -100,6 +105,16 @@ public class CrystalHunterCharged : Actor {
 	public float maxTime = 4;
 	public float soundTime;
 	public Actor? rootProj;
+	private Actor? internalFollowActor = null;
+	public Actor? followActor {
+		set { internalFollowActor = value; }
+		get {
+			if (internalFollowActor?.destroyed == true) {
+				internalFollowActor = null;
+			}
+			return internalFollowActor;
+		}
+	}
 
 	public CrystalHunterCharged(
 		Point pos, Player owner, ushort? netId, bool ownedByLocalPlayer, 
@@ -161,6 +176,8 @@ public class CrystalHunterCharged : Actor {
 		if (ownedByLocalPlayer && rootProj != null) {
 			changePos(rootProj.pos);
 		}
+
+		if (followActor != null) changePos(followActor.pos);
 	}
 
 	public override void onDestroy() {

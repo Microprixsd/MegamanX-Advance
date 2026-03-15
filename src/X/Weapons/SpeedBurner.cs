@@ -60,6 +60,10 @@ public class SpeedBurner : Weapon {
 				if (character.ownedByLocalPlayer) {
 					character.changeState(new SpeedBurnerCharState(), true);
 				}
+
+				if (player.hasPlasma()) {
+					new BusterForcePlasmaHit(0, mmx, pos, xDir, player.getNextActorNetId(), true);
+				}
 			}
 		}
 		rechargeCooldown = 1f;
@@ -246,5 +250,12 @@ public class SpeedBurnerCharState : CharState {
 		base.onExit(newState);
 		character.useGravity = true;
 		if (proj != null && !proj.destroyed) proj.destroySelf();
+
+		if (player.hasPlasma()) {
+			new BusterForcePlasmaHit(
+				0, character, character.getCenterPos(), -character.xDir,
+				player.getNextActorNetId(), true
+			);
+		}
 	}
 }

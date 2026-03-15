@@ -471,6 +471,7 @@ public class StrikeChainProjCharged : Projectile {
 		if (xDir < 0) byteAngle = -byteAngle + 128;
 		//if (byteAngle < 0) byteAngle += 256;
 		vel = Point.createFromByteAngle(byteAngle).times(600);
+		releasePlasma = player.hasPlasma();
 
 		canBeLocal = false;
 

@@ -236,6 +236,8 @@ public class ShotgunIceProjSled : Projectile {
 		//this.collider.wallOnly = true;
 		canBeLocal = false;
 
+		releasePlasma = player.hasPlasma();
+
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}

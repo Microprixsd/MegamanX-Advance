@@ -54,9 +54,11 @@ public class TwinSlasher : Weapon {
 			if (ammo >= 6) {
 				for (int i = 0; i < 9; i++) {
 					if (i != 4) {
-						new TwinSlasherProjCharged(
+						var tsc =new TwinSlasherProjCharged(
 							mmx, pos, xDir, i, i, player.getNextActorNetId(), true) {
 						};
+
+						if (i == 5) tsc.releasePlasma = player.hasPlasma();
 					}
 				}
 			}

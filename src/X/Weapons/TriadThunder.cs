@@ -412,7 +412,9 @@ public class TriadThunderChargedState : CharState {
 			character.shakeCamera(sendRpc: true);
 			new TriadThunderProjCharged(new Point(x, y), -1, 0, mmx, player, player.getNextActorNetId(), rpc: true);
 			new TriadThunderProjCharged(new Point(x, y), 1, 0, mmx, player, player.getNextActorNetId(), rpc: true);
-			new TriadThunderQuake(new Point(x, y), 1, mmx, player, player.getNextActorNetId(), rpc: true);
+			new TriadThunderQuake(new Point(x, y), 1, mmx, player, player.getNextActorNetId(), rpc: true)
+			{ releasePlasma = player.hasPlasma() };
+			
 			character.playSound("crashX3", forcePlay: false, sendRpc: true);
 		}
 		if (character.isAnimOver()) {

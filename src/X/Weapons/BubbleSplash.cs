@@ -108,7 +108,9 @@ public class BubbleSplash : Weapon {
 						pos, xDir, mmx, player, i, 
 						player.getNextActorNetId(true), true
 					);
-					mmx.chargedBubbles?.Add(bubble);	
+					mmx.chargedBubbles?.Add(bubble);
+
+					if (i == 0) bubble.releasePlasma = player.hasPlasma();		
 				}
 			}
 		}

@@ -57,6 +57,10 @@ public class SonicSlicer : Weapon {
 				new SonicSlicerProjCharged(pos, 2, xDir, mmx, player, player.getNextActorNetId(true), true);
 				new SonicSlicerProjCharged(pos, 3, xDir, mmx, player, player.getNextActorNetId(true), true);
 				new SonicSlicerProjCharged(pos, 4, xDir, mmx, player, player.getNextActorNetId(true), true);
+
+				if (player.hasPlasma()) {
+					new BusterForcePlasmaHit(3, mmx, pos, xDir, player.getNextActorNetId(), true);
+				}
 			}
 		}
 		rechargeCooldown = 1f;

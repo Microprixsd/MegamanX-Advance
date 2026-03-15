@@ -217,6 +217,8 @@ public class GroundHunterChargedProj : Projectile {
 		damager.damage = 2;
 		damager.hitCooldown = 30;
 
+		releasePlasma = ownerPlayer.hasPlasma();
+
 		if (ownedByLocalPlayer) {
 			this.player = player;
 			chr = owner as Character;

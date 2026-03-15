@@ -224,8 +224,8 @@ public class FrostTowerChargedState : CharState {
 	void shoot(Point pos, int xDir, int l) {
 		for (int i = 0; i < l; i++) {
 			float extra = extraPos + (i * p * 2);
-			new FrostTowerProjCharged(character, pos.addxy(extra, 0), xDir, player.getNextActorNetId(), true, player); 
-			//{ canReleasePlasma = player.hasPlasma() && l == 1 };
+			var proj = new FrostTowerProjCharged(character, pos.addxy(extra, 0), xDir, player.getNextActorNetId(), true, player); 
+			proj.releasePlasma = player.hasPlasma() && l == 1;
 			character.playSound("frostTower", sendRpc: true);
 		}
 		character.shakeCamera(true);
@@ -238,8 +238,6 @@ public class FrostTowerChargedState : CharState {
 public class FrostTowerProjCharged : Projectile, IDamagable {
 	public float health = 4;
 	public float maxHealth = 4;
-
-	public bool canReleasePlasma;
 
 	public FrostTowerProjCharged(
 		Actor owner, Point pos, int xDir, 
@@ -309,25 +307,28 @@ public class FrostTowerProjCharged : Projectile, IDamagable {
 
 	public override void onHitDamagable(IDamagable damagable) {
 		base.onHitDamagable(damagable);
+		if (!ownedByLocalPlayer) return;
 
-		/*if (canReleasePlasma && !hasReleasedPlasma) {
+		if (releasePlasma && !hasReleasedPlasma && ownerActor != null) {
 			new BusterForcePlasmaHit(
-				6, weapon, pos, xDir, damager.owner,
+				6, ownerActor, pos, xDir, 
 				damager.owner.getNextActorNetId(), true
 			);
 			hasReleasedPlasma = true;
-		}*/
+		}
 	}
 
 	public override void onDestroy() {
 		base.onDestroy();
 		breakFreeze(owner);
-		/*if (canReleasePlasma && !hasReleasedPlasma) {
+		if (!ownedByLocalPlayer) return;
+
+		if (releasePlasma && !hasReleasedPlasma && ownerActor != null) {
 			new BusterForcePlasmaHit(
-				6, weapon, pos, xDir, damager.owner,
+				6, ownerActor, pos, xDir, 
 				damager.owner.getNextActorNetId(), true
 			);
 			hasReleasedPlasma = true;
-		}*/
+		}
 	}
 }

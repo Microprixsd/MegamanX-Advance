@@ -157,6 +157,8 @@ public class RollingShieldProjCharged : Projectile {
 		neverReflect = true;
 		canBeLocal = false;
 
+		releasePlasma = player.hasPlasma();
+
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}

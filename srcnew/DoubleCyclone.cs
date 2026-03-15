@@ -92,6 +92,13 @@ public class DoubleCycloneState : CharState {
 					player.getNextActorNetId(), true, player);
 				
 				fired = true;
+
+				if (player.hasPlasma()) {
+					new BusterForcePlasmaHit(7, mmx, shootPos1.Value, -xDir,
+						player.getNextActorNetId(), true);
+					new BusterForcePlasmaHit(7, mmx, shootPos2.Value, xDir,
+						player.getNextActorNetId(), true);
+				}
 			}
 
 			if (mmx.dCycloneSpawn == null && mmx.isAnimOver()) mmx.changeToIdleOrFall();

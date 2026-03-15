@@ -41,12 +41,20 @@ public class RaySplasher : Weapon {
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
-
+		Player player = mmx.player;
+		
 		if (chargeLevel < 3 || chargeLevel >= 3 && ammo < 6) {
 			mmx.shootingRaySplasher = this;
 		} else {
 			if (character.ownedByLocalPlayer) {
 				character.changeState(new RaySplasherChargedState(), true);
+
+				if (player.hasPlasma()) {
+					Point pos = character.pos.addxy(0, -40);
+					int xDir = mmx.getShootXDir();
+					
+					new BusterForcePlasmaHit(4, mmx, pos, xDir, player.getNextActorNetId(), rpc: true);
+				}
 			}
 		}
 		rechargeCooldown = 1f;

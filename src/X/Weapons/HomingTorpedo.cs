@@ -53,9 +53,10 @@ public class HomingTorpedo : Weapon {
 				player.getNextActorNetId(true);
 				new TorpedoProjChargedX(pos.addxy(0, 2), xDir, mmx, player, player.getNextActorNetId(true), 30, new Point(25, -100), true);
 				new TorpedoProjChargedX(pos.addxy(0, 1), xDir, mmx, player, player.getNextActorNetId(true), 15, new Point(175 * xDir, -75), true);
-				new TorpedoProjChargedX(pos.addxy(0, 0), xDir, mmx, player, player.getNextActorNetId(true), 0, new Point(200 * xDir, 0), true);
 				new TorpedoProjChargedX(pos.addxy(0, -1), xDir, mmx, player, player.getNextActorNetId(true), -15, new Point(175 * xDir, 75), true);
 				new TorpedoProjChargedX(pos.addxy(0, -2), xDir, mmx, player, player.getNextActorNetId(true), -30, new Point(25, 100), true);
+				new TorpedoProjChargedX(pos.addxy(0, 0), xDir, mmx, player, player.getNextActorNetId(true), 0, new Point(200 * xDir, 0), true)
+				{ releasePlasma = player.hasPlasma() };
 			}
 		}
 		rechargeCooldown = 1;

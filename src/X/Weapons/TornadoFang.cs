@@ -209,6 +209,9 @@ public class TornadoFangProjCharged : Projectile {
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
 		mmx = player.character as MegamanX ?? throw new NullReferenceException();
+
+		releasePlasma = player.hasPlasma();
+
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}

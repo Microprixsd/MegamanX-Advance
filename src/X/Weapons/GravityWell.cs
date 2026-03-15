@@ -51,8 +51,12 @@ public class GravityWell : Weapon {
 			}
 		} else {
 			if (ammo >= 6) {
-				if (!character.ownedByLocalPlayer) return;
 				character.changeState(new GravityWellChargedState(), true);
+
+				if (player.hasPlasma()) {
+					pos = character.pos.addxy(0, -40);
+					new BusterForcePlasmaHit(5, mmx, pos, xDir, player.getNextActorNetId(), true);
+				}
 			}
 		}
 		rechargeCooldown = 1;

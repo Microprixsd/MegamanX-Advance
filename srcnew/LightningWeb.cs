@@ -281,6 +281,13 @@ public class LightningWebProjWebCharged : Projectile {
 							) { frameIndex = frameIndex, frameTime = frameTime };
 					}
 				}
+
+				if (damager.owner.hasPlasma() && ownedByLocalPlayer && ownerActor != null) {
+					new BusterForcePlasmaHit(
+						6, ownerActor, pos, xDir, 
+						damager.owner.getNextActorNetId(), true
+					);
+				}
 			}
 		} else {
 			if (moveTime < 16  || time >= maxTime - (Global.spf * 20)) {

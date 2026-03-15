@@ -294,7 +294,10 @@ public class FrostShieldProjCharged : Projectile {
 		destroyOnHit = false;
 		shouldVortexSuck = false;
 		character = player.character;
-		isShield = true;	
+		isShield = true;
+
+		releasePlasma = player.hasPlasma();
+
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
@@ -348,7 +351,11 @@ public class FrostShieldProjCharged : Projectile {
 		if (owner.character is MegamanX mmx && mmx.chargedFrostShield == this) {
 			mmx.chargedFrostShield = null;
 		}
-		new FrostShieldProjChargedGround(pos, character?.xDir ?? 1, this, owner, owner.getNextActorNetId(), rpc: true);
+		var proj = new FrostShieldProjChargedGround(
+			pos, character?.xDir ?? 1, this, owner, owner.getNextActorNetId(), rpc: true
+		);
+
+		if (releasePlasma && !hasReleasedPlasma) proj.releasePlasma = true;
 	}
 }
 

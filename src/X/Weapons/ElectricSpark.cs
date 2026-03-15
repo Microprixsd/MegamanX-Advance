@@ -162,6 +162,9 @@ public class ElectricSparkProjChargedStart : Projectile {
 		damager.damage = 4;
 		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 30;
+
+		releasePlasma = player.hasPlasma();
+
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
@@ -179,14 +182,20 @@ public class ElectricSparkProjChargedStart : Projectile {
 		if (sprite.isAnimOver()) {
 			destroySelf();
 			if (ownedByLocalPlayer) {
-				new ElectricSparkProjCharged(
-					pos.addxy(-1 * xDir, 0), -1 * xDir, this, damager.owner,
+				var sparkL = new ElectricSparkProjCharged(
+					pos.addxy(-1 * xDir, 0), -1 , this, damager.owner,
 					damager.owner.getNextActorNetId(true), rpc: true
 				);
-				new ElectricSparkProjCharged(
-					pos.addxy(1 * xDir, 0), 1 * xDir, this, damager.owner,
+				var sparkR = new ElectricSparkProjCharged(
+					pos.addxy(1 * xDir, 0), 1 , this, damager.owner,
 					damager.owner.getNextActorNetId(true), rpc: true
 				);
+
+				if (releasePlasma && !hasReleasedPlasma) {
+
+					if (xDir == -1) sparkL.releasePlasma = true;
+					else if (xDir == 1) sparkR.releasePlasma = true;
+				}
 			}
 		}
 	}

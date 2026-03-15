@@ -51,6 +51,10 @@ public class SpinWheel : Weapon {
 		} else {
 			if (ammo >= 6) {
 				new SpinWheelProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+
+				if (player.hasPlasma()) {
+					new BusterForcePlasmaHit(2, mmx, pos, xDir, player.getNextActorNetId(), true);
+				}
 			}
 		}
 		rechargeCooldown = 1f;
