@@ -228,6 +228,22 @@ public class BusterForcePlasmaHit : Projectile {
 		}
 	}
 
+	public override List<ShaderWrapper>? getShaders() {
+		var shaders = new List<ShaderWrapper>();
+
+		ShaderWrapper plasmaShader = Helpers.cloneShaderSafe("plasmaPalette");
+
+		plasmaShader.SetUniform("palette", type);
+		plasmaShader.SetUniform("paletteTexture", Global.textures["buster_plasma_hit_palette"]);
+		shaders.Add(plasmaShader);
+	
+		if (shaders.Count > 0) {
+			return shaders;
+		} else {
+			return base.getShaders();
+		}
+	}
+
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new BusterForcePlasmaHit(
 			arg.extraData[0], arg.owner, arg.pos, 
