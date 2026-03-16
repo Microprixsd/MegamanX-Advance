@@ -42,14 +42,14 @@ public class XHover : CharState {
 			if (!sprite.StartsWith("hover_forward")) {
 				sprite = "hover_forward";
 				shootSprite = sprite + "_shoot";
-				character.changeSpriteFromName(sprite, true);
+				character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
 			}
 		} else if (inputDir.x == -character.xDir) {
 			if (player.input.isHeld(Control.Jump, player)) {
 				if (!sprite.StartsWith("hover_backward")) {
 					sprite = "hover_backward";
 					shootSprite = sprite + "_shoot";
-					character.changeSpriteFromName(sprite, true);
+					character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
 				}
 			} else {
 				character.xDir = -character.xDir;
@@ -57,14 +57,14 @@ public class XHover : CharState {
 				if (!sprite.StartsWith("hover_forward")) {
 					sprite = "hover_forward";
 					shootSprite = sprite + "_shoot";
-					character.changeSpriteFromName(sprite, true);
+					character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
 				}
 			}
 		} else {
 			if (sprite != "hover") {
 				sprite = "hover";
 				shootSprite = sprite + "_shoot";
-				character.changeSpriteFromName(sprite, true);
+				character.changeSpriteFromName(character.shootAnimTime > 0 ? shootSprite : sprite, true);
 			}
 		}
 

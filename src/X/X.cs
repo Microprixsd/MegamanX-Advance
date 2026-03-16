@@ -702,6 +702,10 @@ public class MegamanX : Character {
 		return dashedInAir == 0 || (dashedInAir < 2 && hyperLegArmor == ArmorId.Max);
 	}
 
+	public override bool canTurn() {
+		return base.canTurn() && charState is not XHover;
+	} 
+
 	// Handles Bubble Splash Charged jump height
 	public override float getJumpPower() {
 		float jumpModifier = 0;
