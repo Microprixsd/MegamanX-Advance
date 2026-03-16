@@ -135,6 +135,11 @@ public class XBuster : Weapon {
 			}
 			shootSound = "buster3X3";
 			mmx.stockedMaxBusterLv--;
+		} 
+		else if (mmx.armArmor == ArmorId.Force && mmx.forceStocks >= 1) {
+			new BusterStockProj(mmx, pos, xDir, player.getNextActorNetId(), true);
+			mmx.forceStocks--;
+			shootSound = "buster2X4";
 		}
 		else if (chargeLevel == 0) {
 			lemonsOnField.Add(new BusterProj(pos, xDir, mmx, player, player.getNextActorNetId(), true));

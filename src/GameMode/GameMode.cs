@@ -570,18 +570,30 @@ public class GameMode {
 				);
 			}
 			#region X
-			if (level.mainPlayer.isX && level.mainPlayer.hasHelmetArmor(2)) {
-				Player? mostRecentlyScanned = null;
-				foreach (var player in level.players) {
-					if (player.tagged && player.character != null) {
-						mostRecentlyScanned = player;
-						break;
+			if (level.mainPlayer.isX) {
+				if (level.mainPlayer.hasHelmetArmor(2)) {
+					Player? mostRecentlyScanned = null;
+					foreach (var player in level.players) {
+						if (player.tagged && player.character != null) {
+							mostRecentlyScanned = player;
+							break;
+						}
+					}
+					if (mostRecentlyScanned != null) {
+						drawObjectiveNavpoint(mostRecentlyScanned.name, mostRecentlyScanned.character?.getCenterPos() ?? new Point (0,0));
 					}
 				}
-				if (mostRecentlyScanned != null) {
-					drawObjectiveNavpoint(mostRecentlyScanned.name, mostRecentlyScanned.character?.getCenterPos() ?? new Point (0,0));
-				}
+
+				if (drawPlayer.character is MegamanX mx) {
+					int x = 10, y = 156;
+					int count = mx.forceStocks;
+					if (count >= 1) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x, y);
+					if (count >= 2) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y);
+					if (count >= 3) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x, y + 11);
+					if (count >= 4) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y + 11);
+				}	
 			}
+			 
 			#endregion
 			#region Raging Charge
 			if (drawPlayer.character is RagingChargeX mmx) {

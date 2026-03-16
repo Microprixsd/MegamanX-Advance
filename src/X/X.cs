@@ -153,6 +153,10 @@ public class MegamanX : Character {
 	public Sprite hyperChargePart2Sprite = new Sprite("charge_part_3");
 	public Anim? aLaserTargetAnim;
 
+	//Force Armor Stuff
+	public int forceStocks;
+	public float[] forceStocksChargeTimes = new float[4];
+
 	// Creation code.
 	public MegamanX(
 		Player player, float x, float y, int xDir,
@@ -183,6 +187,11 @@ public class MegamanX : Character {
 		armArmor = (ArmorId)player.armArmorNum;
 		legArmor = (ArmorId)player.legArmorNum;
 		helmetArmor = (ArmorId)player.helmetArmorNum;
+
+		forceStocksChargeTimes[0] = charge1Time;
+		forceStocksChargeTimes[1] = charge2Time;
+		forceStocksChargeTimes[2] = charge3Time;
+		forceStocksChargeTimes[3] = charge4Time;
 	}
 	public override CharState getTauntState() {
 		return new XTaunt();
@@ -327,6 +336,8 @@ public class MegamanX : Character {
 		// Charge and release charge logic.
 		chargeLogic(shootCharge);
 		player.changeWeaponControls();
+
+		if (player.hasArmArmor(ArmorId.Force)) forceStocks = forceStocksLogic();
 	}
 
 	// Late updates. Before render.
@@ -507,11 +518,13 @@ public class MegamanX : Character {
 	}
 
 	public void shootCharge(int chargeLevel) {
-		Weapon targetWeapon = currentWeapon ?? specialBuster;
-		if (isSpecialButtonCharge) {
-			targetWeapon = specialBuster;
+		if (!player.hasArmArmor(ArmorId.Force)) {
+			Weapon targetWeapon = currentWeapon ?? specialBuster;
+			if (isSpecialButtonCharge) {
+				targetWeapon = specialBuster;
+			}
+			shoot(chargeLevel, targetWeapon, false);
 		}
-		shoot(chargeLevel, targetWeapon, false);
 	}
 
 	public void shoot(int chargeLevel, Weapon weapon, bool busterStock) {
@@ -787,6 +800,20 @@ public class MegamanX : Character {
 			return true;
 		}
 		return false;
+	}
+
+	int forceStocksLogic() {
+		int shots = forceStocks;
+		
+		if (!hasUltimateArmor) {
+			if (chargeTime >= forceStocksChargeTimes[(int)Helpers.clampMax(shots, 3)]) shots++;
+		} /* else {
+			if (uaStockChargeTime >= 60) {
+				uaStockChargeTime = 0;
+				shots++;
+			}
+		} */
+		return Math.Min(4, shots);
 	}
 
 	public override void onWeaponChange(Weapon oldWeapon, Weapon newWeapon) {
