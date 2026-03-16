@@ -8,7 +8,7 @@ public class BusterStockProj : Projectile {
 		Actor owner, Point pos, int xDir, ushort? netId, 
 		bool rpc = false, Player? player = null
 	) : base(
-		pos, xDir, owner, "buster_unpo", netId, player
+		pos, xDir, owner, "buster_stock", netId, player
 	) {
 		weapon = XBuster.netWeapon;
 		fadeSprite = "buster3_fade";

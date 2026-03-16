@@ -518,7 +518,7 @@ public class MegamanX : Character {
 	}
 
 	public void shootCharge(int chargeLevel) {
-		if (!player.hasArmArmor(ArmorId.Force)) {
+		if (!player.hasArmArmor(ArmorId.Force) || currentWeapon is not XBuster) {
 			Weapon targetWeapon = currentWeapon ?? specialBuster;
 			if (isSpecialButtonCharge) {
 				targetWeapon = specialBuster;
