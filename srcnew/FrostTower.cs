@@ -168,6 +168,8 @@ public class FrostTowerProj : Projectile, IDamagable {
 
 	public override void onDestroy() {
 		base.onDestroy();
+		if (!ownedByLocalPlayer) return;
+		
 		breakFreeze(owner);
 	}
 	public bool isPlayableDamagable() {

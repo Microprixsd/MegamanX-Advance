@@ -213,7 +213,8 @@ public class LightningWebProjCharged : Projectile {
 		base.onDestroy();
 		if (ownedByLocalPlayer && character != null) {
 			new LightningWebProjWebCharged(
-				character, pos, xDir, 0, damager.owner.getNextActorNetId(), true, damager.owner);
+				character, pos, xDir, 0, damager.owner.getNextActorNetId(), true, damager.owner
+			);
 		}
 	}
 }
