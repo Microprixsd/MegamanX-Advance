@@ -19,6 +19,7 @@ public class ForceNovaStrike : Weapon {
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
 		useForceHelmetBuff = false;
+		canRechargeAmmo = false;
 	}
 
 	public override void shoot(Character character, int[] args) {

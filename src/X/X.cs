@@ -570,6 +570,7 @@ public class MegamanX : Character {
 			if (isStockActive && stockedBusterLv > 0) {
 				stockedBusterLv--;
 			}
+			weapon.triggerRechargeCooldown();
 		}
 		// Sets up global shoot cooldown to the weapon shootCooldown.
 		float baseCooldown = weapon.getFireRate(this, chargeLevel, [busterStock ? 1 : 0]);

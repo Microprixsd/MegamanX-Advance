@@ -28,18 +28,14 @@ public class SpeedBurner : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 2;
 	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
-	}
+
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -65,8 +61,7 @@ public class SpeedBurner : Weapon {
 					new BusterForcePlasmaHit(0, mmx, pos, xDir, player.getNextActorNetId(), true);
 				}
 			}
-		}
-		rechargeCooldown = 1f;
+		}	
 	}
 }
 

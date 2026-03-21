@@ -32,12 +32,6 @@ public class DoubleCyclone : Weapon {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 2;
 	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
-	}
 
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
@@ -46,12 +40,7 @@ public class DoubleCyclone : Weapon {
 		int xDir = character.getShootXDir();
 		Player player = character.player;
 
-		character.changeState(new DoubleCycloneState(chargeLevel), true);
-		if (chargeLevel >= 3 && ammo >= 6) {
-			new DoubleCycloneChargedProj(mmx, pos, xDir, player.getNextActorNetId(), true, player);
-		} else {
-			rechargeCooldown = 1;
-		}
+		character.changeState(new DoubleCycloneState(chargeLevel, ammo), true); 
 	}
 }
 
@@ -61,12 +50,14 @@ public class DoubleCycloneState : CharState {
 	bool fired;
 	bool condition;
 	float chargeLv;
+	float ammo;
 	MegamanX mmx = null!;
 
-	public DoubleCycloneState(float chargeLv) : base("double_cyclone") {
+	public DoubleCycloneState(float chargeLv, float ammo) : base("double_cyclone") {
 		normalCtrl = false;
 		attackCtrl = false;
 		this.chargeLv = chargeLv;
+		this.ammo = ammo;
 		useDashJumpSpeed = true;
 	}
 
@@ -79,7 +70,7 @@ public class DoubleCycloneState : CharState {
 
 	public override void update() {
 		base.update();
-		if (chargeLv >= 3) {
+		if (chargeLv >= 3 && ammo >= 6) {
 			if (!fired && character.currentFrame.getBusterOffset() != null) {
 				Point? shootPos1 = character.getFirstPOI() ?? character.getShootPos();
 				Point? shootPos2 = character.getFirstPOI(1) ?? character.getShootPos();

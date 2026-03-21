@@ -25,18 +25,14 @@ public class GravityWell : Weapon {
 		maxAmmo = 16;
 		ammo = maxAmmo;
 		hasCustomChargeAnim = true;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 2;
 	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
-	}
+
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 		Point pos = character.getShootPos();
@@ -59,7 +55,6 @@ public class GravityWell : Weapon {
 				}
 			}
 		}
-		rechargeCooldown = 1;
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {

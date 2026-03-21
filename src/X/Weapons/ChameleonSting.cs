@@ -26,6 +26,7 @@ public class ChameleonSting : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsageEX(int chargeLevel, Character character) {
@@ -39,12 +40,6 @@ public class ChameleonSting : Weapon {
 			return 0;
 		}
 		return getAmmoUsage(1);
-	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -69,7 +64,6 @@ public class ChameleonSting : Weapon {
 				new BusterForcePlasmaHit(0, mmx, pos, xDir, player.getNextActorNetId(), true);
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

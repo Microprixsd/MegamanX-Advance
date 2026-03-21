@@ -33,12 +33,7 @@ public class FrostTower : Weapon {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 3;
 	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
-	}
+	
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
 
@@ -48,7 +43,6 @@ public class FrostTower : Weapon {
 			if (chargeLevel >= 3 && ammo >= 6)
 			character.changeState(new FrostTowerChargedState(), true);
 		}
-		rechargeCooldown = 1;
 	}
 }
 

@@ -31,6 +31,7 @@ public class BubbleSplash : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
@@ -70,9 +71,6 @@ public class BubbleSplash : Weapon {
 				bubbleAfterlifeTimes.RemoveAt(i);
 			}
 		}
-		if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
 	}
 
 	// Friendly reminder that this method MUST be deterministic across all clients,
@@ -114,7 +112,6 @@ public class BubbleSplash : Weapon {
 				}
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

@@ -33,12 +33,7 @@ public class LightningWeb : Weapon {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 2;
 	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
-	}
+
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 		int chargeLevel = args[0];
@@ -53,7 +48,6 @@ public class LightningWeb : Weapon {
 				new LightningWebProjCharged(mmx, pos, xDir, player.getNextActorNetId(), true, player);
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

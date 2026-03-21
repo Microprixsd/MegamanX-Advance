@@ -24,7 +24,8 @@ public class RollingShield : Weapon {
 
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
-		ammo = maxAmmo;	
+		ammo = maxAmmo;
+		canRechargeAmmo = true;	
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
@@ -36,12 +37,6 @@ public class RollingShield : Weapon {
 			return 2;
 		}
 		return 1;
-	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -66,7 +61,6 @@ public class RollingShield : Weapon {
 				}
 			}
 		}
-		rechargeCooldown = 1f;
 	}
 }
 

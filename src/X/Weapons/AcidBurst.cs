@@ -23,18 +23,13 @@ public class AcidBurst : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3 && ammo >= 6) {
 			return 6;
 		}
 		return 1f;
-	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -54,7 +49,6 @@ public class AcidBurst : Weapon {
 				{ releasePlasma = player.hasPlasma() };
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

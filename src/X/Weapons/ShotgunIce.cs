@@ -27,18 +27,13 @@ public class ShotgunIce : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3 && ammo >= 6) {
 			return 6;
 		}
 		return 1;
-	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -60,8 +55,7 @@ public class ShotgunIce : Weapon {
 				character.changeState(new ShotgunIceChargedShot(), true);
 				new ShotgunIceProjSled(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
-			}
-			rechargeCooldown = 1f;
+		}
 	}
 }
 

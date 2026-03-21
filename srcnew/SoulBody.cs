@@ -31,12 +31,6 @@ public class SoulBody : Weapon {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 2;
 	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
-	}
 
 	public override bool canShoot(int chargeLevel, Player player) {
 		MegamanX? mmx = player.character as MegamanX;
@@ -55,7 +49,6 @@ public class SoulBody : Weapon {
 			character.changeState(new ControlClone(), true);
 		} else {
 			new SoulBodyHologram(character, pos, xDir, player.getNextActorNetId(), true, player);
-			rechargeCooldown = 1;
 		}
 	}
 }

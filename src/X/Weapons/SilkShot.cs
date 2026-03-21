@@ -24,14 +24,10 @@ public class SilkShot : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
-	}
+
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
 
@@ -49,7 +45,6 @@ public class SilkShot : Weapon {
 		else {
 			new SilkShotProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		}
-		rechargeCooldown = 1f;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {

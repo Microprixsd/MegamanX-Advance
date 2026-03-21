@@ -25,17 +25,12 @@ public class CrystalHunter : Weapon {
 		flinch = "0-26/0";
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3) return 6;
 		return 2;
-	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -60,7 +55,6 @@ public class CrystalHunter : Weapon {
 				}
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

@@ -28,18 +28,15 @@ public class ParasiticBomb : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 	
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3) { return 2; }
 		return 2;
 	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
-	}
+	
+	
 	public override bool canShoot(int chargeLevel, Player player) {
 		if (!base.canShoot(chargeLevel, player) || player.character is not MegamanX mmx) return false;
 
@@ -64,7 +61,6 @@ public class ParasiticBomb : Weapon {
 				mmx.chargedParasiticBomb = new BeeSwarm(mmx);
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

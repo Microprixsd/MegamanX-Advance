@@ -26,6 +26,7 @@ public class FireWave : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
@@ -33,12 +34,6 @@ public class FireWave : Weapon {
 			return 6;
 		}
 		return 0.1f;
-	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -56,11 +51,10 @@ public class FireWave : Weapon {
 				proj.vel.inc(character.vel.times(-0.5f));
 			} else {
 				if (ammo >= 6) {
-				new FireWaveProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
-			}
+					new FireWaveProjChargedStart(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+				}
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

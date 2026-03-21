@@ -29,13 +29,6 @@ public class AimingLaser : Weapon {
 		ammo = maxAmmo;
 	}
 
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
-	}
-
 	public override bool canShoot(int chargeLevel, Player player) {
 		MegamanX? mmx = player.character as MegamanX;
 
@@ -68,7 +61,7 @@ public class AimingLaser : Weapon {
 					type++;
 				}
 			}
-			rechargeCooldown = 0.5f;
+			rechargeCooldown = 30;
 		} else if (chargeLevel >= 3 && ammo >= 6) {
 			float angle = xDir > 0 ? 0 : 128;
 			new AimingLaserChargedProj(mmx, pos, xDir, angle, player.getNextActorNetId(), true, player);
@@ -78,7 +71,7 @@ public class AimingLaser : Weapon {
 
 		mmx.aLaserCursor?.destroySelf();
 		mmx.aLaserCursor = null!;
-		rechargeCooldown = 1;
+		rechargeCooldown = 60;
 	}
 }
 

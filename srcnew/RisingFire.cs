@@ -33,12 +33,6 @@ public class RisingFire : Weapon {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 2;
 	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
-	}
 
 	public override void shoot(Character character, int[] args) {
 		int chargeLevel = args[0];
@@ -50,7 +44,6 @@ public class RisingFire : Weapon {
 				character.changeState(new RisingFireChargedState(), true);
 			}
 		}
-		rechargeCooldown = 1;
 	}
 }
 

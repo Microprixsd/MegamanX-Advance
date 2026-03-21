@@ -42,9 +42,6 @@ public class Weapon {
 	public int weaponSlotIndex;
 	public int weaknessIndex;
 	public int vileWeight;
-
-	public float rechargeTime;
-	public float rechargeCooldown;
 	public float? timeSinceLastShoot;
 
 	// Ammo display vars.
@@ -79,6 +76,13 @@ public class Weapon {
 	public float rechargeAmmoCooldown;
 	public float altRechargeAmmoCooldown;
 	public bool hasCustomAnim;
+
+	public bool canRechargeAmmo = false;
+	public float ammoRechargeRate = 120;
+	public float rechargeTime;
+	public float rechargeCooldown;
+	public float maxRechargeCooldown = 60;
+
 	public bool useForceHelmetBuff = true;
 
 	public Weapon() {
@@ -326,18 +330,21 @@ public class Weapon {
 	}
 
 	public virtual void rechargeAmmo(float maxRechargeTime) {
-		rechargeCooldown -= Global.spf;
-		if (rechargeCooldown < 0) {
-			rechargeCooldown = 0;
-		}
-		if (rechargeCooldown == 0) {
-			rechargeTime += Global.spf;
+		Helpers.decrementFrames(ref rechargeCooldown);
+		
+		if (rechargeCooldown <= 0) {
+			rechargeTime += Global.speedMul;
 			if (rechargeTime > maxRechargeTime) {
 				rechargeTime = 0;
 				ammo++;
 				if (ammo > maxAmmo) ammo = maxAmmo;
 			}
 		}
+	}
+
+	public virtual void triggerRechargeCooldown() {
+		rechargeCooldown = maxRechargeCooldown;
+		rechargeTime = 0;
 	}
 
 	public bool isCooldownPercentDone(float percent) {
@@ -392,8 +399,12 @@ public class Weapon {
 			Helpers.decrementFrames(ref rechargeAmmoCustomSettingAxl2);
 		}
 		if (timeSinceLastShoot != null) {
-				timeSinceLastShoot += Global.speedMul;
-			}
+			timeSinceLastShoot += Global.speedMul;
+		}
+
+		if (ammo < maxAmmo && canRechargeAmmo) {
+        	rechargeAmmo(ammoRechargeRate);
+    	}
 	}
 
 	public virtual void charLinkedUpdate(Character character, bool isAlwaysOn) {

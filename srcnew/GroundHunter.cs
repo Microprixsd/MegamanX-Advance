@@ -33,12 +33,6 @@ public class GroundHunter : Weapon {
 		}
 		return 1;
 	}
-	public override void update() {
-		base.update();
-    	if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
-	}
 
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
@@ -53,8 +47,6 @@ public class GroundHunter : Weapon {
 		} else {
 			new GroundHunterProj(mmx, pos, xDir, player.getNextActorNetId(), true, player) { downPressed = down };
 		}
-		
-		rechargeCooldown = 1;
 	}
 }
 

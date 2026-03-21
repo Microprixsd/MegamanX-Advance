@@ -24,17 +24,12 @@ public class StormTornado : Weapon {
 		flinchCD = "0/1";
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3) { return 6; }
 		return 2;
-	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -52,7 +47,6 @@ public class StormTornado : Weapon {
 			new TornadoProjCharged(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 			}
 		}
-		rechargeCooldown = 1f;
 	}
 }
 

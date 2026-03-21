@@ -27,6 +27,7 @@ public class TornadoFang : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
@@ -40,9 +41,7 @@ public class TornadoFang : Weapon {
 	public override void update() {
 		base.update();
 		Helpers.decrementFrames(ref doubleShootCooldown);
-		if (ammo < maxAmmo) {
-        	rechargeAmmo(2);
-    	}
+
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -70,7 +69,6 @@ public class TornadoFang : Weapon {
 			}
 			doubleShootCooldown = 0;
 		}
-		rechargeCooldown = 1f;
 	}
 
 	public override float getFireRate(Character character, int chargeLevel, int[] args) {

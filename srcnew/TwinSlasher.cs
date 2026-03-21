@@ -33,12 +33,6 @@ public class TwinSlasher : Weapon {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }
 		return 1;
 	}
-	public override void update() {
-		base.update();
-		if (ammo < maxAmmo) {
-			rechargeAmmo(2);
-		}
-	}
 
 	public override void shoot(Character character, int[] args) {
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
