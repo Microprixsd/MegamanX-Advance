@@ -933,7 +933,7 @@ public class Dash : CharState {
 		}
 		// Speed at start and end.
 		else if (!stop || dashHeld) {
-			character.moveXY(Physics.DashStartSpeed * character.getRunDebuffs() * dashDir, 0);
+			character.moveXY(character.getDashSpeed() * dashDir, 0);
 		}
 		// Dust effect.
 		if (dustTime >= 6 && !character.isUnderwater()) {

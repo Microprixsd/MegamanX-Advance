@@ -54,7 +54,8 @@ public class SonicSlicer : Weapon {
 				new SonicSlicerProjCharged(pos, 4, xDir, mmx, player, player.getNextActorNetId(true), true);
 
 				if (player.hasPlasma()) {
-					new BusterForcePlasmaHit(3, mmx, pos, xDir, player.getNextActorNetId(), true);
+					new BusterForcePlasmaHit(3, mmx, pos, -xDir, player.getNextActorNetId(), true);
+					new BusterForcePlasmaHit(3, mmx, pos, xDir, player.getNextActorNetId(), true);					
 				}
 			}
 		}
@@ -181,9 +182,9 @@ public class SonicSlicerProjCharged : Projectile {
 		damager.damage = 4;
 		damager.hitCooldown = 15;
 		damager.flinch = Global.defFlinch;
-		vel = new Point(250 * xDir, 0);
+		vel = new Point(250 * xDir, -420);
 		fadeSprite = "sonicslicer_charged_fade";
-		maxTime = 1;
+		maxTime = 1.5f;
 		projId = (int)ProjIds.SonicSlicerCharged;
 		destroyOnHit = true;
 
@@ -194,7 +195,7 @@ public class SonicSlicerProjCharged : Projectile {
 		if (num == 4) dest = pos.addxy(60, -100);
 
 		vel.x = 0;
-		useGravity = false;
+		useGravity = true;
 
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir, (byte)num);
@@ -209,14 +210,16 @@ public class SonicSlicerProjCharged : Projectile {
 
 	public override void update() {
 		base.update();
-		if (!fall) {
-			float x = Helpers.lerp(pos.x, dest.x, Global.spf * 10);
-			changePos(new Point(x, pos.y));
-			vel.y += -40;
-		}
-		if (vel.y <= -375) fall = true;
-		if (vel.y > 100) yDir = -1;
-		if (fall) vel.y += 30;
-		
+		vel.y += Global.spf * Global.level.gravity;
+        if (!fall)
+        {
+            float x = Helpers.lerp(pos.x, dest.x, Global.spf * 10);
+            changePos(new Point(x, pos.y));
+            if (vel.y > 0)
+            {
+                fall = true;
+                yDir = -1;
+            }
+        }	
 	}
 }

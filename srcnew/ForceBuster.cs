@@ -97,7 +97,6 @@ public class BusterForcePlasmaHit : Projectile {
 
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir, extraArgs);
 		}
-		netcodeOverride = NetcodeModel.FavorDefender;
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
 		// Hunter
@@ -112,9 +111,10 @@ public class BusterForcePlasmaHit : Projectile {
 		}
 		// Slicer
 		if (type == 3) {
-			maxTime = 1;
-			xDest = pos.x + (xDir * 30);
-			vel.x = 0f;
+			maxTime = 1.2f;
+			//xDest = pos.x + (xDir * 30);
+			xDest = pos.x;
+			vel.x = xDir * 90;
 			vel.y = -500f;
 			useGravity = true;
 			damager.flinch = Global.halfFlinch;
@@ -151,7 +151,7 @@ public class BusterForcePlasmaHit : Projectile {
 			vel.y += Global.spf * Global.level.gravity;
 			if (vel.y < 0) {
 				float x = Helpers.lerp(pos.x, xDest, Global.spf * 10f);
-				changePos(new Point(x, pos.y));
+				//changePos(new Point(x, pos.y));
 			}
 		}
 		// Splasher one.
