@@ -5,33 +5,32 @@ namespace MMXOnline;
 
 public class SoulBodyClone : MegamanX {
 	MegamanX owner = null!;
-	Player pl = null!;
 	float distance = 0;
 	const float maxDist = 64;
 	bool canMoveClone = false;
 	float lifeTime = 300;
-	public float maxHealth = 8;
-	public float health = 8;
 	bool plasma;
 
 	public SoulBodyClone(
 		Player player, float x, float y, int xDir,
 		bool isVisible, ushort? netId, bool ownedByLocalPlayer,
-		bool isWarpIn = true
+		bool isWarpIn = false
 	) : base(
 		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn
 	) {
+		charId = CharIds.SoulBodyClone;
 		owner = player.character as MegamanX ?? throw new NullReferenceException();
 		owner.sBodyClone = this;
 		player.sClone = this;
-		pl = player;
 		pos = owner.pos;
 		changeState(new Idle(), true);
-		base.player = pl;
-		charId = CharIds.SoulBodyClone;
+		base.player = player;
 
 		weapons = [new XBuster()];
 		weaponSlot = 0;
+
+		maxHealth = 8;
+		health = maxHealth;
 	}
 
 	public override void update() {
@@ -56,7 +55,7 @@ public class SoulBodyClone : MegamanX {
 		return false;
 	}
 
-	public override void applyDamage(float fDamage, Player? attacker, Actor? actor, int? weaponIndex, int? projId) {
+	/*public override void applyDamage(float fDamage, Player? attacker, Actor? actor, int? weaponIndex, int? projId) {
 		if (!ownedByLocalPlayer) return;
 		decimal damage = decimal.Parse(fDamage.ToString());
 		MegamanX? mmx = this as MegamanX;
@@ -68,64 +67,29 @@ public class SoulBodyClone : MegamanX {
 			base.applyDamage(fDamage, attacker, actor, weaponIndex, projId);
 			return;
 		}
-	}
+	} */
 
 	public override List<ShaderWrapper> getShaders() {
-		List<ShaderWrapper> baseShaders = base.getShaders();
 		List<ShaderWrapper> shaders = new();
 		ShaderWrapper? palette = null;
-		int index = player.weapon.index;
-
-		if (index == (int)WeaponIds.GigaCrush ||
-			index == (int)WeaponIds.ItemTracer ||
-			index == (int)WeaponIds.AssassinBullet ||
-			index == (int)WeaponIds.Undisguise ||
-			index == (int)WeaponIds.UPParry
-		) {
-			index = 0;
-		}
-		if (index == (int)WeaponIds.HyperCharge && ownedByLocalPlayer) {
-			index = player.weapons[player.hyperChargeSlot].index;
-		}
-		if (hasFullHyperMaxArmor) {
-			index = 25;
-		}
-		if (hasUltimateArmor) {
-			index = 0;
-		}
+		int index = (int)WeaponIds.SoulBody;
 		palette = player.xPaletteShader;
 
-		if (stingActiveTime > 0 && stingPaletteIndex != 0) {
-			palette?.SetUniform("palette", (int)WeaponIds.SoulBody);
-			palette?.SetUniform("paletteTexture", Global.textures["paletteTexture"]);
-		} else {
-			palette?.SetUniform("palette", stingPaletteIndex % 9);
-			palette?.SetUniform("paletteTexture", Global.textures["cStingPalette"]);
-		}
+		palette?.SetUniform("palette", index);
+
 		if (palette != null) {
 			shaders.Add(palette);
 		}
-		if (shaders.Count == 0) {
-			return baseShaders;
-		}
-		shaders.AddRange(baseShaders);
+		
 		return shaders;
 	}
 
 	public override void onDestroy() {
 		base.onDestroy();
-	}
 
-	public override void destroySelf(string spriteName = "", string fadeSound = "",
-		bool disableRpc = false, bool doRpcEvenIfNotOwned = false,
-		bool favorDefenderProjDestroy = false) {
-		
-		base.destroySelf(spriteName, fadeSound, disableRpc, doRpcEvenIfNotOwned, favorDefenderProjDestroy);
-
-		owner.ownedByLocalPlayer = true;
+		player.character = owner;
 		owner.sBodyClone = null!;
 		player.sClone = null!;
 		owner.changeToIdleOrFall();
-		owner.useGravity = true;
-	}	
+	}
 }

@@ -1070,6 +1070,7 @@ public partial class Player {
 		// ONRESPAWN, SPAWN, RESPAWN, ON RESPAWN, ON SPAWN LOGIC, SPAWNLOGIC
 		if (isMainChar) {
 			charNum = (CharIds)spawnCharNum switch {
+				CharIds.SoulBodyClone => (int)CharIds.X,
 				CharIds.RagingChargeX => (int)CharIds.X,
 				CharIds.WolfSigma => (int)CharIds.Sigma,
 				CharIds.ViralSigma => (int)CharIds.Sigma,
@@ -1113,6 +1114,11 @@ public partial class Player {
 				false, charNetId, ownedByLocalPlayer,
 				loadout: xLoadout, isWarpIn: isWarpIn,
 				heartTanks: htCount
+			);
+		}
+		else if (spawnCharNum == (int)CharIds.SoulBodyClone) {
+			newChar = new SoulBodyClone(
+				this, pos.x, pos.y, xDir, true, charNetId, ownedByLocalPlayer
 			);
 		}
 		// Saber Zero.

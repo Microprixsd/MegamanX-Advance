@@ -21,6 +21,7 @@ public class SoulBody : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;	
+		canRechargeAmmo = true;
 		/* damage = "1/3";
 		hitcooldown = "0.5/0.75";
 		Flinch = "0/13";
@@ -150,33 +151,34 @@ public class ControlClone : CharState {
 		normalCtrl = false;
 		attackCtrl = false;
 		useDashJumpSpeed = true;
+		useGravity = false;
 	}
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		mmx = character as MegamanX ?? throw new NullReferenceException();
-		mmx.useGravity = false;
 		mmx.stopMoving();
 	}
 
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.shootAnimTime = 0;
-		mmx.useGravity = true;
-		return;
 	}
 
 	public override void update() {
 		base.update();
 
-		//x4Update();
-		x5Update();
+		x4Update();
+		//x5Update();
 	}
 
 	void x4Update() {
 		if (character.isAnimOver() && !fired) {
-			new SoulBodyClone(mmx.player, mmx.pos.x, mmx.pos.y, mmx.xDir, false,
-			mmx.player.getNextATransNetId(), mmx.ownedByLocalPlayer);
+			player.character = player.spawnCharAtPoint(
+				(int)CharIds.SoulBodyClone, [], mmx.pos, mmx.xDir, 
+				player.getNextATransNetId(), true, forceSpawn: true
+			);
+			//mmx = player.character as MegamanX ?? throw new NullReferenceException();
 			//mmx.ownedByLocalPlayer = false;
 
 			fired = true;

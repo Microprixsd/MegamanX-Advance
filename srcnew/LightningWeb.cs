@@ -26,6 +26,7 @@ public class LightningWeb : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 

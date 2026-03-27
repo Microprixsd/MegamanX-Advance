@@ -27,6 +27,7 @@ public class TwinSlasher : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {

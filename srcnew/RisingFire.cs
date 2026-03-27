@@ -28,6 +28,7 @@ public class RisingFire : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3 && ammo >=6) { return 6; }

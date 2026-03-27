@@ -27,6 +27,7 @@ public class AimingLaser : Weapon {
 		ammoDisplayScale = 1;
 		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {

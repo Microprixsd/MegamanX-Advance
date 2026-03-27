@@ -782,6 +782,8 @@ public class MegamanX : Character {
 		if (stingActiveTime > 0 || chargedRollingShieldProj != null) {
 			return false;
 		}
+		if (sBodyClone?.destroyed == false) return false;
+		
 		return !isInvulnerableAttack() && !hasLockingProj();
 	}
 
@@ -1067,6 +1069,7 @@ public class MegamanX : Character {
 		else {
 			chargedParasiticBomb?.reset(hurtState.isMiniFlinch());
 		}
+		sBodyClone?.destroySelf();
 		base.onFlinchOrStun(newState);
 	}
 
@@ -1433,6 +1436,9 @@ public class MegamanX : Character {
 		}
 		if (hasUltimateArmor && index == 0) {
 			index = 30;
+		}
+		if (sBodyClone != null) {
+			index = (int)WeaponIds.SoulBody;
 		}
 		palette = player.xPaletteShader;
 
