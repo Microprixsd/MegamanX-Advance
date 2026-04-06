@@ -5,8 +5,8 @@ using System.Linq;
 namespace MMXOnline;
 
 // Vile weapon systen.
-// This controls all sub weapons is a free from way.
-// Originally created for HDM form Vile nicknamed "Lego Vile",
+// This controls all sub weapons is a free form way.
+// Originally created for HDM for Vile and nicknamed "Lego Vile",
 // but helps lot for regular XOD Vile too.
 public class VileWeaponSystem : Weapon {
 	// Unlike HDM, XOD Vile splits ground and air so we use 2 systems.
@@ -22,11 +22,14 @@ public class VileWeaponSystem : Weapon {
 	public Weapon chargeWeapon;
 	public Weapon rideWeapon;
 	public Weapon rideGrenade;
+	// We have an input buffer here.
+	// So it's easier to combo in non stream weapons.
 	public Dictionary<string, float> bufferedInputs = new() {
 		{Control.Shoot, 0},
 		{Control.Special1, 0},
 		{Control.WeaponRight, 0},
 	};
+	public float bufferTime = 12;
 
 	// Creation function.
 	public VileWeaponSystem(
@@ -100,7 +103,7 @@ public class VileWeaponSystem : Weapon {
 		}
 		foreach (var kvp in bufferedInputs) {
 			if (chara.player.input.isPressed(kvp.Key, chara.player)) {
-				bufferedInputs[kvp.Key] = 12;
+				bufferedInputs[kvp.Key] = bufferTime;
 			} else {
 				bufferedInputs[kvp.Key] -= Global.gameSpeed;
 				if (bufferedInputs[kvp.Key] < 0) { bufferedInputs[kvp.Key] = 0; }
@@ -124,12 +127,16 @@ public class VileWeaponSystem : Weapon {
 	public bool shootLogic(Vile vile) {
 		vile.usedAmmoLastFrame = false;
 		var tartgetSlot = vile.grounded ? slots : airSlots;
+		// We set a preliminary key order.
 		string[] keys = [Control.Shoot, Control.Special1, Control.WeaponRight];
 		bool[] helds = new bool[3];
+		// We check if is pressed, if so we set it to max buffer time.
 		for (int i = 0; i < keys.Length; i++) {
 			helds[i] = vile.player.input.isHeld(keys[i], vile.player) || bufferedInputs[keys[i]] > 0;
+			if (helds[i]) {
+				bufferedInputs[keys[i]] = bufferTime;
+			}
 		}
-
 		if (helds[0]) {
 			if (tartgetSlot.shoot.weaponSystemShoot(vile, keys[0])) {
 				bufferedInputs[keys[0]] = 0;
@@ -167,7 +174,7 @@ public class VileWeaponSystem : Weapon {
 
 		// Get all off-cooldown ones.
 		Weapon[] offCooldownWeapons = targetWeapons.Where(
-			w => w.shootCooldown <= 0 && w.getAmmoUsage(0) <= ammoLeft
+			w => w.shootCooldown <= 0 && w.getAmmoUsage(0) <= ammoLeft && w.canShoot(0, vile)
 		).ToArray();
 
 		// If list is emtpty. Return.

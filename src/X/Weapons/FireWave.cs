@@ -97,7 +97,7 @@ public class FireWaveProjChargedStart : Projectile {
 		damager.hitCooldown = 45;
 		vel = new Point(150 * xDir, 0);
 		projId = (int)ProjIds.FireWaveChargedStart;
-		if (collider != null) { collider.wallOnly = true; }
+		collider?.wallOnly = true;
 		destroyOnHit = false;
 		shouldShieldBlock = false;
 		maxTime = 8; // WDYM IT WAS INFINITE BEFORE
@@ -171,7 +171,7 @@ public class FireWaveProjCharged : Projectile {
 		spriteTop = new Sprite("fire_wave_charge");
 		spriteTop.visible = false;
 		useGravity = true;
-		if (collider != null) { collider.wallOnly = true; }
+		collider?.wallOnly = true;
 		frameSpeed = 0;
 		this.parentTime = parentTime;
 		destroyOnHit = false;

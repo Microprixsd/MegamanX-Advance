@@ -80,9 +80,9 @@ public class FlameBurnerProj : Projectile {
 		vel.x = bulletDir.x * speed;
 		vel.y = bulletDir.y * speed;
 		byteAngle = Helpers.randomRange(0, 360);
-		collider.wallOnly = true;
+		collider?.wallOnly = true;
 		isOwnerLinked = true;
-		if (player?.character != null) {
+		if (player.character != null) {
 			ownerActor = player.character;
 		}
 		if (isUnderwater()) {
@@ -154,7 +154,7 @@ public class FlameBurnerAltProj : Projectile {
 	public override void onStart() {
 		base.onStart();
 		if (!ownedByLocalPlayer) return;
-		Character chr = owner.character;
+		Character? chr = owner.character;
 		if (chr is Axl axl) {
 			Point moveVel = axl.getAxlBulletDir() * -250 / new Point(60, 1.5f);
 			chr.pushEffect(moveVel);

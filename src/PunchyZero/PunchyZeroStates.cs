@@ -512,6 +512,7 @@ public class HyperPunchyZeroStart : PZeroState {
 		base.onEnter(oldState);
 		character.useGravity = false;
 		character.vel = new Point();
+		character.clenaseEverithing();
 		if (zero == null) {
 			throw new NullReferenceException();
 		}

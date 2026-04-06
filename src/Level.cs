@@ -164,7 +164,7 @@ public partial class Level {
 	}
 	public Player camPlayer {
 		get {
-			if (mainPlayer.isSpectator) {
+			if (mainPlayer.isSpectator || mainPlayer.altSpectator) {
 				if (!Global.level.players.Contains(specPlayer)) {
 					// Player left match: immediately get next spectate target, and if none, return null
 					specPlayer = getNextSpecPlayer(1);
@@ -191,7 +191,9 @@ public partial class Level {
 	}
 
 	public List<Player> spectatablePlayers() {
-		return players.Where(p => p != mainPlayer && !p.isSpectator).OrderBy(p => p.name).ToList();
+		return players.Where(
+			p => p != mainPlayer && !p.isSpectator && p.elimAlive
+		).OrderBy(p => p.name).ToList();
 	}
 
 	public List<Player> nonSpecPlayers() {
@@ -337,7 +339,9 @@ public partial class Level {
 			gameMode = new KingOfTheHill(this, server.timeLimit);
 		} else if (server.gameMode == GameMode.Race) {
 			gameMode = new Race(this);
-		}
+		} else if (server.gameMode == GameMode.TeamElimAlt) {
+			gameMode = new TeamElimAlt(this, server.playTo, server.timeLimit);
+		} 
 
 		// Radar dimensions
 		float maxDim = 50f;
@@ -358,10 +362,10 @@ public partial class Level {
 		scaledH = levelData.height * scaleH;
 
 		Global.radarRenderTexture = new RenderTexture(
-			(uint)Math.Ceiling(scaledW), (uint)Math.Ceiling(scaledH)
+			((uint)Math.Ceiling(scaledW), (uint)Math.Ceiling(scaledH))
 		);
 		Global.radarRenderTextureB = new RenderTexture(
-			(uint)Math.Ceiling(scaledW), (uint)Math.Ceiling(scaledH)
+			((uint)Math.Ceiling(scaledW), (uint)Math.Ceiling(scaledH))
 		);
 		Global.input.lastUpdateTime = 0;
 
@@ -810,7 +814,7 @@ public partial class Level {
 			addGameObject(actor);
 		}
 
-		if (Global.isHost && isNon1v1Elimination()) {
+		if (Global.isHost) {
 			var neutralSpawns = spawnPoints.Where((spawnPoint) => {
 				return spawnPoint.alliance == -1;
 			}).ToList();
@@ -823,7 +827,7 @@ public partial class Level {
 
 		controlPoints.Sort((cp1, cp2) => cp1.num - cp2.num);
 		foreach (var navMeshNode in navMeshNodes) {
-			navMeshNode.setNeighbors(navMeshNodes, getGameObjectArray());
+			navMeshNode.setNeighbors(navMeshNodes, gameObjects.ToList());
 		}
 
 		// Dynamically assign nodes based on their proximity
@@ -1017,16 +1021,17 @@ public partial class Level {
 			player.curMaxNetId = hostPlayer.curMaxNetId;
 			player.warpedIn = hostPlayer.warpedIn;
 			player.readyTime = hostPlayer.readyTime;
-			player.readyTextOver = hostPlayer.spawnChar;
+			player.readyTextOver = hostPlayer.readyTextOver;
 			player.armorFlag = hostPlayer.armorFlag;
 			player.loadout = hostPlayer.loadoutData;
 			player.disguise = hostPlayer.disguise;
 			player.atransLoadout = hostPlayer.atransLoadout;
 
-			if (hostPlayer.currentCharNum != null && hostPlayer.charNetId != null &&
-				hostPlayer.charNetId != 0 && player.character == null
+			if (hostPlayer.currentCharNum != -1 &&
+				hostPlayer.charNetId != ushort.MaxValue &&
+				player.character == null
 			) {
-				int targetCharNum = hostPlayer.currentCharNum.Value;
+				int targetCharNum = hostPlayer.currentCharNum;
 				LoadoutData currentLoadout = player.loadout;
 				if (player.atransLoadout != null) {
 					currentLoadout = player.atransLoadout;
@@ -1034,14 +1039,16 @@ public partial class Level {
 				player.spawnCharAtPoint(
 					targetCharNum, player.getCharSpawnData(targetCharNum, false, currentLoadout),
 					new Point(hostPlayer.charXPos, hostPlayer.charYPos),
-					hostPlayer.charXDir, (ushort)hostPlayer.charNetId, false
+					hostPlayer.charXDir, hostPlayer.charNetId, false, hostPlayer.isATrans
 				);
-				if (hostPlayer.charRollingShieldNetId != null && player.character is MegamanX mmx) {
+				if (hostPlayer.charRollingShieldNetId != ushort.MaxValue &&
+					player.character is MegamanX mmx
+				) {
 					mmx.chargedRollingShieldProj = new RollingShieldProjCharged(
 						player.character.pos,
 						player.character.xDir,
 						player.character, player,
-						hostPlayer.charRollingShieldNetId.Value
+						hostPlayer.charRollingShieldNetId
 					);
 				}
 			} else {
@@ -1388,8 +1395,7 @@ public partial class Level {
 			go.update();
 			go.stateUpdate();
 			go.physicsUpdate();
-			if (isNon1v1Elimination() &&
-				gameMode.virusStarted > 0 && go is Actor actor &&
+			if (gameMode.virusStarted > 0 && go is Actor actor &&
 				actor.ownedByLocalPlayer && go is IDamagable damagable
 			) {
 				var szRect = gameMode.safeZoneRect;
@@ -1405,10 +1411,10 @@ public partial class Level {
 						if (!damagable.projectileCooldown.ContainsKey("sigmavirus")) {
 							damagable.projectileCooldown["sigmavirus"] = 0;
 						}
-						if (damagable.projectileCooldown["sigmavirus"] == 0) {
+						if (damagable.projectileCooldown["sigmavirus"] <= 0) {
 							actor.playSound("hit");
 							actor.addRenderEffect(RenderEffectType.Hit, 3, 6);
-							damagable.applyDamage(2, null, null, null, null);
+							damagable.applyDamage(1, Player.stagePlayer, null, null, null);
 							damagable.projectileCooldown["sigmavirus"] = 60;
 						}
 					}
@@ -1926,7 +1932,7 @@ public partial class Level {
 			drawPowerplant2();
 		}
 
-		if (isNon1v1Elimination() && gameMode.virusStarted > 0) {
+		if (gameMode.virusStarted > 0) {
 			drawSigmaVirus();
 		}
 
@@ -2571,7 +2577,7 @@ public partial class Level {
 			}
 		}
 
-		if (isNon1v1Elimination() && gameMode.virusStarted > 0) {
+		if (gameMode.virusStarted > 0) {
 			return spawnPoints[gameMode.safeZoneSpawnIndex];
 		}
 
@@ -2695,7 +2701,12 @@ public partial class Level {
 			originPoint = mainChar.pos;
 		} else if (mainMaverick != null) {
 			originPoint = mainMaverick.pos;
-		} else if (mainChar == null && Global.level.mainPlayer != null && Global.level.mainPlayer.lastDeathPos != null && !Global.level.mainPlayer.isSpectator) {
+		} else if (
+			mainChar == null && Global.level.mainPlayer != null &&
+			Global.level.mainPlayer.lastDeathPos != null &&
+			!Global.level.mainPlayer.isSpectator &&
+			!Global.level.mainPlayer.altSpectator
+		) {
 			originPoint = Global.level.mainPlayer.lastDeathPos.Value;
 		}
 

@@ -213,8 +213,15 @@ public class Axl : Character {
 			Line testLine = new Line(startTestPoint, endTestPoint);
 			Shape headShape = headRect.getShape();
 			List<CollideData> lineIntersections = headShape.getLineIntersectCollisions(testLine);
-			if (lineIntersections.Count > 0) {
-				hits.Add(new CollideData(null, p.character.globalCollider, bulletDir, false, p.character, new HitData(null, new List<Point>() { lineIntersections[0].getHitPointSafe() })));
+			if (lineIntersections.Count > 0 && p.character.globalCollider != null) {
+				hits.Add(new CollideData(
+					null, p.character.globalCollider, bulletDir,
+					false, p.character, new HitData(
+						null, new List<Point>() {
+							lineIntersections[0].getHitPointSafe()
+						}
+					)
+				));
 			}
 		}
 
@@ -349,8 +356,10 @@ public class Axl : Character {
 		}
 
 		//Reload Axl Bullets
-		if (isAxlBulletsType)  axlWeapon?.rechargeAxlBulletAmmo(player, this, shootHeld, 4);
-        //customSettingReloadWeapon();
+		if (isAxlBulletsType) {
+			axlWeapon?.rechargeAxlBulletAmmo(player, this, shootHeld, 1);
+		}
+		customSettingReloadWeapon();
 
 		Helpers.decrementFrames(ref dodgeRollCooldown);
 		Helpers.decrementFrames(ref switchTime);
@@ -1654,6 +1663,41 @@ public class Axl : Character {
 		getRefillTargetWeapon()?.addAmmoPercentHeal(amount);
 	}
 
+	public void customSettingReloadWeapon() {
+
+		switch (currentWeapon) {
+			case RayGun:
+				(currentWeapon as RayGun)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
+				break;
+			case BlastLauncher:
+				(currentWeapon as BlastLauncher)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 4);
+				break;
+			case BlackArrow:
+				(currentWeapon as BlackArrow)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
+				break;
+			case SpiralMagnum:
+				(currentWeapon as SpiralMagnum)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
+				break;
+			case BoundBlaster:
+				(currentWeapon as BoundBlaster)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
+				break;
+			case PlasmaGun:
+				(currentWeapon as PlasmaGun)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
+				break;
+			case IceGattling:
+				(currentWeapon as IceGattling)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 4);
+				break;
+			case FlameBurner:
+				(currentWeapon as FlameBurner)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 4);
+				break;
+		}
+		if (axlWeapon != null) {
+			if (isAnyZoom()) {
+				axlWeapon.rechargeAmmoCustomSettingAxl2 = 200;
+			}
+		}
+	}
+
 	public Weapon? getRefillTargetWeapon() {
 		if (currentWeapon != null && currentWeapon.canHealAmmo && currentWeapon.ammo < currentWeapon.maxAmmo) {
 			return currentWeapon;
@@ -1773,40 +1817,6 @@ public class Axl : Character {
 			return new DoubleBullet();
 		} else {
 			return new AxlBullet((AxlBulletWeaponType)type);
-		}
-	}
-	public void customSettingReloadWeapon() {
-		//Reload Weapon Custom Setting
-		switch (currentWeapon) {
-			case RayGun:
-				(currentWeapon as RayGun)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
-				break;
-			case BlastLauncher:
-				(currentWeapon as BlastLauncher)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 4);
-				break;
-			case BlackArrow:
-				(currentWeapon as BlackArrow)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
-				break;
-			case SpiralMagnum:
-				(currentWeapon as SpiralMagnum)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
-				break;
-			case BoundBlaster:
-				(currentWeapon as BoundBlaster)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
-				break;
-			case PlasmaGun:
-				(currentWeapon as PlasmaGun)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 1);
-				break;
-			case IceGattling:
-				(currentWeapon as IceGattling)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 4);
-				break;
-			case FlameBurner:
-				(currentWeapon as FlameBurner)?.rechargeAmmoCustomSetting(player, this, shootHeld, 1, 4);
-				break;
-		}
-		if (axlWeapon != null) {
-			if (isAnyZoom()) {
-				axlWeapon.rechargeAmmoCustomSettingAxl2 = 200;
-			}
 		}
 	}
 

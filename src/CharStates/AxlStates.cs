@@ -47,7 +47,7 @@ public class HyperAxlStart : AxlState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		axl = character as Axl ?? throw new NullReferenceException() ;
+		character.clenaseEverithing();
 		if (!axl.hyperAxlUsed) {
 			axl.hyperAxlUsed = true;
 			axl.player.currency -= 10;

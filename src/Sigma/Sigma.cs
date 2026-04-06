@@ -429,10 +429,10 @@ public class BaseSigma : Character {
 			if (tagTeamSwapProgress <= 0) {
 				tagTeamSwapProgress = 0;
 				if (tagTeamSwapCase == 0) {
-					var sw = weapons.FirstOrDefault(w => w is SigmaMenuWeapon);
-					sw.shootCooldown = sw.fireRate;
-					currentMaverick.changeState(new MExit(currentMaverick.pos, true));
-					becomeSigma(currentMaverick.pos, currentMaverick.xDir);
+					Weapon? sw = weapons.FirstOrDefault(w => w is SigmaMenuWeapon);
+					sw?.shootCooldown = sw.fireRate;
+					currentMaverick?.changeState(new MExit(currentMaverick.pos, true));
+					becomeSigma(currentMaverick?.pos ?? pos, currentMaverick?.xDir ?? xDir);
 				} else {
 					if (currentWeapon is MaverickWeapon mw && mw.maverick == null) {
 						buyMaverick(mw);
@@ -642,9 +642,8 @@ public class BaseSigma : Character {
 		return new Collider(rect.getPoints(), false, this, false, false, HitboxFlag.Hurtbox, new Point(0, 0));
 	}
 
-	public override Collider getTerrainCollider() {
-		Collider? overrideGlobalCollider = null;
-		if (spriteToColliderMatch(sprite.name, out overrideGlobalCollider)) {
+	public override Collider? getTerrainCollider() {
+		if (spriteToColliderMatch(sprite.name, out Collider? overrideGlobalCollider)) {
 			return overrideGlobalCollider;
 		}
 		if (physicsCollider == null) {
@@ -798,12 +797,16 @@ public class BaseSigma : Character {
 			// Push the generic Sigma slot.
 			int sigmaWeaponSlot = 1;
 			// Always put the AI and enemies slot in the center.
+			//yo fix your logic here
+			/*
 			if (Global.level.mainPlayer == player &&
 				commandMode != (int)MaverickModeId.Summoner &&
 				commandMode != (int)MaverickModeId.Puppeteer
 			) {
 				sigmaWeaponSlot = Helpers.clamp(Options.main.sigmaWeaponSlot, 0, 2);
 			}
+			*/
+			sigmaWeaponSlot = Helpers.clamp(Options.main.sigmaWeaponSlot, 0, 2);
 			retWeapons.Insert(sigmaWeaponSlot, new SigmaMenuWeapon());
 			weaponSlot = sigmaWeaponSlot;
 			this.sigmaWeaponSlot = sigmaWeaponSlot;
