@@ -631,9 +631,6 @@ public class GameMode {
 					if (count >= 2) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y);
 					if (count >= 3) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x, y + 11);
 					if (count >= 4) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y + 11);
-				}	
-				if (mostRecentlyScanned != null) {
-					drawObjectiveNavpoint(mostRecentlyScanned.name, mostRecentlyScanned.character?.getCenterPos() ?? new Point(0, 0));
 				}
 			}
 			 

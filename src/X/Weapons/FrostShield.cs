@@ -141,12 +141,7 @@ public class FrostShieldProj : Projectile, IDamagable{
 	public void heal(Player healer, float healAmount, bool allowStacking = true, bool drawHealText = false) {
 	}
 
-	public bool isInvincible(Player attacker, int? projId) {
-		if (projId == null) {
-			return true;
-		}
-		return !Damager.canDamageFrostShield(projId.Value);
-	}
+	public bool isInvincible(Player attacker, int? projId) => false;
 
 	public bool isPlayableDamagable() {
 		return false;

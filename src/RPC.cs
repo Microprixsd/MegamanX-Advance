@@ -2264,6 +2264,7 @@ public class RPCGiveHyperchargeAmmo : RPC {
 		Global.serverClient?.rpc(RPC.giveHyperchargeAmmo, data.ToArray());
     }
 }
+
 public class PendingRPC {
 	public RPC rpc;
 	public byte[] bytes = [];
