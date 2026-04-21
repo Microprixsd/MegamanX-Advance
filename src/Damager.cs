@@ -67,6 +67,11 @@ public class Damager {
 		{ (int)ProjIds.Tenshouha, 60 },
 	};
 
+	public static Dictionary<int, int> multiHitLimit = new() {
+		{ (int)ProjIds.TwinSlasher, 2},
+		{ (int)ProjIds.TwinSlasherCharged, 5},
+	};
+
 	public Damager(Player owner, float damage, int flinch, float hitCooldown, float knockback = 0) {
 		this.owner = owner;
 		this.damage = damage;
@@ -155,6 +160,21 @@ public class Damager {
 		if (victim is not IDamagable damagable) {
 			return false;
 		}
+
+		if (multiHitLimit.ContainsKey(projId)) {
+			int hitLimit = multiHitLimit[projId];
+			for (int i = 0; i < hitLimit; i++) {
+				string tempKey = key;
+				if (i != 0) {
+					tempKey = $"{projId}_h{i}_{owner.id}";
+				}
+				if (damagable.projectileCooldown.GetValueOrDefault(tempKey) <= 0) {
+					key = tempKey;
+					break;
+				}
+			}
+		}
+
 		Character? preCharacter = victim as Character;
 		CharState? charState = preCharacter?.charState;
 

@@ -87,6 +87,7 @@ public class TwinSlasherProj : Projectile {
 		
 		vel.x = xDir * 400;
 		damager.damage = 1;
+		damager.hitCooldown = 10;
 		
 		if (rpc) {
 			byte[] extraArgs = new byte[] { (byte)type };
@@ -94,7 +95,7 @@ public class TwinSlasherProj : Projectile {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir, extraArgs);
 		}
 
-		if (type == 1) projId = (int)ProjIds.TwinSlasher2;
+		//if (type == 1) projId = (int)ProjIds.TwinSlasher2;
 	}
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
@@ -118,10 +119,6 @@ public class TwinSlasherProj : Projectile {
 
 	public override void onHitDamagable(IDamagable damagable) {
 		base.onHitDamagable(damagable);
-		damager.damage = 0;
-		changeSprite("twin_slasher_trail", true);
-		vel *= 0.5f;
-		changedSprite = true;
 		if (!ownedByLocalPlayer) {
 			return;
 		}
@@ -164,7 +161,7 @@ public class TwinSlasherProjCharged : Projectile {
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
 
-		damager.damage = 0.5f;
+		damager.damage = 1;
 		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 30;
 
@@ -185,7 +182,7 @@ public class TwinSlasherProjCharged : Projectile {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir, extraArgs);
 		}
 	
-		projId = (int)ProjIds.TwinSlasherCharged + id;
+		//projId = (int)ProjIds.TwinSlasherCharged + id;
 	}	
 
 	public static Projectile rpcInvoke(ProjParameters arg) {
