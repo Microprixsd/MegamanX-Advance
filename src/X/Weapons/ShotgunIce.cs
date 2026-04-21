@@ -74,7 +74,7 @@ public class ShotgunIceProj : Projectile {
 	) {
 		weapon = ShotgunIce.netWeapon;
 		damager.damage = 2;
-		damager.hitCooldown = 1;
+		damager.hitCooldown = 15;
 		vel = new Point(400 * xDir, 0);
 		projId = (int)ProjIds.ShotgunIce;
 		maxTime = 0.4f;

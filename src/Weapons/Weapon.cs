@@ -78,7 +78,7 @@ public class Weapon {
 	public bool hasCustomAnim;
 
 	public bool canRechargeAmmo = false;
-	public float ammoRechargeRate = 120;
+	public float ammoRechargeRate = 75;
 	public float rechargeTime;
 	public float rechargeCooldown;
 	public float maxRechargeCooldown = 60;
