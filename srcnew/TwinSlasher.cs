@@ -211,7 +211,7 @@ public class TwinSlasherProjCharged : Projectile {
 		}
 		if (damagable.canBeDamaged(damager.owner.alliance, damager.owner.id, projId)) {
 			if (damagable.projectileCooldown.ContainsKey(projId + "_" + owner.id) && 
-				damagable.projectileCooldown[projId + "_" + owner.id] >= maxHits
+				damagable.projectileCooldown[projId + "_" + owner.id] >= damager.hitCooldown
 			)
 			if (numHits >= maxHits) {
 				destroySelf();
