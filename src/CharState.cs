@@ -1000,7 +1000,7 @@ public class Dash : CharState {
 		}
 		// Speed at start and end.
 		else if (!stop || dashHeld) {
-			float targetSpeed = Physics.DashStartSpeed * character.getRunDebuffs();
+			float targetSpeed = character.getDashSpeed();
 			character.moveXY(targetSpeed * dashDir, 0);
 		}
 		// Dust effect.
