@@ -284,7 +284,7 @@ public class Buster4X8Proj : Projectile {
 	) {
 		weapon = XBuster.netWeapon;
 		damager.damage = 4;
-		damager.flinch = Global.halfFlinch;
+		damager.flinch = Global.defFlinch;
 		vel = new Point(350 * xDir, 0);
 		fadeOnAutoDestroy = true;
 		fadeSprite = "buster3_fade";
@@ -510,12 +510,12 @@ public class SpiralBackProj : Projectile {
 	) : base (
 		pos, xDir, owner, "buster4_muzzle_flash", netId, altPlayer
 	) {
-		maxTime = 0.5f;
+		maxTime = 1f;
 		projId = (int)ProjIds.Buster4_Spiral;
 
 		damager.damage = 3;
 		damager.flinch = Global.defFlinch;
-		damager.hitCooldown = 15;
+		damager.hitCooldown = 30;
 		destroyOnHit = false;
 		reflectable = false;
 

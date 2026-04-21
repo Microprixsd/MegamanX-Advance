@@ -8,7 +8,7 @@ public class GravityWell : Weapon {
 	public GravityWell() : base() {
 		displayName = "Gravity Well";
 		shootSounds = new string[] { "busterX3", "busterX3", "busterX3", "warpIn" };
-		fireRate = 5;
+		fireRate = 4;
 		switchCooldown = 15;
 		index = (int)WeaponIds.GravityWell;
 		weaponBarBaseIndex = 22;
@@ -86,7 +86,7 @@ public class GravityWellProj : Projectile, IDamagable {
 		weapon = GravityWell.netWeapon;
 		damager.damage = 2;
 		damager.hitCooldown = 30;
-		maxActiveTime = 1;
+		maxActiveTime = 2;
 		maxTime = maxActiveTime + 5;
 		projId = (int)ProjIds.GravityWell;
 		shouldShieldBlock = false;

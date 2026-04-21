@@ -16,7 +16,7 @@ public class TwinSlasher : Weapon {
 		weaponSlotIndex = 130;
 		weaknessIndex = (int)WeaponIds.LightningWeb;
 		shootSounds = new string[] { "buster2X4", "buster2X4", "buster2X4", "twinSlasherCharged" };
-		fireRate = 15;
+		fireRate = 20;
 		switchCooldown = 30;
 		/* damage = "1";
 		hitcooldown = "0.5";
@@ -164,7 +164,7 @@ public class TwinSlasherProjCharged : Projectile {
 		shouldShieldBlock = false;
 		shouldVortexSuck = false;
 
-		damager.damage = 0.5f;
+		damager.damage = 1;
 		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 30;
 
@@ -214,10 +214,8 @@ public class TwinSlasherProjCharged : Projectile {
 		}
 		if (damagable.canBeDamaged(damager.owner.alliance, damager.owner.id, projId)) {
 			if (damagable.projectileCooldown.ContainsKey(projId + "_" + owner.id) && 
-				damagable.projectileCooldown[projId + "_" + owner.id] >= damager.hitCooldown
-			) {
-				numHits++;
-			}
+				damagable.projectileCooldown[projId + "_" + owner.id] >= maxHits
+			)
 			if (numHits >= maxHits) {
 				destroySelf();
 			}
