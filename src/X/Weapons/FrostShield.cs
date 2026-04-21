@@ -286,9 +286,9 @@ public class FrostShieldProjCharged : Projectile {
 
 		if (isAnimOver()) {
 			if (character?.charState is Dash || character?.charState is AirDash) {
-				if (damager.damage != 3) updateDamager(3);
+				if (damager.damage != 3) updateDamager(3, Global.defFlinch);
 			} else {
-				if (damager.damage != 0) updateDamager(0);
+				if (damager.damage != 0) updateDamager(0, 0);
 			}
 		}
 
