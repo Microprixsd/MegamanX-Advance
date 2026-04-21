@@ -79,10 +79,7 @@ public class Shoryuken : CharState {
 			character.changeToIdleOrFall();
 		}
 	}
-	public override bool canEnter(Character character) {
-		if (!character.grounded) return false;
-		return base.canEnter(character);
-	}
+	
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		mmx = character as MegamanX;

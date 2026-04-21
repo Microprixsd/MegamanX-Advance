@@ -491,7 +491,7 @@ public class MegamanX : Character {
 		if (hasShoryukenEquipped()) {
 			inputCheckS = player.input.checkShoryuken(player, xDir, Control.Shoot);
 		}
-		if (inputCheckH && canUseFgMove() && grounded &&
+		if (inputCheckH && canUseFgMove() && 
 			player.hadoukenAmmo >= player.fgMoveMaxAmmo &&
 			hadoukenCooldownTime == 0
 		) {
@@ -500,7 +500,7 @@ public class MegamanX : Character {
 			changeState(new Hadouken(), true);
 			return true;
 		}
-		if (inputCheckS && canUseFgMove() && grounded &&
+		if (inputCheckS && canUseFgMove() && 
 			player.shoryukenAmmo >= player.fgMoveMaxAmmo &&
 			shoryukenCooldownTime == 0
 		) {
