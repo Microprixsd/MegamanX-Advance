@@ -1599,10 +1599,12 @@ public class GameMode {
 		//health /= player.getHealthModifier();
 		//damageSavings /= player.getHealthModifier();
 
-		baseY += 25;
+		baseY -= 60;
+		baseX += 14;
 		var healthBaseSprite = spriteName;
 		Global.sprites[healthBaseSprite].drawToHUD(frameIndex, baseX, baseY);
-		baseY -= 16;
+		baseY -= 14;
+		baseX += 12;	
 		int barIndex = 0;
 		int sBarIndex = 4;
 
@@ -1650,7 +1652,7 @@ public class GameMode {
 					Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY, svAlpha);
 				}
 			}
-			baseY -= 2;
+			baseX += 2;
 		}
 		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
 
@@ -1663,9 +1665,9 @@ public class GameMode {
 		int barIndex, float ammo, float grayAmmo = 0, float maxAmmo = 32,
 		bool allowSmall = true
 	) {
-		baseY += 25;
+		baseY += 28;
 		Global.sprites["hud_weapon_base"].drawToHUD(baseIndex, baseX, baseY);
-		baseY -= 16;
+		baseY -= 19;
 
 		// Puppeteer small energy bars.
 		bool forceSmallBarsOff = false;
@@ -1685,7 +1687,7 @@ public class GameMode {
 			} else {
 				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
 			}
-			baseY -= 2;
+			baseX += 2;
 		}
 		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
 	}
@@ -1758,9 +1760,11 @@ public class GameMode {
 			return;
 		}
 		ammoDisplayMultiplier /= weapon.ammoDisplayScale;
-		baseY += 25;
+		baseY -= 57;
+		baseX += 17;
 		Global.sprites["hud_weapon_base"].drawToHUD(weapon.weaponBarBaseIndex, baseX, baseY);
-		baseY -= 16;
+		baseY -= 6;
+		baseX += 11;
 
 		for (var i = 0; i < MathF.Ceiling(weapon.maxAmmo * ammoDisplayMultiplier); i++) {
 			var floorOrCeiling = Math.Ceiling(weapon.ammo * ammoDisplayMultiplier);
@@ -1783,7 +1787,7 @@ public class GameMode {
 			} else {
 				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
 			}
-			baseY -= 2;
+			baseX += 2;
 		}
 		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
 	}

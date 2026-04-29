@@ -510,7 +510,7 @@ public class SpiralBackProj : Projectile {
 	) : base (
 		pos, xDir, owner, "buster4_muzzle_flash", netId, altPlayer
 	) {
-		maxTime = 1f;
+		maxTime = 0.5f;
 		projId = (int)ProjIds.Buster4_Spiral;
 
 		damager.damage = 3;

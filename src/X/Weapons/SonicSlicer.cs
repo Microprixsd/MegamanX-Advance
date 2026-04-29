@@ -182,7 +182,7 @@ public class SonicSlicerProjCharged : Projectile {
 		damager.damage = 4;
 		damager.hitCooldown = 15;
 		damager.flinch = Global.defFlinch;
-		vel = new Point(250 * xDir, -420);
+		vel = new Point(250 * xDir, -720);
 		fadeSprite = "sonicslicer_charged_fade";
 		maxTime = 1.5f;
 		projId = (int)ProjIds.SonicSlicerCharged;
@@ -210,7 +210,7 @@ public class SonicSlicerProjCharged : Projectile {
 
 	public override void update() {
 		base.update();
-		vel.y += Global.spf * Global.level.gravity;
+		vel.y += Global.spf * Global.level.gravity + 25;
         if (!fall)
         {
             float x = Helpers.lerp(pos.x, dest.x, Global.spf * 10);

@@ -294,10 +294,10 @@ public class Damager {
 					preCharacter?.crystalize();
 					break;
 				case (int)ProjIds.AcidBurst:
-					damagerMessage = onAcidDamage(damagable, owner, 2);
+					damagerMessage = onAcidDamage(damagable, owner, 3);
 					break;
 				case (int)ProjIds.AcidBurstSmall:
-					damagerMessage = onAcidDamage(damagable, owner, 1);
+					damagerMessage = onAcidDamage(damagable, owner, 2);
 					break;
 				case (int)ProjIds.AcidBurstCharged:
 					damagerMessage = onAcidDamage(damagable, owner, 3);
@@ -503,6 +503,9 @@ public class Damager {
 					character.addIgFreezeProgress(4);
 					break;
 				case (int)ProjIds.SeaDragonRage:
+					character.addIgFreezeProgress(1);
+					break;
+				case (int)ProjIds.ShotgunIce:
 					character.addIgFreezeProgress(1);
 					break;
 				//Other effects

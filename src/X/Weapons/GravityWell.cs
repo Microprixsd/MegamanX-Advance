@@ -85,7 +85,7 @@ public class GravityWellProj : Projectile, IDamagable {
 	) {
 		weapon = GravityWell.netWeapon;
 		damager.damage = 2;
-		damager.hitCooldown = 30;
+		damager.hitCooldown = 45;
 		maxActiveTime = 2;
 		maxTime = maxActiveTime + 5;
 		projId = (int)ProjIds.GravityWell;

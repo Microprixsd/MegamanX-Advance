@@ -792,6 +792,10 @@ public class MegamanX : Character {
 			chargeTime += speedMul * 1.5f;
 			return;
 		}
+		if (armArmor == ArmorId.Plasma) {
+			chargeTime += speedMul * 1.2f;
+			return;
+		}
 		chargeTime += speedMul;
 	}
 

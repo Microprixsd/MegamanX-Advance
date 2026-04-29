@@ -200,7 +200,7 @@ public class DoubleCycloneChargedSpawn : Projectile {
 		mmx.dCycloneSpawn = this;
 		shouldShieldBlock = false;
 
-		damager.hitCooldown = 20;
+		damager.hitCooldown = 30;
 
 		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
@@ -248,7 +248,7 @@ public class DoubleCycloneChargedProj : Projectile {
 
 		vel.x = 180 * xDir;
 		damager.damage = 2;
-		damager.hitCooldown = 18;
+		damager.hitCooldown = 20;
 
 		if (rpc) rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 	}
@@ -266,15 +266,15 @@ public class DoubleCycloneChargedProj : Projectile {
 
 		if (chr != null) {
 			if (chr.charState.invincible || chr.immuneToKnockback) return;
-			float mod = 3.2f;
-			if (!chr.grounded) mod = 0.5f;
+			float mod = 2f;
+			if (!chr.grounded) mod = 1.15f;
 			else if (chr.charState is Crouch) mod = 0.25f;
 			
 			chr.xPushVel = xDir * mod;
 		}
 
 		if (mav != null) {
-			float mod = 3.2f;
+			float mod = 2f;
 			if (!mav.grounded) mod = 1.25f;
 
 			mav.xPushVel = xDir * mod;

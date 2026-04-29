@@ -60,9 +60,10 @@ public class AcidBurstProj : Projectile {
 	) {
 		weapon = AcidBurst.netWeapon;
 		useGravity = true;
+		damager.damage = 1;
 		maxTime = 1.5f;
 		projId = (int)ProjIds.AcidBurst;
-		vel = new Point(xDir * 100, -200);
+		vel = new Point(xDir * 150, -150);
 		fadeSound = "acidBurst";
 		checkUnderwater();
 
@@ -168,7 +169,9 @@ public class AcidBurstProjCharged : Projectile {
 		pos, xDir, owner, "acidburst_charged_start", netId, player	
 	) {
 		weapon = AcidBurst.netWeapon;
+		damager.damage = 1;
 		maxTime = 4f;
+		damager.flinch = Global.miniFlinch;
 		projId = (int)ProjIds.AcidBurstCharged;
 		useGravity = true;
 		fadeSound = "acidBurst";

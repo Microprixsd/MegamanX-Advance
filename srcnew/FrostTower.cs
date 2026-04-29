@@ -247,7 +247,7 @@ public class FrostTowerProjCharged : Projectile, IDamagable {
 		projId = (int)ProjIds.FrostTowerCharged;
 		isShield = false;
 
-		damager.damage = 2;
+		damager.damage = 3;
 		damager.flinch = Global.defFlinch;
 		damager.hitCooldown = 30;
 		

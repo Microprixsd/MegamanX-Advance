@@ -142,7 +142,7 @@ public class XBuster : Weapon {
 			shootSound = "buster2X4";
 		}
 		else if (chargeLevel == 0) {
-			lemonsOnField.Add(new BusterProj(pos.addxy(xDir * 8, -1), xDir, mmx, player, player.getNextActorNetId(), true));
+			lemonsOnField.Add(new BusterProj(pos.addxy(xDir * 6, -1), xDir, mmx, player, player.getNextActorNetId(), true));
 		} else if (chargeLevel == 1) {
 			new Buster2Proj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else if (chargeLevel == 2) {

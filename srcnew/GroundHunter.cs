@@ -207,8 +207,8 @@ public class GroundHunterChargedProj : Projectile {
 		canBeLocal = false;
 
 		vel.x = 300 * xDir;
-		damager.damage = 2;
-		damager.hitCooldown = 30;
+		damager.damage = 3;
+		damager.hitCooldown = 45;
 
 		releasePlasma = ownerPlayer.hasPlasma();
 
@@ -266,7 +266,8 @@ public class GroundHunterSmallProj : Projectile {
 		if (type == 2) yScale *= -1;
 		vel.y = -yScale * 300;
 
-		damager.damage = 1;
+		damager.damage = 2;
+		damager.hitCooldown = 30;
 
 		if (rpc) {
 			byte[] extraArgs = new byte[] { (byte)type };

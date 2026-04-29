@@ -207,7 +207,7 @@ public class ElectricSparkProjCharged : Projectile {
 		damager.hitCooldown = 30;
 		vel = new Point(450 * xDir, 0);
 		projId = (int)ProjIds.ElectricSparkCharged;
-		maxTime = 0.3f;
+		maxTime = 0.25f;
 		destroyOnHit = false;
 		shouldShieldBlock = false;
 

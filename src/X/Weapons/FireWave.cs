@@ -163,7 +163,7 @@ public class FireWaveProjCharged : Projectile {
 	) {
 		weapon = FireWave.netWeapon;
 		damager.damage = 1;
-		damager.hitCooldown = 30;
+		damager.hitCooldown = 45;
 		vel = new Point(0 * xDir, 0);
 		projId = (int)ProjIds.FireWaveCharged;
 		spriteMid = new Sprite("fire_wave_charge");

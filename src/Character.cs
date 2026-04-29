@@ -826,7 +826,7 @@ public partial class Character : Actor, IDamagable {
 			character.player.alliance != player.alliance
 		) {
 			Damager.applyDamage(
-				player, 3, 60, Global.defFlinch, character, false,
+				player, 2, 60, Global.defFlinch, character, false,
 				(int)WeaponIds.CrystalHunter, 20, this,
 				(int)ProjIds.CrystalHunterDash
 			);
@@ -923,7 +923,7 @@ public partial class Character : Actor, IDamagable {
 
 		if (acidTime > 0) {
 			acidTime -= Global.spf;
-			acidHurtCooldown += Global.speedMul;
+			acidHurtCooldown += Global.speedMul *0.4f;
 			if (acidHurtCooldown >= 60) {
 				acidHurtCooldown -= 60;
 				if (acidHurtCooldown <= 0) {

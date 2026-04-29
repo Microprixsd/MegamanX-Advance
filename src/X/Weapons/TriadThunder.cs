@@ -304,7 +304,7 @@ public class TriadThunderProjCharged : Projectile {
 		pos, xDir, owner, "triadthunder_charged", netProjId, player
 	) {	
 		weapon = type == 1 ? SparkMandrill.netWeapon : type == 2 ? VoltCatfish.netWeapon : TriadThunder.netWeapon;
-		damager.damage = 4;
+		damager.damage = 3;
 		damager.hitCooldown = 30;
 		damager.flinch = Global.defFlinch;
 		projId = (int)ProjIds.TriadThunderCharged;
