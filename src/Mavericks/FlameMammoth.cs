@@ -4,6 +4,7 @@ namespace MMXOnline;
 
 public class FlameMammoth : Maverick {
 	public FlameMStompWeapon stompWeapon = new();
+	public float jumpTime;
 
 	public FlameMammoth(
 		Player player, Point pos, int xDir, ushort? netId,
@@ -35,6 +36,11 @@ public class FlameMammoth : Maverick {
 	public override void update() {
 		base.update();
 		subtractTargetDistance = 70;
+		if (state is MJump or MFall) {
+			jumpTime++;
+		} else {
+			Helpers.decrementFrames(ref jumpTime);
+		}
 		if (aiBehavior == MaverickAIBehavior.Control) {
 			if (state is MIdle or MRun or MLand) {
 				if (shootPressed()) {
@@ -43,7 +49,7 @@ public class FlameMammoth : Maverick {
 					changeState(new FlameMOilState());
 				}
 			} else if (state is MJump || state is MFall) {
-				if (input.isPressed(Control.Dash, player)) {
+				if (jumpTime > 24 && input.isPressed(Control.Dash, player)) {
 					changeState(new FlameMJumpPressState());
 				}
 			}

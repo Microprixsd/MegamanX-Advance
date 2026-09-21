@@ -5,7 +5,7 @@ namespace MMXOnline;
 
 public class HyperCharge : Weapon {
 	public bool active;
-	public const float ammoUsage = 7;
+	public const float ammoUsage = 8;
 
 	public HyperCharge() : base() {
 		index = (int)WeaponIds.HyperCharge;
@@ -17,7 +17,7 @@ public class HyperCharge : Weapon {
 		fireRate = 120;
 		switchCooldown = 15;
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
 		allowSmallBar = false;
@@ -40,8 +40,7 @@ public class HyperCharge : Weapon {
 	}
 
 	public static float getRateofFireMod(Player player) {
-		if (player != null && player.hyperChargeSlot < player.weapons.Count &&
-			player.weapons[player.hyperChargeSlot] is XBuster &&
+		if (player != null &&
 			(player.character as MegamanX)?.hasUltimateArmor != true
 		) {
 			return 0.75f;
@@ -59,48 +58,19 @@ public class HyperCharge : Weapon {
 		}
 		return (
 			(ammo >= getChipFactoredAmmoUsage(mmx.player) || chargeLevel >= 3) && 
-			mmx.weapons[mmx.player.hyperChargeSlot].ammo > 0 && 
 			base.canShoot(chargeLevel, mmx) && mmx.flag == null
 		);
 	}
 
 	public bool canShootIncludeCooldown(Player player) {
-		return 
-			ammo >= getChipFactoredAmmoUsage(player) &&
-			player.weapons.InRange(player.hyperChargeSlot) && 
-			player.weapons[player.hyperChargeSlot].ammo > 0;
+		return ammo >= getChipFactoredAmmoUsage(player);
 	}
 
-	bool changeToWeaponSlot(Weapon wep) {
-		return (wep is
-			ChameleonSting or
-			RollingShield or
-			BubbleSplash or
-			ParasiticBomb or
-			TornadoFang
-		);
-	} 
-
 	public override void shoot(Character character, int[] args) {
-		Player player = character.player;
 		MegamanX mmx = character as MegamanX ?? throw new NullReferenceException();
-		Weapon wep = character.weapons[player.hyperChargeSlot];
-
-		if (wep is XBuster) {
-			character.changeState(new X3ChargeShot(this), true);
-			if (!mmx.hasUltimateArmor)
+		character.changeState(new X3ChargeShot(this), true);
+		if (!mmx.hasUltimateArmor) {
 			character.playSound("buster3X3");
-		} else {
-			if (changeToWeaponSlot(wep)) player.changeWeaponSlot(player.hyperChargeSlot);
-			wep.shoot(character, [3, 0]);
-			wep.addAmmo(-wep.getAmmoUsage(3), player);
-			if (!string.IsNullOrEmpty(wep.shootSounds[3])) {
-				character.playSound(wep.shootSounds[3]);
-			}
-			
-			if (wep is BubbleSplash bs) {
-				bs.hyperChargeDelay = 15;
-			}
 		}
 	}
 }

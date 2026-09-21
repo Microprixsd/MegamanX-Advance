@@ -156,6 +156,7 @@ public partial class Character : Actor, IDamagable {
 	public Damager? acidDamager;
 	public float acidTime;
 	public float acidHurtCooldown;
+	public float acidTickRate = 1;
 	// Infected
 	public float virusTime;
 	// Oil
@@ -247,6 +248,10 @@ public partial class Character : Actor, IDamagable {
 		slideOnIce = true;
 		this.isATrans = isATrans;
 		this.player = player;
+		// Keep the fork's charge timing for X and Zero; restore upstream for the other characters.
+		if (this is not (MegamanX or RagingChargeX or Zero or BusterZero or PunchyZero)) {
+			charge1Time = 30;
+		}
 		netOwner = player;
 		this.xDir = xDir;
 
@@ -341,7 +346,7 @@ public partial class Character : Actor, IDamagable {
 		changeState(new DarkHoldState(this, darkHoldTime), true);
 	}
 
-	public void addAcidTime(Player attacker, float time) {
+	public void addAcidTime(Player attacker, float time, float tickRate = 1) {
 		if (!ownedByLocalPlayer || isDotImmune()) {
 			return;
 		}
@@ -352,6 +357,7 @@ public partial class Character : Actor, IDamagable {
 		} else {
 			acidDamager.owner = newAttacker;
 		}
+		acidTickRate = tickRate;
 		// Reset timer if it's 0.
 		if (acidTime == 0) {
 			acidHurtCooldown = 0;
@@ -923,7 +929,7 @@ public partial class Character : Actor, IDamagable {
 
 		if (acidTime > 0) {
 			acidTime -= Global.spf;
-			acidHurtCooldown += Global.speedMul *0.4f;
+			acidHurtCooldown += Global.speedMul * acidTickRate;
 			if (acidHurtCooldown >= 60) {
 				acidHurtCooldown -= 60;
 				if (acidHurtCooldown <= 0) {
@@ -3533,16 +3539,9 @@ public partial class Character : Actor, IDamagable {
 		bool altShootPressed = player.input.isHeld(Control.Special1, player);
 		bool specialPressed = player.input.isPressed(Control.Special1, player);
 		bool upPressed = player.input.isHeld(Control.Up, player);
-
-		// Change Weapon controls.
-		if (this is BusterZero) {
-			player.changeWeaponControls();
-		}
-		if (this is Zero or PunchyZero or Vile && upPressed) {
-			player.changeWeaponControls();
-		}
+		bool commandPressed = player.input.isPressed(Control.Special2, player);
 		// Tranform.
-		if (currentWeapon is UndisguiseWeapon && (shootPressed || altShootPressed)) {
+		if ((currentWeapon is UndisguiseWeapon && (shootPressed || altShootPressed)) || (upPressed && commandPressed && player.isDisguisedAxl)) {
 			undisguiseTime = 6;
 			int lastDNAIndex = player.lastDNACoreIndex;
 			playSound("transform", sendRpc: true);
@@ -3740,7 +3739,7 @@ public partial class Character : Actor, IDamagable {
 		customData.Add(netAlliance);
 		customData.Add(stateFlag);
 
-		// Bool mask. Pos 6.
+		// Bool mask. Pos 9 (HP, max HP and currency each use two bytes).
 		// For things not always enabled.
 		// We also edit this later.
 		int boolMaskPos = customData.Count;
@@ -3802,12 +3801,11 @@ public partial class Character : Actor, IDamagable {
 		// Always on values.
 		health = BitConverter.ToUInt16(data[1..3]);
 		maxHealth = BitConverter.ToUInt16(data[3..5]);
-		currency = BitConverter.ToUInt16(data[4..6]);
-		player.alliance = data[6];
-;
+		currency = BitConverter.ToUInt16(data[5..7]);
+		player.alliance = data[7];
 
 		// Bool variables.
-		bool[] boolData = Helpers.byteToBoolArray(data[7]);
+		bool[] boolData = Helpers.byteToBoolArray(data[8]);
 
 		alive = boolData[0];
 		player.isDefenderFavoredNonOwner = boolData[1];
@@ -3818,18 +3816,18 @@ public partial class Character : Actor, IDamagable {
 		charState.stunImmune = boolData[6];
 
 		// Optional statuses.
-		bool[] boolMask = Helpers.byteToBoolArray(data[8]);
+		bool[] boolMask = Helpers.byteToBoolArray(data[9]);
 
 		// For crash reports.
-		//int netCharNum = data[9];
+		//int netCharNum = data[10];
 
 		// Set pointer.
-		int pos = 10;
+		int pos = 11;
 
 		// Update and increase pos as we go.
 		acidTime = 0;
 		if (boolMask[0]) {
-			acidTime = data[pos] / 30f;
+			acidTime = data[pos] / 20f;
 			pos++;
 		}
 		burnTime = 0;

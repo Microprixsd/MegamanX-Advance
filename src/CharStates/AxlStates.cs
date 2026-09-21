@@ -24,6 +24,7 @@ public class HyperAxlStart : AxlState {
 	public float time;
 	public HyperAxlStart(bool isGrounded) : base(isGrounded ? "hyper_start" : "hyper_start_air") {
 		invincible = true;
+		statusEffectImmune = true;
 	}
 
 	public override void update() {
@@ -48,6 +49,7 @@ public class HyperAxlStart : AxlState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		character.clenaseEverithing();
+		axl = character as Axl ?? throw new NullReferenceException();
 		if (!axl.hyperAxlUsed) {
 			axl.hyperAxlUsed = true;
 			axl.player.currency -= 10;

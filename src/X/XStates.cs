@@ -513,7 +513,7 @@ public class X3ChargeShot : XState {
 						shootPos, "buster4_x3_muzzle", shootDir,
 						player.getNextActorNetId(), true, sendRpc: true
 					);
-					new Buster4MaxProj(
+					new BusterX3Proj1(
 						shootPos, shootDir,
 						mmx, player, player.getNextActorNetId(), true
 					);
@@ -531,31 +531,17 @@ public class X3ChargeShot : XState {
 				mmx.stockedTime = 0;
 			} else {
 				character.playSound("buster3X3", sendRpc: true);
-				float xDir = character.getShootXDir();
-				new BusterX3Proj2(
-					character.getShootPos().addxy(6 * xDir, -2), character.getShootXDir(), 0, mmx,
-					player, player.getNextActorNetId(), rpc: true
-				);
-				new BusterX3Proj2(
-					character.getShootPos().addxy(6 * xDir, -2), character.getShootXDir(), 1, mmx,
-					player, player.getNextActorNetId(), rpc: true
-				);
-				new BusterX3Proj2(
-					character.getShootPos().addxy(6 * xDir, -2), character.getShootXDir(), 2, mmx,
-					player, player.getNextActorNetId(), rpc: true
-				);
-				new BusterX3Proj2(
-					character.getShootPos().addxy(6 * xDir, -2), character.getShootXDir(), 3, mmx,
-					player, player.getNextActorNetId(), rpc: true
+				XBuster.createX3SpreadShot(character, character.getShootXDir()
 				);
 			}
 			mmx.stockedTime = 0;
 			if (mmx.stockedMaxBusterLv >= 1) {
 				mmx.stockedMaxBusterLv--;
 			}
+			mmx.onMaxBusterShot(state == 0, hyperBusterWeapon != null);
 		}
 		if (character.isAnimOver()) {
-			if (state == 0 && pressFire) {
+			if (state == 0 && pressFire && mmx.hasUltimateArmor) {
 				sprite = "cross_shot2";
 				landSprite = "cross_shot2";
 				if (!character.grounded || character.vel.y < 0) {

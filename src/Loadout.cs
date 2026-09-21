@@ -105,7 +105,7 @@ public class ZeroLoadout {
 		if (!inRange(uppercutA)) uppercutA = 0;
 		if (!inRange(downThrustS)) downThrustS = 0;
 		if (!inRange(downThrustA)) downThrustA = 0;
-		if (!inRange(gigaAttack)) gigaAttack = 0;
+		if (!inRange(gigaAttack) && gigaAttack != (int)ZeroGigaType.Tenshouha) gigaAttack = 0;
 		if (!inRange(groundSpecial)) groundSpecial = 0;
 		if (!inRange(airSpecial)) airSpecial = 0;
 		if (uppercutA == uppercutS) {

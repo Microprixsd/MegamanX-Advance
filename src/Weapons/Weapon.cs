@@ -330,10 +330,12 @@ public class Weapon {
 	}
 
 	public virtual void rechargeAmmo(float maxRechargeTime) {
-		Helpers.decrementFrames(ref rechargeCooldown);
-		
+		// X's passive recharge is measured in frames; Axl's hyper refill uses seconds.
+		float rechargeStep = canRechargeAmmo ? Global.speedMul : Global.spf;
+		rechargeCooldown = MathF.Max(0, rechargeCooldown - rechargeStep);
+
 		if (rechargeCooldown <= 0) {
-			rechargeTime += Global.speedMul;
+			rechargeTime += rechargeStep;
 			if (rechargeTime > maxRechargeTime) {
 				rechargeTime = 0;
 				ammo++;

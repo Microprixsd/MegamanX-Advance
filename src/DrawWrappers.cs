@@ -455,12 +455,16 @@ public partial class DrawWrappers {
 		List<Point> points, Color color, bool fill, long depth,
 		bool isWorldPos = true, Color? outlineColor = null, int thickness = 1
 	) {
+		if (points.Count == 0) {
+			return;
+		}
 		if (isWorldPos && Options.main.enablePostProcessing) {
 			for (int i = 0; i < points.Count; i++) {
 				points[i] = new Point(points[i].x - Global.level.camX, points[i].y - Global.level.camY);
 			}
 		}
 		ConvexShape shape = new ConvexShape((uint)points.Count);
+		shape.SetPointCount((uint)points.Count);
 		for (int i = 0; i < points.Count; i++) {
 			shape.SetPoint((uint)i, new Vector2f(points[i].x, points[i].y));
 		}
@@ -475,6 +479,7 @@ public partial class DrawWrappers {
 			shape.OutlineColor = outlineColor.Value;
 			shape.OutlineThickness = thickness;
 		}
+
 		if (isWorldPos) {
 			DrawLayer drawLayer = getDrawLayer(depth);
 			drawLayer.oneOffs.Add(new DrawableWrapper([], shape, Color.White));

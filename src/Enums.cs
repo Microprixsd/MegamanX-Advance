@@ -328,7 +328,7 @@ public enum ProjIds {
 	BusterX4,
 	BusterX8,
 	BusterUnpo,
-	BusterX3Proj2,
+	BusterX3Proj3,
 	BusterX3Plasma,
 	BusterX3PlasmaHit,
 	BusterForce3,
@@ -807,7 +807,8 @@ public enum ProjIds {
 	SelfDmg = 30000,
 	SelfTrueDmg,
 	ViralPosession,
-
+	BusterX3Proj1 = 31000,
+	BusterX3Proj2 = 31001,
 	// Enviroment effect shenanigans.
 	KillZone = 32000,
 

@@ -490,10 +490,11 @@ public class BusterZero : Character {
 	}
 
 	public override float getRunSpeed() {
+		float runSpeed = Physics.WalkSpeed;
 		if (isBlackZero) {
-			return 1.15f * getRunDebuffs();
+			runSpeed *= 1.15f;
 		}
-		return base.getRunSpeed();
+		return runSpeed * getRunDebuffs();
 	}
 
 	public override float getDashSpeed() {

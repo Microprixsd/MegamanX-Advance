@@ -294,13 +294,13 @@ public class Damager {
 					preCharacter?.crystalize();
 					break;
 				case (int)ProjIds.AcidBurst:
-					damagerMessage = onAcidDamage(damagable, owner, 3);
+					damagerMessage = onAcidDamage(damagable, owner, 3, tickRate: 0.4f);
 					break;
 				case (int)ProjIds.AcidBurstSmall:
-					damagerMessage = onAcidDamage(damagable, owner, 2);
+					damagerMessage = onAcidDamage(damagable, owner, 2, tickRate: 0.4f);
 					break;
 				case (int)ProjIds.AcidBurstCharged:
-					damagerMessage = onAcidDamage(damagable, owner, 3);
+					damagerMessage = onAcidDamage(damagable, owner, 3, tickRate: 0.4f);
 					break;
 				case (int)ProjIds.TSeahorseAcid3:
 				case (int)ProjIds.TSeahorseAcid1:
@@ -648,8 +648,8 @@ public class Damager {
 					}
 				}
 			}
-			// Damage above 0.
-			if (damage > 0 || flinch > 0) {
+			// Lightning Web intentionally staggers without damage; blocked hits and slow Maverick swings do not.
+			if (damage > 0 || (flinch > 0 && projId == (int)ProjIds.LightningWeb)) {
 				// Bool if the character is frozen
 				bool isShotgunIceAndFrozen = (
 					character.sprite.name.Contains("frozen") == true && weaponKillFeedIndex == 8
@@ -1204,8 +1204,8 @@ public class Damager {
 		return false;
 	}
 
-	public static DamagerMessage? onAcidDamage(IDamagable damagable, Player attacker, float acidTime) {
-		(damagable as Character)?.addAcidTime(attacker, acidTime);
+	public static DamagerMessage? onAcidDamage(IDamagable damagable, Player attacker, float acidTime, float tickRate = 1) {
+		(damagable as Character)?.addAcidTime(attacker, acidTime, tickRate);
 		return null;
 	}
 

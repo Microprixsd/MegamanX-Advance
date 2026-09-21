@@ -777,25 +777,6 @@ public class OptionsMenu : IMainMenu {
 					"For weapon switch in certain or all modes.\n" +
 					"Hold WEAPON L/R and use a directon to switch weapon."
 				),
-				// Hyper Charge slot.
-				new MenuOption(
-					30, startY,
-					() => {
-						Helpers.menuLeftRightInc(ref Options.main.hyperChargeSlot, 0, 2);
-					},
-					(Point pos, int index) => {
-						// ToDo: Implement "Buster" option for hypercharge like HDM.
-						Fonts.drawText(
-							optionFontText, "Hyper charge slot:",
- 							pos.x, pos.y, selected: selectedArrowPosY == index
-						);
-						Fonts.drawText(
-							optionFontValue, (Options.main.hyperChargeSlot + 1).ToString(),
-							pos.x + 166, pos.y, selected: selectedArrowPosY == index
-						);
-					},
-					"Weapon slot number which Hyper Charge uses."
-				),
 				// Down+Special Giga Attacks
 				new MenuOption(
 					30, startY,

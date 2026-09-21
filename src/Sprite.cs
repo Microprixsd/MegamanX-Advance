@@ -299,7 +299,8 @@ public class Sprite {
 		if (isUltX) {
 			//extraYOff = 3;
 			//extraY = 3;
-			armors = [4, 4, 4, 4];
+			// UAX textures occupy index 5; armor IDs are one-based.
+			armors = [6, 6, 6, 6];
 		}
 
 		if (isUPX) {

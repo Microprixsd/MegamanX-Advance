@@ -99,12 +99,7 @@ public class Zero : Character {
 		downThrustS = HyouretsuzanWeapon.getWeaponFromIndex(loadout.downThrustS);
 
 		gigaAttackSelected = loadout.gigaAttack;
-		gigaAttack = loadout.gigaAttack switch {
-			1 => new Messenkou(),
-			2 => new RekkohaWeapon(),
-			3 => new RakuhouhaWeapon(),
-			_ => new TenshouhaWeapon(),
-		};
+		gigaAttack = RakuhouhaWeapon.getWeaponFromIndex(loadout.gigaAttack);
 
 		hyperMode = loadout.hyperMode;
 		altCtrlsLength = 2;
@@ -200,12 +195,7 @@ public class Zero : Character {
 					awakenedPhase = 0;
 					isBlack = false;
 					float oldAmmo = gigaAttack.ammo;
-					gigaAttack = gigaAttackSelected switch {
-						1 => new Messenkou(),
-						2 => new RekkohaWeapon(),
-						3 => new RakuhouhaWeapon(),
-						_ => new TenshouhaWeapon(),
-					};
+					gigaAttack = RakuhouhaWeapon.getWeaponFromIndex(gigaAttackSelected);
 					gigaAttack.ammo = oldAmmo;
 				}
 				hyperOvertimeActive = false;
@@ -447,8 +437,20 @@ public class Zero : Character {
 		// If we changed state this frame. Return.
 		// This is to prevent jumping guard shenanigans.
 		bool changedState = base.normalCtrl();
-		if (changedState) {
+		if (changedState && (!isATrans || !player.input.isHeld(Control.Down, player))) {
 			return true;
+		}
+		// Axl's copy uses upstream held guard controls; normal Zero keeps the fork's controls below.
+		if (isATrans) {
+			if (charState.attackCtrl && charState is not Dash && grounded && (
+				player.input.isHeld(Control.WeaponLeft, player) ||
+				(player.input.isHeld(Control.WeaponRight, player) && !isAwakened)
+			)) {
+				turnToInput(player.input, player);
+				changeState(new SwordBlock());
+				return true;
+			}
+			return false;
 		}
 		// Guard! (You can thank Axl for this mess)
 		if (charState.attackCtrl && charState is not Dash && grounded && (

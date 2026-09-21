@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MMXOnline;
@@ -22,11 +22,13 @@ public class RagingChargeBuster : Weapon {
 		drawGrayOnLowAmmo = true;
 
 		ammoGainMultiplier = 2;
-		maxAmmo = 12;
+		maxAmmo = 16;
 		ammo = maxAmmo;
+		canRechargeAmmo = true;
+		ammoRechargeRate = 15f;
 	}
 
-	public override float getAmmoUsage(int chargeLevel) { return 0; }
+	public override float getAmmoUsage(int chargeLevel) { return 16; }
 
 	public void shoot(RagingChargeX character, float byteAngle) {
 		Point pos = character.getShootPos();
@@ -50,33 +52,66 @@ public class RagingChargeBuster : Weapon {
 
 
 public class RagingBusterProj : Projectile {
-	public RagingBusterProj(
-		Actor owner, Point pos, float byteAngle,  ushort netProjId,
-		bool sendRpc = false, Player? player = null
-	) : base(
-		pos, 1, owner, "buster_unpo", netProjId
-	) {
-		weapon = RagingChargeBuster.netWeapon;
-		damager.damage = 3;
-		damager.flinch = Global.halfFlinch;
-		fadeSprite = "buster3_fade";
-		fadeOnAutoDestroy = true;
-		reflectable = true;
-		maxTime = 0.5f;
-		projId = (int)ProjIds.BusterUnpo;
-		this.byteAngle = byteAngle;
-		vel = Point.createFromByteAngle(byteAngle) * 350;
+    private static int getDirection(float angle) {
+        float normalized = ((angle % 256) + 256) % 256;
+        return ((int)MathF.Round(normalized / 64f)) % 4;
+    }
 
-		if (sendRpc) {
-			rpcCreateByteAngle(pos, owner, ownerPlayer, netProjId, byteAngle);
-		}
-	}
+    private static string getProjectileSprite(float angle) {
+        int direction = getDirection(angle);
+        return direction == 1 || direction == 3
+            ? "buster_unpo_vertical"
+            : "buster_unpo";
+    }
 
-	public static Projectile rpcInvoke(ProjParameters arg) {
-		return new RagingBusterProj(
-			arg.owner, arg.pos, arg.byteAngle, arg.netId, player: arg.player
-		);
-	}
+    public RagingBusterProj(
+        Actor owner, Point pos, float byteAngle, ushort netProjId,
+        bool sendRpc = false, Player? player = null
+    ) : base(
+        pos,
+        getDirection(byteAngle) == 2 ? -1 : 1,
+        owner,
+        getProjectileSprite(byteAngle),
+        netProjId,
+        player
+    ) {
+        weapon = RagingChargeBuster.netWeapon;
+        damager.damage = 3;
+        damager.flinch = Global.halfFlinch;
+        fadeSprite = "buster3_fade";
+        fadeOnAutoDestroy = true;
+        reflectable = false;
+        maxTime = 0.5f;
+        projId = (int)ProjIds.BusterUnpo;
+
+        int direction = getDirection(byteAngle);
+
+        // UP Sprite
+        yDir = direction == 1 ? -1 : 1;
+
+        // xDir and yDir direction
+        this.byteAngle = 0;
+
+        vel = direction switch {
+            0 => new Point(350, 0),
+            1 => new Point(0, 350),
+            2 => new Point(-350, 0),
+            _ => new Point(0, -350)
+        };
+
+        if (sendRpc) {
+            rpcCreateByteAngle(
+                pos, owner, ownerPlayer, netProjId, direction * 64
+            );
+        }
+    }
+
+    public static Projectile rpcInvoke(ProjParameters arg) {
+        return new RagingBusterProj(
+            arg.owner, arg.pos, arg.byteAngle, arg.netId,
+            player: arg.player
+        );
+    }
 }
 
 public class AbsorbWeapon : Weapon {
@@ -96,7 +131,7 @@ public class XUPParry : Weapon {
 	public XUPParry() : base() {
 		fireRate = 45;
 		index = (int)WeaponIds.UPParry;
-		killFeedIndex = 168;
+		killFeedIndex = 184;
 	}
 }
 
@@ -121,7 +156,7 @@ public class XUPKickCharge : Weapon
 	{
 		fireRate = 45;
 		index = (int)WeaponIds.UPKickCharge;
-		killFeedIndex = 167;
+		killFeedIndex = 182;
 		//damager = new Damager(player, 3, Global.defFlinch, 0.5f);
 	}
 }
@@ -132,7 +167,7 @@ public class XUPUnlimitedCrush : Weapon {
 	public XUPUnlimitedCrush() : base() {
 		fireRate = 45;
 		index = (int)WeaponIds.UnlimitedCrush;
-		killFeedIndex = 167;
+		killFeedIndex = 183;
 		//damager = new Damager(player, 3, Global.defFlinch, 0.5f);
 	}
 }

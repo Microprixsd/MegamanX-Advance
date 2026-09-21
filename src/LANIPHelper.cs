@@ -25,8 +25,7 @@ public class LANIPHelper {
 			socket.Connect("8.8.8.8", 0);
 			IPEndPoint? endPoint = socket.LocalEndPoint as IPEndPoint;
 			localIP = endPoint?.Address.ToString();
-			socket.Disconnect(true);
-			socket.Dispose();
+			// The using block closes this UDP socket; Disconnect can throw SocketError.NotConnected on Windows.
 		}
 		return localIP ?? "127.0.0.1";
 	}

@@ -1000,7 +1000,13 @@ public class Dash : CharState {
 		}
 		// Speed at start and end.
 		else if (!stop || dashHeld) {
-			float targetSpeed = character.getDashSpeed();
+			float targetSpeed = Physics.DashStartSpeed * character.getRunDebuffs();
+			// Preserve the fork's instant dash for X and Zero variants.
+			if (Global.customSettings?.instantDash == true ||
+				character is MegamanX or RagingChargeX or Zero or BusterZero or PunchyZero
+			) {
+				targetSpeed = character.getDashSpeed();
+			}
 			character.moveXY(targetSpeed * dashDir, 0);
 		}
 		// Dust effect.

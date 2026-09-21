@@ -649,11 +649,25 @@ public class GameMode {
 					mmx.selfDamageCooldown,
 					mmx.selfDamageMaxCooldown
 				);
-				drawGigaWeaponCooldown(122, decayCooldown, (int)Global.halfScreenW / 17, 160);
-				if (mmx.parryCooldown > 0) {
-					float cooldown = 1 - Helpers.progress(mmx.parryCooldown, 30);
-					drawGigaWeaponCooldown(51, cooldown, (int)Global.halfScreenW / 17, 178);
+				int startX = (int)Global.halfScreenW / 17;
+				int startY = 160;
+				// Indicador permanente del primer coso.
+				Global.sprites["hud_status_icon"].drawToHUD (14, startX, startY);
+				drawWeaponSlotCooldown(startX, startY, decayCooldown);
+				// Los demás
+				int slot = 1;
+				void drawCooldown(int icon, float remaining, float maximum, bool killFeed) {
+    			if (remaining <= 0) return;
+    				int x = startX + (slot % 2) * 18;
+    				int y = startY + (slot / 2) * 18;
+    				float cooldown = 1 - Helpers.progress(remaining, maximum);
+    			drawGigaWeaponCooldown(icon, cooldown, x, y,
+        		isKillFeed: killFeed, xKF: x, yKF: y);
+				slot++;
 				}
+				drawCooldown(XUPParry.netWeapon.killFeedIndex, mmx.parryCooldown, 90, true);
+				drawCooldown(XUPKickCharge.netWeapon.killFeedIndex,mmx.kickchargeCooldown, 150, true);
+				drawCooldown(XUPUnlimitedCrush.netWeapon.killFeedIndex,mmx.unlimitedcrushCooldown, 150, true);
 			}
 			#endregion
 			#region Zero
@@ -1514,7 +1528,7 @@ public class GameMode {
 		} else {
 			x = isHealth ? Global.screenW - 10 : Global.screenW - 25;
 		}
-		float y = Global.screenH / 2;
+		float y = Global.screenH / 2 -15;
 		if (position == HUDHealthPosition.TopLeft || position == HUDHealthPosition.TopRight) {
 			y -= 27;
 		} else if (position == HUDHealthPosition.BotLeft || position == HUDHealthPosition.BotRight) {
@@ -1644,6 +1658,8 @@ public class GameMode {
 				Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY);
 			} else if (i < savings) {
 				Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY);
+			} else if (i < greyHp) {
+				Global.sprites["hud_weapon_full_new"].drawToHUD(30, baseX, baseY);
 			} else {
 				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
 				if (i < ceilCurHP) {
@@ -1666,7 +1682,7 @@ public class GameMode {
 		bool allowSmall = true
 	) {
 		baseY += 28;
-		Global.sprites["hud_weapon_base"].drawToHUD(baseIndex, baseX, baseY);
+		Global.sprites["hud_weapon_base_new"].drawToHUD(baseIndex, baseX, baseY);
 		baseY -= 19;
 
 		// Puppeteer small energy bars.
@@ -1682,8 +1698,8 @@ public class GameMode {
 		}
 		for (var i = 0; i < MathF.Ceiling(maxAmmo * ammoDisplayMultiplier); i++) {
 			if (i < Math.Ceiling(ammo * ammoDisplayMultiplier)) {
-				if (ammo < grayAmmo) Global.sprites["hud_weapon_full"].drawToHUD(grayAmmoIndex, baseX, baseY);
-				else Global.sprites["hud_weapon_full"].drawToHUD(barIndex, baseX, baseY);
+				if (ammo < grayAmmo) Global.sprites["hud_weapon_full_new"].drawToHUD(grayAmmoIndex, baseX, baseY);
+				else Global.sprites["hud_weapon_full_new"].drawToHUD(barIndex, baseX, baseY);
 			} else {
 				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
 			}
@@ -1762,7 +1778,7 @@ public class GameMode {
 		ammoDisplayMultiplier /= weapon.ammoDisplayScale;
 		baseY -= 57;
 		baseX += 17;
-		Global.sprites["hud_weapon_base"].drawToHUD(weapon.weaponBarBaseIndex, baseX, baseY);
+		Global.sprites["hud_weapon_base_new"].drawToHUD(weapon.weaponBarBaseIndex, baseX, baseY);
 		baseY -= 6;
 		baseX += 11;
 
@@ -1780,10 +1796,10 @@ public class GameMode {
 					(weapon is HyperCharge hb && !hb.canShootIncludeCooldown(level.mainPlayer))) {
 					spriteIndex = grayAmmoIndex;
 				}
-				if (spriteIndex >= Global.sprites["hud_weapon_full"].frames.Length) {
+				if (spriteIndex >= Global.sprites["hud_weapon_full_new"].frames.Length) {
 					spriteIndex = 0;
 				}
-				Global.sprites["hud_weapon_full"].drawToHUD(spriteIndex, baseX, baseY);
+				Global.sprites["hud_weapon_full_new"].drawToHUD(spriteIndex, baseX, baseY);
 			} else {
 				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
 			}
@@ -2127,11 +2143,12 @@ public class GameMode {
 			var weapon = player.weapons[i];
 			var x = startX + (i * width);
 			var y = startY;
-			if (weapon is HyperCharge hb) {
+			int busterSlot = player.weapons.FindIndex(XBuster.isNormalBuster);
+			if (weapon is HyperCharge hb && busterSlot >= 0) {
 				bool canShootHyperBuster = hb.canShootIncludeCooldown(player);
 				Color lineColor = canShootHyperBuster ? Color.White : Helpers.Gray;
 
-				float slotPosX = startX + (player.hyperChargeSlot * width);
+				float slotPosX = startX + (busterSlot * width);
 				int yOff = -1;
 
 				// Stretch black
@@ -2251,12 +2268,12 @@ public class GameMode {
 				drawWeaponText(x, y, mmx.magnetMines.Count.ToString());
 			}
 			if (weapon is HyperCharge hc) {
-				if (level.mainPlayer.hyperChargeSlot >= 0 &&
-					mainPlayer.weapons[level.mainPlayer.hyperChargeSlot].ammo == 0
-				) {
-					drawWeaponSlotAmmo(x, y, 0);
-				} else {
-					drawWeaponSlotCooldown(x, y, hc.shootCooldown / hc.fireRate);
+				drawWeaponSlotCooldown(x, y, hc.shootCooldown / hc.fireRate);
+				if (mmx.maxBusterFollowupReady) {
+					DrawWrappers.DrawRectWH(
+						x - 6, y - 6, 12, 12, false,
+						new Color(255, 215, 0), 1, ZIndex.HUD, false
+					);
 				}
 			} else if (weapon is HyperNovaStrike ns) {
 				drawWeaponSlotCooldown(x, y, ns.shootCooldown / ns.fireRate);

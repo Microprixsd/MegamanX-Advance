@@ -461,16 +461,17 @@ public class LevelData {
 		var image = new Image(fullImagePath);
 
 		if (isMirrored && mirrorX != 0 && mirrorMapImages) {
-			var image2 = new Image(((uint)(1 + (mirrorX * 2)), image.Size.Y));
-			image2.Copy(image, (0, 0), new IntRect((0, 0), (mirrorX, height)));
+			int imgHeight = (int)image.Size.Y;
+			Image image2 = new Image(((uint)(mirrorX * 2), image.Size.Y));
+			image2.Copy(image, (0, 0), new IntRect((0, 0), (mirrorX, imgHeight)));
 			image.FlipHorizontally();
-			var a = (int)image.Size.X - mirrorX;
+			int a = (int)image.Size.X - mirrorX;
 			uint b = 0;
 			if (a < 0) {
 				b = (uint)Math.Abs(a);
 				a = 0;
 			}
-			image2.Copy(image, ((uint)mirrorX + b, 0), new IntRect((a, 0), (mirrorX, height)));
+			image2.Copy(image, ((uint)mirrorX + b, 0), new IntRect((a, 0), (mirrorX, imgHeight)));
 
 			image.Dispose();
 			image = image2;
@@ -918,5 +919,4 @@ public class LevelData {
 				break;
 		}
 	}
-
 }

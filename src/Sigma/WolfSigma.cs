@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using SFML.Graphics;
+
 
 namespace MMXOnline;
 
@@ -10,15 +14,18 @@ public class WolfSigma : Character {
 
 	public WolfSigma(
 		Player player, float x, float y, int xDir, bool isVisible,
-		ushort? netId, bool ownedByLocalPlayer, bool isWarpIn = false
+		ushort? netId, bool ownedByLocalPlayer, bool isWarpIn = false,
+		bool isRevive = true, int? heartTanks = null, bool isATrans = false
 	) : base(
-		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn
+		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn, heartTanks, isATrans
 	) {
 		charId = CharIds.WolfSigma;
 		altSoundId = AltSoundIds.X1;
 
-		bool isRevive = true;
-
+		maxHealth = getMaxHealth();
+		if (!ownedByLocalPlayer || isRevive) {
+			health = maxHealth;
+		}
 		if (!ownedByLocalPlayer) {
 			visible = true;
 		} else {
@@ -37,7 +44,6 @@ public class WolfSigma : Character {
 
 	public override void update() {
 		player.changeWeaponControls();
-
 	}
 	public override bool isSoundCentered() {
 		return false;
@@ -61,9 +67,8 @@ public class WolfSigma : Character {
 		destroyMusicSource();
 		base.destroySelf(spriteName, fadeSound, disableRpc, doRpcEvenIfNotOwned, favorDefenderProjDestroy);
 	}
-	
 
-		public override int getMaxHealth() {
+	public override int getMaxHealth() {
 		if (isATrans) {
 			return base.getMaxHealth();
 		}

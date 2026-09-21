@@ -41,9 +41,11 @@ public class XSaberProj : Projectile {
 
 public class XMaxWaveSaberState : CharState {
 	bool fired;
+	readonly bool meleeOnly;
 	MegamanX mmx = null!;
 
-	public XMaxWaveSaberState() : base("beam_saber") {
+	public XMaxWaveSaberState(bool meleeOnly = false) : base("beam_saber") {
+		this.meleeOnly = meleeOnly;
 		landSprite = "beam_saber";
 		airSprite = "beam_saber_air";
 		airMove = true;
@@ -56,12 +58,13 @@ public class XMaxWaveSaberState : CharState {
 		base.update();
 		if (character.frameIndex >= 7 && !fired) {
 			fired = true;
-			mmx.stockedSaber = false;
 			character.playSound("zerosaberx3");
-			new XSaberProj(
-				character.pos.addxy(28 * character.xDir, -17), character.xDir,
-				mmx, player, player.getNextActorNetId(), rpc: true
-			);
+			if (!meleeOnly || mmx.hasFullHyperMaxArmor) {
+				new XSaberProj(
+					character.pos.addxy(28 * character.xDir, -17), character.xDir,
+					mmx, player, player.getNextActorNetId(), rpc: true
+				);
+			}
 		}
 		if (character.isAnimOver()) {
 			character.changeToIdleOrFall();
@@ -70,6 +73,8 @@ public class XMaxWaveSaberState : CharState {
 	public override void onEnter(CharState oldState) {
 		mmx = player.character as MegamanX ?? throw new NullReferenceException();
 		base.onEnter(oldState);
+		mmx.stockedSaber = false;
+		mmx.stockedSaberMeleeOnly = false;
 		if (!character.grounded) {
 			sprite = airSprite;
 			character.changeSpriteFromName(airSprite, true);

@@ -15,12 +15,12 @@ public enum ZeroGigaType {
 
 public class RakuhouhaWeapon : Weapon {
 	public static RakuhouhaWeapon netWeapon = new();
-	public float ammoCost = 14;
+	public float ammoCost = 8;
 
 	public RakuhouhaWeapon() : base() {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		fireRate = 120;
 		index = (int)WeaponIds.Rakuhouha;
 		weaponBarBaseIndex = 27;
@@ -61,12 +61,12 @@ public class RakuhouhaWeapon : Weapon {
 
 public class RekkohaWeapon : Weapon {
 	public static RekkohaWeapon netWeapon = new();
-	public float ammoCost = 28;
+	public float ammoCost = 16;
 
 	public RekkohaWeapon() : base() {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		fireRate = 120;
 		index = (int)WeaponIds.Rekkoha;
 		weaponBarBaseIndex = 40;
@@ -101,7 +101,7 @@ public class Messenkou : Weapon {
 	public Messenkou() : base() {
 		//damager = new Damager(player, 2, 0, 0.5f);
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		fireRate = 60;
 		index = (int)WeaponIds.Messenkou;
 		weaponBarBaseIndex = 41;
@@ -135,7 +135,7 @@ public class ShinMessenkou : Weapon {
 	public ShinMessenkou() : base() {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		fireRate = 60;
 		index = (int)WeaponIds.ShinMessenkou;
 		killFeedIndex = 86;
@@ -166,7 +166,7 @@ public class DarkHoldWeapon : Weapon {
 	public static DarkHoldWeapon netWeapon = new();
 	public DarkHoldWeapon() : base() {
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		fireRate = 60 * 3;
 		index = (int)WeaponIds.DarkHold;
 		type = (int)ZeroGigaType.DarkHold;
@@ -192,7 +192,7 @@ public class TenshouhaWeapon : Weapon {
 	public static TenshouhaWeapon netWeapon = new();
 	public TenshouhaWeapon() : base() {
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		fireRate = 60;
 		index = (int)WeaponIds.Tenshouha;
 		type = (int)ZeroGigaType.Tenshouha;
@@ -211,7 +211,7 @@ public class TenshouhaWeapon : Weapon {
 		allowSmallBar = false;
 	}
 	public override float getAmmoUsage(int chargeLevel) {
-		return 14;
+		return 8;
 	}
 
 	public override void shoot(Character character, int[] args) {

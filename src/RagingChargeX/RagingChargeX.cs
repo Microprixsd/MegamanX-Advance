@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +13,7 @@ public class RagingChargeX : Character {
 	public float shootCooldown;
 	public float maxParryCooldown = 30;
 	public float selfDamageCooldown;
-	public float selfDamageMaxCooldown = 120;
+	public float selfDamageMaxCooldown = 180;
 	public float secondSoundCooldown;
 	public int lastAmmoSound = -1;
 	public Projectile? absorbedProj;
@@ -34,7 +34,7 @@ public class RagingChargeX : Character {
 		charId = CharIds.RagingChargeX;
 
 		// Start with 5s spawn leitency.
-		selfDamageCooldown = selfDamageMaxCooldown * 4;
+		selfDamageCooldown = selfDamageMaxCooldown * 3;
 
 		// For easy HUD display we add it to weapon list.
 		ragingBuster = new RagingChargeBuster();
@@ -86,14 +86,50 @@ public class RagingChargeX : Character {
 		chargeLogic(null);
 		player.changeWeaponControls();
 	}
+	public override void postUpdate() {
+    	base.postUpdate();
+    	if (!ownedByLocalPlayer) return;
 
+    	if (!isDecayImmune() && invulnTime == 0 && !isATrans) {
+        if (selfDamageCooldown <= 0) {
+            applyDamage(1, player, this, null, (int)ProjIds.SelfDmg);
+            selfDamageCooldown = selfDamageMaxCooldown;
+            playSound("hit", true, true);
+        } else {
+            if (inCombatTime > 0) {
+                selfDamageCooldown -= speedMul;
+            } else {
+                selfDamageCooldown -= speedMul * 0.5f;
+            }
+
+            if (selfDamageCooldown < 0) {
+                selfDamageCooldown = 0;
+            }
+        }
+    	} else if (isDecayImmune() &&
+            selfDamageCooldown < selfDamageMaxCooldown) {
+        	selfDamageCooldown = selfDamageMaxCooldown;
+    	}
+	}
+	public bool isDecayImmune() {
+    	return (
+        	charState is XUPGrabState
+        	or XUPParryMeleeState
+        	or XUPParryProjState
+        	or Hurt
+        	or GenericStun
+        	or VileMK2Grabbed
+        	or GenericGrabbedState
+        	or XRevive
+        	or Die
+    	);
+	}
 	public override bool normalCtrl() {
 		return base.normalCtrl();
 	}
 
 	public override bool attackCtrl() {
 		if (player.input.isPressed(Control.WeaponRight, player) && parryCooldown == 0) {
-			parryCooldown = 60;
 			enterParry();
 			return true;
 		}
@@ -102,10 +138,13 @@ public class RagingChargeX : Character {
 			changeState(new XUPUnlimitedCrushState(), true);
 			return true;
 		}
-		if (specialPressed && charState is Dash or AirDash) {
-			charState.isGrabbing = true;
-			changeSpriteFromName("unpo_grab_dash", true);
-			return true;
+		bool canDashGrab =
+   		 charState is Dash { stop: false } or AirDash { stop: false };
+
+		if (player.input.isHeld(Control.Special1, player) &&canDashGrab && !charState.isGrabbing) {
+    		charState.isGrabbing = true;
+    		changeSpriteFromName("unpo_grab_dash", true);
+    		return true;
 		}
 		// Disparo regular
 		if (player.input.isPressed(Control.Shoot, player)) {
@@ -232,6 +271,7 @@ public class RagingChargeX : Character {
 	}
 
 	public void enterParry() {
+		parryCooldown = 90;
 		if (absorbedProj != null) {
 			changeState(new XUPParryProjState(absorbedProj, true, false), true);
 			player.weapons.RemoveAll(w => w is AbsorbWeapon);

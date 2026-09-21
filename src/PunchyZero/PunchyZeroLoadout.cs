@@ -11,9 +11,19 @@ public class PZeroLoadout {
 	[ProtoMember(2)]
 	public int hyperMode;
 
+	// Punchy Zero stores the menu slot (3 for Tenshouha), unlike Zero's Giga enum ID (5).
+	public static Weapon getGigaWeapon(int selection) {
+		return selection switch {
+			1 => new Messenkou(),
+			2 => new RekkohaWeapon(),
+			3 => new TenshouhaWeapon(),
+			_ => new RakuhouhaWeapon(),
+		};
+	}
+
 	public static PZeroLoadout createRandom() {
 		return new PZeroLoadout() {
-			gigaAttack = Helpers.randomRange(0, 2),
+			gigaAttack = Helpers.randomRange(0, 3),
 			hyperMode = Helpers.randomRange(0, 2)
 		};
 	}
@@ -37,11 +47,11 @@ public class SelectPunchyZeroWeaponMenu : IMainMenu {
 	public int hyperMode;
 
 	public int[][] weaponIcons = {
-		[51, 64, 63],
+		[51, 64, 63, 131],
 		[118, 118, 122]
 	};
 	public int[][] weaponIconsL2 = {
-		[-1, -1, -1],
+		[-1, -1, -1, -1],
 		[125, 86, -1]
 	};
 
@@ -49,7 +59,7 @@ public class SelectPunchyZeroWeaponMenu : IMainMenu {
 		this.prevMenu = prevMenu;
 		this.inGame = inGame;
 		hyperMode = Options.main.pzeroLoadout.hyperMode;
-		gigaAttack = Options.main.pzeroLoadout.gigaAttack;
+		gigaAttack = Helpers.clamp(Options.main.pzeroLoadout.gigaAttack, 0, weaponIcons[0].Length - 1);
 	}
 
 	public void update() {
@@ -59,7 +69,7 @@ public class SelectPunchyZeroWeaponMenu : IMainMenu {
 		Helpers.menuUpDown(ref cursorRow, 0, 1);
 
 		if (cursorRow == 0) {
-			Helpers.menuLeftRightInc(ref gigaAttack, 0, 2, playSound: true);
+			Helpers.menuLeftRightInc(ref gigaAttack, 0, weaponIcons[0].Length - 1, playSound: true);
 		}
 		else if (cursorRow == 1) {
 			Helpers.menuLeftRightInc(ref hyperMode, 0, 2, playSound: true);
@@ -68,6 +78,7 @@ public class SelectPunchyZeroWeaponMenu : IMainMenu {
 		if (okPressed || backPressed && !inGame) {
 			Options.main.pzeroLoadout.gigaAttack = gigaAttack;
 			Options.main.pzeroLoadout.hyperMode = hyperMode;
+			Options.main.saveToFile();
 
 			if (inGame && Global.level != null && Options.main.killOnLoadoutChange) {
 				Global.level.mainPlayer.forceKill();
@@ -149,12 +160,14 @@ public class SelectPunchyZeroWeaponMenu : IMainMenu {
 				0 => "Channels stored energy.\nCan flinch enemies.",
 				1 => "Energy blast with pierce properties.\nIgnores enemy defense.",
 				2 => "Summon eleven beams of light.\nFull-screen range.",
+				3 => "A powerful beam that stays for a while.",
 				_ => "ERROR"
 			};
 			weaponSubDescription = gigaAttack switch {
 				0 => "Ammo use: 14",
 				1 => "Ammo use: 7",
 				2 => "Ammo use: 28",
+				3 => "Ammo use: 14",
 				_ => "ERROR"
 			};
 		} else {

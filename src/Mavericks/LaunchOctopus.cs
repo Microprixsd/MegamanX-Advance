@@ -8,6 +8,7 @@ public class LaunchOctopus : Maverick {
 	public LaunchODrainWeapon meleeWeapon = new();
 	public LaunchOHomingTorpedoWeapon homingTorpedoWeapon = new();
 	public bool lastFrameWasUnderwater;
+	public float jumpTime;
 
 	public LaunchOctopus(
 		Player player, Point pos, int xDir, ushort? netId,
@@ -55,6 +56,11 @@ public class LaunchOctopus : Maverick {
 		} else {
 			timeBeforeRecharge = 1;
 		}
+		if (state is MJump or MFall) {
+			jumpTime++;
+		} else {
+			Helpers.decrementFrames(ref jumpTime);
+		}
 
 		if (aiBehavior == MaverickAIBehavior.Control) {
 			if (state is MIdle or MRun or MLand) {
@@ -70,7 +76,7 @@ public class LaunchOctopus : Maverick {
 					if (ammo > 0) {
 						changeState(new LaunchOShoot(grounded));
 					}
-				} else if (input.isPressed(Control.Dash, player)) {
+				} else if (jumpTime > 16 && input.isPressed(Control.Dash, player)) {
 					changeState(new LaunchOWhirlpoolState());
 				}
 			}

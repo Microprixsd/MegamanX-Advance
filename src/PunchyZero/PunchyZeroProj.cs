@@ -5,6 +5,7 @@ public class PunchyZeroMeleeWeapon : Weapon {
 
 	public PunchyZeroMeleeWeapon() : base() {
 		index = (int)WeaponIds.PunchyZSaberProjSwing;
+		weaponSlotIndex = 120;
 		killFeedIndex = 9;
 	}
 }

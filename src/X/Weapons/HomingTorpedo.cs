@@ -132,7 +132,7 @@ public class TorpedoProjX : Projectile, IDamagable {
 			} else {
 				vel += vel * 0.02f;
 			}
-		} 
+		}
 		smokeTime += Global.spf;
 		if (smokeTime > 0.1) {
 			Point oldPos = pos;

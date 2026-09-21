@@ -790,7 +790,7 @@ public class XRevive : CharState {
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.useGravity = true;
-		rcx.invulnTime = 2;
+		rcx.invulnTime = 0.5f;
 	}
 }
 

@@ -75,9 +75,11 @@ public class FFADeathMatch : GameMode {
 		if (playerList.Count > 0) {
 			topText = "Leader: " + playerList[0].kills.ToString();
 		}
+		float scoreX = 5;
+		float scoreY = Global.screenH - 25;
 		string botText = "Kills: " + level.mainPlayer.kills.ToString() + " [" + placeStr + "]";
-		Fonts.drawText(FontType.BlueMenu, topText, 5, 5, Alignment.Left);
-		Fonts.drawText(FontType.BlueMenu, botText, 5, 15, Alignment.Left);
+		Fonts.drawText(FontType.BlueMenu, topText, scoreX, scoreY, Alignment.Left);
+		Fonts.drawText(FontType.BlueMenu, botText, scoreX, scoreY + 10, Alignment.Left);
 
 		drawTimeIfSet(25);
 	}

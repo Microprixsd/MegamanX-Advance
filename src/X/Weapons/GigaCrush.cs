@@ -11,7 +11,7 @@ public class GigaCrush : Weapon {
 		fireRate = 60;
 		switchCooldown = 15;
 		ammo = 0;
-		maxAmmo = 28;
+		maxAmmo = 16;
 		allowSmallBar = false;
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
@@ -50,7 +50,7 @@ public class GigaCrushProj : Projectile {
 		pos, xDir, owner, "empty", netId, player
 	) {
 		weapon = GigaCrush.netWeapon;
-		damager.damage = 12;
+		damager.damage = 8;
 		damager.hitCooldown = 30;
 		damager.flinch = Global.defFlinch;
 		maxActiveTime = 0.4f;

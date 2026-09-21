@@ -267,7 +267,10 @@ public class AI {
 			return;
 		}*/
 
-		if (aiState is not InJumpZone) {
+		// Upstream disables forced jump zones for these characters. Keep the fork's X/Zero AI.
+		if (aiState is not InJumpZone &&
+			character is not (Vile or BaseSigma or WolfSigma or ViralSigma or KaiserSigma or Axl)
+		) {
 			var jumpZones = Global.level.getTerrainTriggerList(
 				character.abstractedActor, Point.zero, typeof(JumpZone)
 			);

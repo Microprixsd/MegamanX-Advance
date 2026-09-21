@@ -797,7 +797,7 @@ public class MJumpCharge : MaverickState {
 		}
 		if (!soundPlayed && jumpFramesHeld >= maxJumpFrames) {
 			soundPlayed = true;
-			maverick.playSound("chargeJumpSMB2");
+			maverick.playSound(Global.soundBuffers.ContainsKey("chargejumpsmb2") ? "chargeJumpSMB2" : "charge_start");
 		}
 	}
 
@@ -1282,7 +1282,14 @@ public class MWallSlide : MaverickState {
 			maverick.changeToIdleOrFall();
 			return;
 		}
-		if (input.isPressed(Control.Jump, player)) {
+		bool aiJump = false;
+		if (maverick.aiBehavior != MaverickAIBehavior.Control) {
+			List<CollideData> jumpZones = Global.level.getTerrainTriggerList(
+				maverick, Point.zero, typeof(JumpZone)
+			);
+			aiJump = jumpZones.Count > 0;
+		}
+		if (input.isPressed(Control.Jump, player) || aiJump) {
 			maverick.vel.y = -maverick.getJumpPower();
 			maverick.changeState(new MWallKick(wallDir * -1));
 			return;
@@ -1310,6 +1317,9 @@ public class MWallSlide : MaverickState {
 
 		if (stateTime > 0.15) {
 			var dirHeld = wallDir == -1 ? input.isHeld(Control.Left, player) : input.isHeld(Control.Right, player);
+			if (maverick.aiBehavior != MaverickAIBehavior.Control) {
+				dirHeld = true;
+			}
 			if (!dirHeld || Global.level.checkTerrainCollisionOnce(maverick, wallDir, 0) == null) {
 				maverick.changeState(new MFall());
 			}
@@ -1367,9 +1377,10 @@ public class MWallKick : MaverickState {
 		base.update();
 		if (kickSpeed != 0) {
 			kickSpeed = Helpers.toZero(kickSpeed, 800 * Global.spf, kickDir);
-			if (player.input.isHeld(Control.Left, player) && kickSpeed < 0 ||
+			if (maverick.controlMode == MaverickModeId.Puppeteer && (
+				player.input.isHeld(Control.Left, player) && kickSpeed < 0 ||
 				player.input.isHeld(Control.Right, player) && kickSpeed > 0
-			) {
+			)) {
 				cancelKick = true;
 			}
 			maverick.move(new Point(kickSpeed, 0));

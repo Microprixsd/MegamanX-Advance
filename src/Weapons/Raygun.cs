@@ -387,8 +387,33 @@ public class SplashLaserProj : Projectile {
 		angle = vel.angle;
 	}
 
+	public override void onStart() {
+		base.onStart();
+		if (!ownedByLocalPlayer) return;
+		Character? chr = owner.character;
+		if (chr is Axl axl) {
+			Point bombCenter = pos;
+			Point dirTo = bombCenter.directionTo(axl.getCenterPos());
+			if (axl.grounded) {
+				chr.pushEffect(new Point(0.025f, 0) * dirTo);
+			}
+		}
+	}
+
+
 	public override void update() {
 		base.update();
+		if (!ownedByLocalPlayer) return;
+		Character? chr = owner.character;
+		if (chr is Axl axl) {
+			if (time <= 6f/60f) {
+				Point bombCenter = pos;
+				Point dirTo = bombCenter.directionTo(axl.getCenterPos());
+				if (!axl.grounded) {
+					chr.moveXY(dirTo.x * 0.01f, dirTo.y * 0.01f);
+				}
+			}
+		}
 		updateAngle();
 	}
 
@@ -397,6 +422,8 @@ public class SplashLaserProj : Projectile {
 		if (other.gameObject is Character chr) {
 			chr.burnTime = 0;
 		}
+		if (other.gameObject is Maverick mav) {
+			mav.burnTime = 0;
+		}
 	}
 }
-

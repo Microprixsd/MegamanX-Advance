@@ -70,12 +70,7 @@ public class PunchyZero : Character {
 		this.loadout = loadout;
 
 		gigaAttackSelected = loadout.gigaAttack;
-		gigaAttack = loadout.gigaAttack switch {
-			1 => new Messenkou(),
-			2 => new RekkohaWeapon(),
-			3 => new RakuhouhaWeapon(),
-			_ => new TenshouhaWeapon(),
-		};
+		gigaAttack = PZeroLoadout.getGigaWeapon(loadout.gigaAttack);
 		hyperMode = loadout.hyperMode;
 		altSoundId = AltSoundIds.X3;
 	}
@@ -152,12 +147,7 @@ public class PunchyZero : Character {
 					awakenedPhase = 0;
 					isBlack = false;
 					float oldAmmo = gigaAttack.ammo;
-					gigaAttack = gigaAttackSelected switch {
-						1 => new Messenkou(),
-						2 => new RekkohaWeapon(),
-						3 => new RakuhouhaWeapon(),
-						_ => new TenshouhaWeapon(),
-					};
+					gigaAttack = PZeroLoadout.getGigaWeapon(gigaAttackSelected);
 					gigaAttack.ammo = oldAmmo;
 				}
 				hyperOvertimeActive = false;

@@ -220,13 +220,19 @@ public partial class Player {
 	public Dictionary<int, List<SubTank>> subTanksMap = [];
 	private ProtectedIntMap<int> heartTanksMap = [];
 
+	// Unlimited Potential uses X's tanks, including stored Sub Tank energy.
+	private static int getTankCharId(int charId) {
+		return charId == (int)CharIds.RagingChargeX ? (int)CharIds.X : charId;
+	}
+
 	// Getter functions.
 	public List<SubTank> subtanks {
-		get { return subTanksMap[charNum]; }
-		set { subTanksMap[charNum] = value; }
+		get { return subTanksMap[getTankCharId(charNum)]; }
+		set { subTanksMap[getTankCharId(charNum)] = value; }
 	}
 
 	public int getHeartTanks(int charId) {
+		charId = getTankCharId(charId);
 		if (Global.level.mainPlayer != this || Global.serverClient == null) {
 			return heartTanksMap.quickVal(charId);
 		}
@@ -235,7 +241,7 @@ public partial class Player {
 
 	public int heartTanks {
 		get => getHeartTanks(charNum);
-		set => heartTanksMap[charNum] = value;
+		set => heartTanksMap[getTankCharId(charNum)] = value;
 	}
 
 	// Currency
@@ -1236,6 +1242,15 @@ public partial class Player {
 				isATrans: isNonMain
 			);
 		}
+		// Wolf Sigma (Hypermode)
+		else if (spawnCharNum == (int)CharIds.WolfSigma) {
+			newChar = new WolfSigma(
+				this, pos.x, pos.y, xDir,
+				false, charNetId, ownedByLocalPlayer,
+				isRevive: true, isWarpIn: isWarpIn, heartTanks: htCount,
+				isATrans: isNonMain
+			);
+		}
 		// Raging Charge X.
 		else if (spawnCharNum == (int)CharIds.RagingChargeX) {
 			newChar = new RagingChargeX(
@@ -1532,6 +1547,14 @@ public partial class Player {
 				heartTanks: oldChar.heartTanks, isATrans: true
 			);
 		}
+		// Wolf Sigma.
+		else if (data.charNum == (int)CharIds.WolfSigma) {
+			retChar = new WolfSigma(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, data.dnaNetId, false, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
+		}
 		else if (data.charNum == (int)CharIds.RagingChargeX) {
 			retChar = new RagingChargeX(
 				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
@@ -1545,6 +1568,7 @@ public partial class Player {
 		// Status effects.
 		retChar.burnTime = oldChar.burnTime;
 		retChar.acidTime = oldChar.acidTime;
+		retChar.acidTickRate = oldChar.acidTickRate;
 		retChar.oilTime = oldChar.oilTime;
 		retChar.igFreezeProgress = oldChar.igFreezeProgress;
 		retChar.virusTime = oldChar.virusTime;
@@ -1592,6 +1616,8 @@ public partial class Player {
 				dnaCore.charNum = (int)CharIds.X;
 			}
 			else if (dnaCore.charNum == (int)CharIds.KaiserSigma) {
+				dnaCore.charNum = (int)CharIds.Sigma;
+			} else if (dnaCore.charNum == (int)CharIds.WolfSigma) {
 				dnaCore.charNum = (int)CharIds.Sigma;
 			}
 		}
@@ -1715,6 +1741,13 @@ public partial class Player {
 				isRevive: false, isWarpIn: false,
 				heartTanks: oldChar.heartTanks, isATrans: true
 			);
+		} else if (spawnCharNum == (int)CharIds.WolfSigma) {
+			retChar = new WolfSigma(
+				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
+				true, dnaNetId, ownedByLocalPlayer,
+				isRevive: false, isWarpIn: false,
+				heartTanks: oldChar.heartTanks, isATrans: true
+			);
 		} else if (spawnCharNum == (int)CharIds.RagingChargeX) {
 			retChar = new RagingChargeX(
 				this, oldChar.pos.x, oldChar.pos.y, oldChar.xDir,
@@ -1738,9 +1771,12 @@ public partial class Player {
 			retChar.weapons.Add(new ZeroBuster());
 		}
 		if (spawnCharNum == (int)CharIds.PunchyZero) {
-			retChar.weapons.Add(new KKnuckleWeapon());
+			retChar.weapons.Add(new PunchyZeroMeleeWeapon());
 		}
 		if (spawnCharNum == (int)CharIds.KaiserSigma) {
+			retChar.weapons.Add(new SigmaMenuWeapon());
+		}
+		if (spawnCharNum == (int)CharIds.WolfSigma) {
 			retChar.weapons.Add(new SigmaMenuWeapon());
 		}
 		if (spawnCharNum == (int)CharIds.Vile) {
@@ -1799,6 +1835,7 @@ public partial class Player {
 		// Status effects.
 		retChar.burnTime = oldChar.burnTime;
 		retChar.acidTime = oldChar.acidTime;
+		retChar.acidTickRate = oldChar.acidTickRate;
 		retChar.oilTime = oldChar.oilTime;
 		retChar.igFreezeProgress = oldChar.igFreezeProgress;
 		retChar.virusTime = oldChar.virusTime;
@@ -1969,6 +2006,7 @@ public partial class Player {
 			// Status effects.
 			newChar.burnTime = oldChar.burnTime;
 			newChar.acidTime = oldChar.acidTime;
+			newChar.acidTickRate = oldChar.acidTickRate;
 			newChar.oilTime = oldChar.oilTime;
 			newChar.igFreezeProgress = oldChar.igFreezeProgress;
 			newChar.virusTime = oldChar.virusTime;

@@ -30,7 +30,7 @@ public class ViralSigma : Character {
 	) : base(
 		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn
 	) {
-		charId = CharIds.WolfSigma;
+		charId = CharIds.ViralSigma;
 		altSoundId = AltSoundIds.X2;
 		bool isRevive = true;
 

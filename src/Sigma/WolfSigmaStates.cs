@@ -105,6 +105,7 @@ public class WolfSigmaHeadWeapon : Weapon {
 		index = (int)WeaponIds.SigmaWolfHead;
 		killFeedIndex = 102;
 		weaponSlotIndex = 93;
+		drawAmmo = false;
 	}
 }
 
@@ -372,6 +373,7 @@ public class WolfSigmaHandWeapon : Weapon {
 		weaponSlotIndex = 94;
 		this.hand = hand;
 		hand.weapon = this;
+		drawAmmo = false;
 	}
 }
 

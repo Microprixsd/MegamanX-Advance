@@ -66,6 +66,7 @@ public class IceGattling : AxlWeapon {
 			axl?.axlWeapon?.shootCooldown = fireRate;
 			axl?.axlWeapon?.rechargeAmmoCustomSettingAxl = axl.axlWeapon.rechargeAmmoCooldown;
 			useAmmo(axl, 0);
+			stealthReveal(axl);
 		}
 
 		if (isGaea && axl.gaeaShield == null && axl.axlWeapon.ammo > 8) {

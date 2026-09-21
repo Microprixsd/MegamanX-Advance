@@ -43,11 +43,9 @@ public class QuickHomesick : VileCutter {
 	}
 	public override void shoot(Character character, int[] args) {
 		if (character is not Vile vava) return;
-		var poi = vava.sprite.getCurrentFrame().POIs[0];
-		poi.x *= vava.xDir;
 		var player = vava.player;
 		int xDir = vava.xDir;
-		Point muzzlePos = vava.pos.add(poi).addxy(14*xDir,2);
+		Point muzzlePos = vava.getFirstPOIOrDefault().addxy(14 * xDir, 2);
 		new VileQuickHomesick(
 			muzzlePos, xDir, vava, player,
 			player.getNextActorNetId(), rpc: true
@@ -75,11 +73,9 @@ public class ParasiteSword : VileCutter {
 	}
 	public override void shoot(Character character, int[] args) {
 		if (character is not Vile vava) return;
-		var poi = vava.sprite.getCurrentFrame().POIs[0];
-		poi.x *= vava.xDir;
 		var player = vava.player;
 		int xDir = vava.xDir;
-		Point muzzlePos = vava.pos.add(poi).addxy(14*xDir,2);
+		Point muzzlePos = vava.getFirstPOIOrDefault().addxy(14 * xDir, 2);
 		new VileParasiteSword(
 			muzzlePos, xDir, vava, player,
 			player.getNextActorNetId(), rpc: true
@@ -107,11 +103,9 @@ public class MaroonedTomahawk : VileCutter {
 	}
 	public override void shoot(Character character, int[] args) {
 		if (character is not Vile vava) return;
-		var poi = vava.sprite.getCurrentFrame().POIs[0];
-		poi.x *= vava.xDir;
 		var player = vava.player;
 		int xDir = vava.xDir;
-		Point muzzlePos = vava.pos.add(poi).addxy(14 * xDir, 2);
+		Point muzzlePos = vava.getFirstPOIOrDefault().addxy(14 * xDir, 2);
 		new VileMaroonedTomahawk(
 			muzzlePos, xDir, vava, player,
 			player.getNextActorNetId(), rpc: true

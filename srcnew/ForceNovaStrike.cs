@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace MMXOnline;
 
@@ -14,7 +14,7 @@ public class ForceNovaStrike : Weapon {
 		weaponSlotIndex = 95;
 		killFeedIndex = 104;
 		ammo = 0f;
-		maxAmmo = 32;
+		maxAmmo = 16;
 		shootSounds = new string[] { "", "", "", "" };
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
@@ -42,6 +42,9 @@ public class ForceNovaStrike : Weapon {
 public class ForceNovaStrikeStart : CharState {
 	public ForceNovaStrikeStart() : base("nova_strike_start") {
 		superArmor = true;
+		pushImmune = true;
+		invincible = true;
+		useDashJumpSpeed = true;
 		enterSound = "land";
 	}
 

@@ -47,6 +47,13 @@
 
 	<!--Dependencies-->
 	<ItemGroup>
+		<!-- Keep the upstream reference project out of this fork's build. -->
+		<Compile Remove="MegamanX-Online-CE-main/**/*.cs" />
+		<EmbeddedResource Remove="MegamanX-Online-CE-main/**/*" />
+		<None Remove="MegamanX-Online-CE-main/**/*" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="protobuf-net" Version="3.2.56" />
 		<PackageReference Include="protobuf-net.Core" Version="3.2.56" />
 		<PackageReference Include="SFML.Graphics" Version="3.0.0" />

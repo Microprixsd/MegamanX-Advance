@@ -1304,11 +1304,11 @@ public class WSpongeSeedThrowStateAI : WSpongeMState {
 			once = true;
 			new WSpongeSeedProjAI(
 				shootPos.Value, maverick.xDir, 0,
-				wireHetimarl, player.getNextActorNetId(), sendRpc: true
+				wireHetimarl, player, player.getNextActorNetId(), sendRpc: true
 			);
 			new WSpongeSeedProjAI(
 				shootPos.Value, maverick.xDir, 1,
-				wireHetimarl, player.getNextActorNetId(), sendRpc: true
+				wireHetimarl, player, player.getNextActorNetId(), sendRpc: true
 			);
 			maverick.playSound("wspongeSeed", sendRpc: true);
 		}
@@ -1316,15 +1316,15 @@ public class WSpongeSeedThrowStateAI : WSpongeMState {
 			once = true;
 			new WSpongeSeedProjAIStriker(
 				shootPos.Value, maverick.xDir, 0,
-				wireHetimarl, player.getNextActorNetId(), sendRpc: true
+				wireHetimarl, player, player.getNextActorNetId(), sendRpc: true
 			);
 			new WSpongeSeedProjAIStriker(
 				shootPos.Value, maverick.xDir, 1,
-				wireHetimarl, player.getNextActorNetId(), sendRpc: true
+				wireHetimarl, player, player.getNextActorNetId(), sendRpc: true
 			);
 			new WSpongeSeedProjAIStriker(
 				shootPos.Value, maverick.xDir, 2,
-				wireHetimarl, player.getNextActorNetId(), sendRpc: true
+				wireHetimarl, player, player.getNextActorNetId(), sendRpc: true
 			);
 			maverick.playSound("wspongeSeed", sendRpc: true);
 		}
@@ -1342,9 +1342,9 @@ public class WSpongeSeedProjAI : Projectile {
 	public int type;
 	public WSpongeSeedProjAI(
 		Point pos, int xDir, int type,
-		Actor owner, ushort netProjId, bool sendRpc = false
+		Actor owner, Player player, ushort netProjId, bool sendRpc = false
 	) : base(
-		pos, xDir, owner, "wsponge_seed", netProjId
+		pos, xDir, owner, "wsponge_seed", netProjId, player
 	) {
 		weapon = WireSponge.getWeapon();
 		damager.damage = 3;
@@ -1357,16 +1357,16 @@ public class WSpongeSeedProjAI : Projectile {
 		useGravity = true;
 		collider?.wallOnly = true;
 		this.type = type;
-		if (type == 0) vel = new Point(Helpers.randomRange(150, 210) * owner.xDir, -Helpers.randomRange(250, 300));
-		else if (type == 1) vel = new Point(Helpers.randomRange(210, 250) * owner.xDir, -Helpers.randomRange(300, 350));
+		if (type == 0) vel = new Point(Helpers.randomRange(150, 210) * xDir, -Helpers.randomRange(250, 300));
+		else if (type == 1) vel = new Point(Helpers.randomRange(210, 250) * xDir, -Helpers.randomRange(300, 350));
 		if (sendRpc) {
-			rpcCreate(pos, ownerPlayer, netProjId, xDir, (byte)type);
+			rpcCreate(pos, owner, ownerPlayer, netProjId, xDir, (byte)type);
 		}
 	}
 	public static Projectile rpcInvoke(ProjParameters args) {
 		return new WSpongeSeedProjAI(
 			args.pos, args.xDir, args.extraData[0],
-			args.owner, args.netId
+			args.owner, args.player, args.netId
 		);
 	}
 
@@ -1410,9 +1410,9 @@ public class WSpongeSeedProjAIStriker : Projectile {
 	public int type;
 	public WSpongeSeedProjAIStriker(
 		Point pos, int xDir, int type,
-		Actor owner, ushort netProjId, bool sendRpc = false
+		Actor owner, Player player, ushort netProjId, bool sendRpc = false
 	) : base(
-		pos, xDir, owner, "wsponge_seed", netProjId
+		pos, xDir, owner, "wsponge_seed", netProjId, player
 	) {
 		weapon = WireSponge.getWeapon();
 		damager.damage = 3;
@@ -1429,13 +1429,13 @@ public class WSpongeSeedProjAIStriker : Projectile {
 		else if (type == 1) vel = new Point(Helpers.randomRange(140, 180), -Helpers.randomRange(300, 350));
 		else if (type == 2) vel = new Point(Helpers.randomRange(230, 270), -Helpers.randomRange(300, 350));
 		if (sendRpc) {
-			rpcCreate(pos, ownerPlayer, netProjId, xDir, (byte)type);
+			rpcCreate(pos, owner, ownerPlayer, netProjId, xDir, (byte)type);
 		}
 	}
 	public static Projectile rpcInvoke(ProjParameters args) {
 		return new WSpongeSeedProjAIStriker(
 			args.pos, args.xDir, args.extraData[0],
-			args.owner, args.netId
+			args.owner, args.player, args.netId
 		);
 	}
 

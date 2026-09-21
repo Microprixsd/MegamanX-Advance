@@ -119,6 +119,7 @@ public class Buster3GigaProj : Projectile {
 }
 public class Buster3MaxProj : Projectile {
 	float partTime;
+	private bool combining;
 	public Buster3MaxProj(
 		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
 	) : base(
@@ -136,6 +137,50 @@ public class Buster3MaxProj : Projectile {
 		if (rpc) {
 			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
 		}
+	}
+	public override void onCollision(CollideData other) {
+    if (destroyed || combining) return;
+
+    if (ownedByLocalPlayer &&
+        other.gameObject is BusterX3Proj1 orb &&
+        orb.ownerPlayer == ownerPlayer &&
+        orb.ownerActor == ownerActor &&
+        orb.xDir == xDir &&
+        ownerActor is Actor source &&
+        orb.tryConsumeForCrossShot()) {
+
+        combining = true;
+
+        Point mergePos = pos.clone();
+        int mergeDir = xDir;
+        Player mergePlayer = ownerPlayer;
+
+        destroySelfNoEffect();
+        orb.destroySelfNoEffect();
+
+        new Anim(
+            mergePos.clone(), "buster4_x3_muzzle", mergeDir,
+            mergePlayer.getNextActorNetId(),
+            true, sendRpc: true
+        );
+
+        Global.level.delayedActions.Add(new DelayedAction(() => {
+            new Buster4MaxProj(
+                mergePos.clone(), mergeDir, source, mergePlayer,
+                mergePlayer.getNextActorNetId(), true
+            );
+
+            for (int i = 0; i < 4; i++) {
+                new BusterX3Proj3(
+                    mergePos.clone(), mergeDir, i,
+                    source, mergePlayer,
+                    mergePlayer.getNextActorNetId(), true
+                );
+            }
+        	}, 20f / 60f));
+			return;
+    	}
+		base.onCollision(other);
 	}
 	public override void update() {
 		base.update();
@@ -378,10 +423,156 @@ public class Buster4Proj : Projectile {
 		changePos(new Point(pos.x, y));
 	}
 }
+public class BusterX3Proj1 : Projectile {
+    private readonly Actor source;
+    private bool split;
+	public bool tryConsumeForCrossShot() {
+    if (!ownedByLocalPlayer || destroyed || split) return false;
+
+    split = true;
+    return true;
+}
+
+    public BusterX3Proj1(
+        Point pos, int xDir, Actor owner, Player player,
+        ushort? netId, bool rpc = false
+    ) : base(
+        pos, xDir, owner, "buster4_max_orb2", netId, player
+    ) {
+        source = owner;
+        weapon = XBuster.netWeapon;
+        projId = (int)ProjIds.BusterX3Proj1;
+
+        damager.damage = 1;
+        damager.flinch = Global.halfFlinch;
+
+        vel = new Point(0, 0);
+        maxDistance = 175;
+        reflectable = false;
+        fadeSprite = "buster3_fade";
+        fadeOnAutoDestroy = true;
+        frameSpeed = 0;
+        frameIndex = 0;
+
+        if (rpc) {
+            rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+        }
+    }
+
+    public static Projectile rpcInvoke(ProjParameters args) {
+        return new BusterX3Proj1(
+            args.pos, args.xDir,
+            args.owner, args.player, args.netId
+        );
+    }
+
+    public override void update() {
+        base.update();
+        if (destroyed) return;
+
+        vel.x += Global.spf * 300 * xDir;
+        if (MathF.Abs(vel.x) > 300) {
+            vel.x = 300 * xDir;
+        }
+		float waveY = MathF.Sin(time * MathF.PI * 6) * 15f;
+
+		new Anim(
+    	pos.addxy(-4, waveY),"buster4_max_orb1", 1, null, true,
+    		zIndex: this.zIndex
+		);
+		new Anim(
+    	pos.addxy(0, -4 - waveY),"buster4_max_orb2", xDir, null, true,
+    	zIndex: this.zIndex
+		);
+
+		new Anim(
+    	pos.addxy(4, waveY),"buster4_max_orb3", xDir, null, true,
+    	zIndex: this.zIndex
+		);
+    }
+
+    public override void onHitDamagable(IDamagable target) {
+        bool shouldSplit = ownedByLocalPlayer && !split && !destroyed;
+        if (shouldSplit) split = true;
+
+        base.onHitDamagable(target);
+        if (!shouldSplit) return;
+
+        Point splitPos = pos.clone();
+        int splitDir = xDir;
+        Actor splitSource = source;
+        Player splitPlayer = ownerPlayer;
+
+        destroySelf();
+
+        Global.level.delayedActions.Add(new DelayedAction(() => {
+            for (int i = 0; i < 2; i++) {
+                new BusterX3Proj2(
+                    splitPos.clone(), splitDir, i,
+                    splitSource, splitPlayer,
+                    splitPlayer.getNextActorNetId(), true
+                );
+            }
+        }, 2f / 60f));
+    }
+}
+
 public class BusterX3Proj2 : Projectile {
+    public readonly int type;
+
+    public BusterX3Proj2(
+        Point pos, int xDir, int type,
+        Actor owner, Player player, ushort? netId,
+        bool rpc = false
+    ) : base(
+        pos, xDir, owner,
+        type == 0 ? "buster4_max_orb3" : "buster4_max_orb1",
+        netId, player
+    ) {
+        this.type = type;
+        weapon = XBuster.netWeapon;
+        projId = (int)ProjIds.BusterX3Proj2;
+
+        damager.damage = 1;
+        damager.flinch = 0;
+
+        vel = new Point(-250 * xDir, type == 0 ? -75 : 75);
+        maxTime = 1f;
+        reflectable = true;
+        fadeSprite = "buster4_fade";
+        fadeOnAutoDestroy = true;
+        frameSpeed = 0;
+        frameIndex = 0;
+
+        if (rpc) {
+            rpcCreate(
+                pos, owner, ownerPlayer, netId, xDir, (byte)type
+            );
+        }
+    }
+
+    public static Projectile rpcInvoke(ProjParameters args) {
+        return new BusterX3Proj2(
+            args.pos, args.xDir, args.extraData[0],
+            args.owner, args.player, args.netId
+        );
+    }
+
+    public override void update() {
+        base.update();
+        if (destroyed) return;
+
+        vel.x += Global.spf * 750 * xDir;
+        if (MathF.Abs(vel.x) > 300) {
+            vel.x = 300 * xDir;
+        }
+    }
+}
+public class BusterX3Proj3 : Projectile {
 	public int type = 0;
+	public Actor? target;
 	public List<Point> lastPositions = new List<Point>();
-	public BusterX3Proj2(
+	public BusterX3Proj3(
 		Point pos, int xDir, int type, Actor owner, Player player, ushort? netId, bool rpc = false
 	) : base(
 		pos, xDir, owner, type == 0 || type == 3 ? "buster4_x3_orbit" : "buster4_x3_orbit2", netId, player	
@@ -393,8 +584,9 @@ public class BusterX3Proj2 : Projectile {
 		fadeOnAutoDestroy = true;
 		this.type = type;
 		reflectable = true;
+		canBeLocal = false;
 		maxTime = 0.675f;
-		projId = (int)ProjIds.BusterX3Proj2;
+		projId = (int)ProjIds.BusterX3Proj3;
 		if (type == 0) vel = new Point(-200 * xDir, -100);
 		if (type == 1) vel = new Point(-150 * xDir, -50);
 		if (type == 2) vel = new Point(-150 * xDir, 50);
@@ -408,19 +600,56 @@ public class BusterX3Proj2 : Projectile {
 	}
 
 	public static Projectile rpcInvoke(ProjParameters args) {
-		return new BusterX3Proj2(
+		return new BusterX3Proj3(
 			args.pos, args.xDir, args.extraData[0], args.owner, args.player, args.netId
 		);
 	}
-
 	public override void update() {
-		base.update();
-		float maxSpeed = 600;
-		vel.inc(new Point(Global.spf * 1500 * xDir, 0));
-		if (MathF.Abs(vel.x) > maxSpeed) vel.x = maxSpeed * xDir;
-		lastPositions.Add(pos);
-		if (lastPositions.Count > 4) lastPositions.RemoveAt(0);
-	}
+    base.update();
+    if (destroyed) return;
+    if (ownedByLocalPlayer) {
+        // Accel y límite horizontal
+        float maxSpeed = 600;
+        vel.inc(new Point(Global.spf * 1500 * xDir, 0));
+
+        if (MathF.Abs(vel.x) > maxSpeed) {
+            vel.x = maxSpeed * xDir;
+        }
+
+        // Para que no se desmorone al inicio
+        if (time >= 0.15f) {
+            target = Global.level.getClosestTarget(
+                pos, damager.owner.alliance, false,
+                aMaxDist: Global.screenW * 0.75f
+            );
+
+            if (target != null) {
+                float speed = vel.magnitude;
+                Point direction = pos.directionTo(
+                    target.getCenterPos()
+                );
+
+                if (speed > 0 && direction.magnitude > 0) {
+                    Point desiredVelocity = direction.normalize().times(speed);
+
+                    // Homing
+                    Point steeredVelocity = Point.lerp(
+                        vel, desiredVelocity, 0.01f
+                    );
+                    // Fix for when the projectile is moving too slow and the homing doesn't work
+                    if (steeredVelocity.magnitude > 0) {
+                        vel = steeredVelocity.normalize().times(speed);
+                    }
+                }
+            }
+        }
+    }
+
+    lastPositions.Add(pos);
+    if (lastPositions.Count > 4) {
+        lastPositions.RemoveAt(0);
+    }
+}
 
 	public override void render(float x, float y) {
 		string spriteName = type == 0 || type == 3 ? "buster4_x3_orbit" : "buster4_x3_orbit2";

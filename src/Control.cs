@@ -243,7 +243,7 @@ public class Control {
 									{ AimDown, (int)Key.Down },
 									{ AimLeft, (int)Key.Left },
 									{ AimRight, (int)Key.Right },
-									{ AxlAimBackwards, (int)Key.S }
+									{ AxlAimBackwards, (int)Key.LShift }
 							   }
 							},
 							// Axl angular aim controls

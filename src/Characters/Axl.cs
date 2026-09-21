@@ -359,6 +359,7 @@ public class Axl : Character {
 		if (isAxlBulletsType) {
 			axlWeapon?.rechargeAxlBulletAmmo(player, this, shootHeld, 1);
 		}
+
 		customSettingReloadWeapon();
 
 		Helpers.decrementFrames(ref dodgeRollCooldown);
@@ -1561,7 +1562,7 @@ public class Axl : Character {
 		if (invulnTime > 0) return false;
 		if (undisguiseTime > 0) return false;
 		if (assassinTime > 0) return false;
-		if (currentWeapon?.noAmmo() == true) return false;
+		if (currentWeapon?.noAmmo() == true && !isZooming()) return false;
 		if (switchTime > 0 || altSwitchTime > 0) return false;
 		return base.canShoot();
 	}
@@ -1802,10 +1803,22 @@ public class Axl : Character {
 	}
 
 	public Weapon getAxlBullet(int axlBulletType) {
-		if (axlBulletType == (int)AxlBulletWeaponType.DoubleBullets) {
-			return new DoubleBullet();
+		switch (axlBulletType) {
+			case (int)AxlBulletWeaponType.DoubleBullets:
+				return new DoubleBullet();
+			case (int)AxlBulletWeaponType.MetteurCrash:
+				return new MettaurCrash();
+			case (int)AxlBulletWeaponType.BeastKiller:
+				return new BeastKiller();
+			case (int)AxlBulletWeaponType.MachineBullets:
+				return new MachineBullets();
+			case (int)AxlBulletWeaponType.RevolverBarrel:
+				return new RevolverBarrel();
+			case (int)AxlBulletWeaponType.AncientGun:
+				return new AncientGun();
+			default:
+				return new AxlBullet((AxlBulletWeaponType)axlBulletType);
 		}
-		return new AxlBullet((AxlBulletWeaponType)axlBulletType);
 	}
 
 	public Weapon getAxlBulletWeapon() {
@@ -1813,10 +1826,21 @@ public class Axl : Character {
 	}
 
 	public Weapon getAxlBulletWeapon(int type) {
-		if (type == (int)AxlBulletWeaponType.DoubleBullets) {
-			return new DoubleBullet();
-		} else {
-			return new AxlBullet((AxlBulletWeaponType)type);
+		switch (type) {
+			case (int)AxlBulletWeaponType.DoubleBullets:
+				return new DoubleBullet();
+			case (int)AxlBulletWeaponType.MetteurCrash:
+				return new MettaurCrash();
+			case (int)AxlBulletWeaponType.BeastKiller:
+				return new BeastKiller();
+			case (int)AxlBulletWeaponType.MachineBullets:
+				return new MachineBullets();
+			case (int)AxlBulletWeaponType.RevolverBarrel:
+				return new RevolverBarrel();
+			case (int)AxlBulletWeaponType.AncientGun:
+				return new AncientGun();
+			default:
+				return new AxlBullet((AxlBulletWeaponType)type);
 		}
 	}
 
@@ -1827,7 +1851,7 @@ public class Axl : Character {
 		customData.Add((byte)MathF.Ceiling(currentWeapon?.ammo ?? 0));
 
 		customData.Add(Helpers.degreeToByte(netArmAngle));
-		customData.Add(Helpers.degreeToByte(player.axlBulletType));
+		customData.Add((byte)player.axlBulletType);
 
 		customData.Add(Helpers.boolArrayToByte([
 			shouldDrawArm(),

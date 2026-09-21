@@ -6,15 +6,12 @@ namespace MMXOnline;
 
 public class UndisguiseWeapon : AxlWeapon {
 	public UndisguiseWeapon() : base(0) {
-		ammo = 0;
 		index = (int)WeaponIds.Undisguise;
 		weaponSlotIndex = 50;
 		sprite = "axl_arm_pistol";
 		drawAmmo = false;
 		drawCooldown = false;
-
-		drawAmmo = false;
-		drawCooldown = false;
+		ammo = 32;
 	}
 }
 
@@ -193,5 +190,8 @@ public class DNACore : AxlWeapon {
 		character.player.startAtransMain(this, character.player.getNextATransNetId());
 		character.playSound("transform", sendRpc: true);
 		character.undisguiseTime = 6;
+	}
+	public override void axlAltShoot(Character character, int[] args) {
+		return;
 	}
 }
