@@ -648,8 +648,9 @@ public class Damager {
 					}
 				}
 			}
-			// Lightning Web intentionally staggers without damage; blocked hits and slow Maverick swings do not.
-			if (damage > 0 || (flinch > 0 && projId == (int)ProjIds.LightningWeb)) {
+			// Lightning Web and Force plasma intentionally stagger without damage.
+			if (damage > 0 || (flinch > 0 &&
+				(projId == (int)ProjIds.LightningWeb || projId == (int)ProjIds.BusterForcePlasmaHit))) {
 				// Bool if the character is frozen
 				bool isShotgunIceAndFrozen = (
 					character.sprite.name.Contains("frozen") == true && weaponKillFeedIndex == 8

@@ -89,6 +89,7 @@ public class ItemTracerProj : Projectile {
 		var chr = damagable as Character;
 		if (scannedChar == null && chr != null && !chr.isStealthy(damager.owner.alliance)) {
 			scannedChar = chr;
+			damager.owner.markItemTracerAmmoTarget(chr);
 			if (damager.owner == Global.level.mainPlayer) {
 				if (scannedChar.player.scanned) {
 					foreach (var player in Global.level.players) {

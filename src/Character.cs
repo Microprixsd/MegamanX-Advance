@@ -3128,6 +3128,10 @@ public partial class Character : Actor, IDamagable {
 				getKillerAndAssister(player, ref killer, ref assister, ref weaponIndex, ref assisterProjId, ref assisterWeaponId);
 			}
 
+			foreach (Player scanningPlayer in Global.level.players) {
+				scanningPlayer.resolveItemTracerAmmoReward(this, killer);
+			}
+
 			if (killer != null && killer != player && killer != Player.stagePlayer) {
 				killer.addKill();
 				if (killer.possessedTime > 0) {

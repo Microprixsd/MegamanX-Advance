@@ -625,12 +625,7 @@ public class GameMode {
 				}
 
 				if (drawPlayer.character is MegamanX mx) {
-					int x = 10, y = 156;
-					int count = mx.forceStocks;
-					if (count >= 1) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x, y);
-					if (count >= 2) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y);
-					if (count >= 3) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x, y + 11);
-					if (count >= 4) Global.sprites["hud_killfeed_weapon"].drawToHUD(180, x + 13, y + 11);
+					drawXAbilityHud(drawPlayer, mx);
 				}
 			}
 			 
@@ -2055,41 +2050,6 @@ public class GameMode {
 		var startX = getWeaponSlotStartX(player, ref iconW, ref iconH, ref width);
 		var startY = Global.screenH - 12;
 
-		int gigaWeaponX = 11;
-
-		if (player.isX && Options.main.gigaCrushSpecial) {
-			Weapon? gigaCrush = player.weapons.FirstOrDefault((Weapon w) => w is GigaCrush);
-			if (gigaCrush != null) {
-				drawWeaponSlot(gigaCrush, gigaWeaponX, 159);
-				gigaWeaponX += 18;
-			}
-		}
-		if (player.isX && Options.main.novaStrikeSpecial) {
-			Weapon? novaStrike = player.weapons.FirstOrDefault((Weapon w) => w is HyperNovaStrike);
-			if (novaStrike != null) {
-				drawWeaponSlot(novaStrike, gigaWeaponX, 159);
-				gigaWeaponX += 18;
-			}
-		}
-		if (player.character is MegamanX mmx && mmx.hasFgMoveEquipped() && mmx.canAffordFgMove()) {
-			if (mmx.hasHadoukenEquipped()) {
-				int x = gigaWeaponX;
-				int y = 159;
-				Global.sprites["hud_weapon_icon"].drawToHUD(112, x, y);
-				float cooldown = Helpers.progress(player.hadoukenAmmo, 1920f);
-				drawWeaponSlotCooldown(x, y, cooldown);
-				gigaWeaponX += 18;
-			}
-			if (mmx.hasShoryukenEquipped()) {
-				int x = gigaWeaponX;
-				int y = 159;
-				Global.sprites["hud_weapon_icon"].drawToHUD(113, x, y);
-				float cooldown = Helpers.progress(player.shoryukenAmmo, 1920f);
-				drawWeaponSlotCooldown(x, y, cooldown);
-				gigaWeaponX += 18;
-			}
-		}
-
 		if (player.isAxl && player.weapons[0].type > 0) {
 			int x = 10, y = 156;
 			int index = 0;
@@ -2211,6 +2171,69 @@ public class GameMode {
 		}
 	}
 
+	public void drawXAbilityHud(Player player, MegamanX mmx) {
+		int startX = (int)Global.halfScreenW / 17;
+		int startY = 160;
+		int slot = 0;
+		(int x, int y) nextSlot() {
+			int index = slot++;
+			return (startX + (index % 2) * 18, startY + (index / 2) * 18);
+		}
+		void drawIcon(int icon, float overlay) {
+			var (x, y) = nextSlot();
+			drawGigaWeaponCooldown(icon, Helpers.clamp01(overlay), x, y);
+		}
+
+		Weapon? gigaCrush = mmx.weapons.FirstOrDefault(w => w is GigaCrush);
+		if (gigaCrush != null) {
+			drawIcon(gigaCrush.weaponSlotIndex, Helpers.progress(gigaCrush.ammo, gigaCrush.maxAmmo));
+		}
+		if (mmx.hasShoryukenEquipped()) {
+			drawIcon(113, Helpers.progress(player.shoryukenAmmo, player.fgMoveMaxAmmo));
+		}
+		if (player.ownedByLocalPlayer && mmx.helmetArmor == ArmorId.Giga) {
+			drawIcon(ItemTracer.netWeapon.weaponSlotIndex,
+				player.itemTracerAmmoRewardRemaining / Player.itemTracerAmmoRewardCooldown);
+		}
+		if (mmx.forceStocks > 0) {
+			var (x, y) = nextSlot();
+			drawGigaWeaponCooldown(180, 0, x, y, isKillFeed: true, xKF: x, yKF: y);
+			drawXStockCount(Math.Min(mmx.forceStocks, 4), x + 3, y + 3);
+		}
+
+		// Keep the other X abilities in the same layout, after the priority slots.
+		if (mmx.hasHadoukenEquipped()) {
+			drawIcon(112, Helpers.progress(player.hadoukenAmmo, player.fgMoveMaxAmmo));
+		}
+		if (Options.main.novaStrikeSpecial) {
+			Weapon? novaStrike = mmx.weapons.FirstOrDefault(w => w is HyperNovaStrike);
+			if (novaStrike != null) {
+				var (x, y) = nextSlot();
+				drawWeaponSlot(novaStrike, x, y);
+			}
+		}
+	}
+
+	// A 3x4 pixel digit fits inside the 16x16 stock slot without a new asset.
+	private static void drawXStockCount(int count, int x, int y) {
+		string pixels = count switch {
+			1 => "010110010111",
+			2 => "110001010111",
+			3 => "110011001110",
+			4 => "101101111001",
+			_ => "111101101111"
+		};
+		DrawWrappers.DrawRect(x - 1, y - 1, x + 4, y + 5, true,
+			Color.Black, 1, ZIndex.HUD, false);
+		for (int i = 0; i < pixels.Length; i++) {
+			if (pixels[i] != '1') continue;
+			int px = x + i % 3;
+			int py = y + i / 3;
+			DrawWrappers.DrawRect(px, py, px + 1, py + 1, true,
+				Color.White, 1, ZIndex.HUD, false);
+		}
+	}
+
 	public void drawZeroGigaCooldown(Weapon weapon, int x = 11, int y = 159) {
 		// This runs once per character.
 		if (weapon == null || weapon.shootCooldown <= 0) {
@@ -2238,7 +2261,8 @@ public class GameMode {
 		} else if (weapon is MechMenuWeapon && level.mainPlayer.isSelectingRA()) {
 			return;
 		} else if (weapon is not AbsorbWeapon) {
-			Global.sprites["hud_weapon_icon"].drawToHUD(weapon.weaponSlotIndex, x, y);
+			float alpha = weapon is HyperCharge && !HyperCharge.canSelect(mainPlayer) ? 0.65f : 1;
+			Global.sprites["hud_weapon_icon"].drawToHUD(weapon.weaponSlotIndex, x, y, alpha);
 		}
 		bool canShoot = weapon.canShoot(0, mainPlayer);
 		if (!canShoot && (selected || weapon.ammo > 0)) {

@@ -156,6 +156,7 @@ public partial class Player {
 		if (weaponSlot == newWeaponSlot) return;
 		if (isDead) return;
 		if (!weapons.InRange(newWeaponSlot)) return;
+		if (weapons[newWeaponSlot] is HyperCharge && !HyperCharge.canSelect(this)) return;
 		if (weapons[newWeaponSlot].index == (int)WeaponIds.MechMenuWeapon) {
 			selectedRAIndex = 0;
 		}
@@ -202,7 +203,8 @@ label:
 			ws = weapons.Count - 1;
 		}
 		if ((weapons.ElementAtOrDefault(ws) is GigaCrush && Options.main.gigaCrushSpecial) ||
-			(weapons.ElementAtOrDefault(ws) is HyperNovaStrike && Options.main.novaStrikeSpecial)
+			(weapons.ElementAtOrDefault(ws) is HyperNovaStrike && Options.main.novaStrikeSpecial) ||
+			(weapons.ElementAtOrDefault(ws) is HyperCharge && !HyperCharge.canSelect(this))
 		) {
 			ws--;
 			goto label;
@@ -217,7 +219,10 @@ label:
 		if (ws >= max) {
 			ws = 0;
 		}
-		if ((weapons.ElementAtOrDefault(ws) is GigaCrush && Options.main.gigaCrushSpecial) || (weapons.ElementAtOrDefault(ws) is HyperNovaStrike && Options.main.novaStrikeSpecial)) {
+		if ((weapons.ElementAtOrDefault(ws) is GigaCrush && Options.main.gigaCrushSpecial) ||
+			(weapons.ElementAtOrDefault(ws) is HyperNovaStrike && Options.main.novaStrikeSpecial) ||
+			(weapons.ElementAtOrDefault(ws) is HyperCharge && !HyperCharge.canSelect(this))
+		) {
 			ws++;
 			goto label;
 		}

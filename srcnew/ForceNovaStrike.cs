@@ -25,7 +25,7 @@ public class ForceNovaStrike : Weapon {
 	public override void shoot(Character character, int[] args) {
 		base.shoot(character, args);
 
-		character.changeState(new ForceNovaStrikeStart(), true);
+		character.changeState(new ForceNovaStrikeState(), true);
 	}
 
 
@@ -39,11 +39,10 @@ public class ForceNovaStrike : Weapon {
 }
 
 
-public class ForceNovaStrikeStart : CharState {
+/*public class ForceNovaStrikeStart : CharState {
 	public ForceNovaStrikeStart() : base("nova_strike_start") {
 		superArmor = true;
 		pushImmune = true;
-		invincible = true;
 		useDashJumpSpeed = true;
 		enterSound = "land";
 	}
@@ -59,37 +58,37 @@ public class ForceNovaStrikeStart : CharState {
 		character.xPushVel = character.xDir * 3;
 		character.vel.y = -character.getJumpPower() * 0.5f;
 	}
-}
+}*/
 
 public class ForceNovaStrikeState : CharState {
 	private int leftOrRight = 1;
 
-	public ForceNovaStrikeState() : base("nova_strike") {
+	public ForceNovaStrikeState() : base("nova_strike_force") {
 		pushImmune = true;
 		superArmor = true;
 		useGravity = false;
+		invincible = true;
 		enterSound = "novaStrikeX4";
 	}
 
 	public override void update() {
 		base.update();
 
-		if (
-			character.flag != null || stateTime > 0.6f || 
-			!character.tryMove(new Point(character.xDir * 350 * leftOrRight, 0), out _)
-		) {
+		if (character.frameIndex <= 2) {
+			character.move(new Point(125 * character.xDir, -95));
+			character.unstickFromGround();
+		}
+		if (character.frameIndex >= 4) {
+			character.move(new Point(350 * character.xDir, 0));
+		}
+		CollideData? collideData = Global.level.checkTerrainCollisionOnce(character, character.xDir, 0);
+		if (collideData != null && collideData.isSideWallHit() && character.ownedByLocalPlayer) {
 			character.changeToIdleOrFall();
-			
+		}
+		if (stateTime > 36f / 60f) {
+			character.changeToIdleOrFall();
 		}
 	}
-
-	public override void onEnter(CharState oldState) {
-		base.onEnter(oldState);
-		character.vel.y = 0;
-		character.stopCharge();
-		character.frameIndex = 4;
-	}
-
 	public override void onExit(CharState? newState) {
 		base.onExit(newState);
 		character.yDir = 1;

@@ -62,6 +62,9 @@ public class XBuster : Weapon {
 		if (chargeLevel > 0) {
 			return true;
 		}
+		if (player.character is MegamanX mmx && mmx.armArmor == ArmorId.Force && mmx.forceStocks > 0) {
+			return true;
+		}
 		for (int i = lemonsOnField.Count - 1; i >= 0; i--) {
 			if (lemonsOnField[i].destroyed || lemonsOnField[i].reflectCount > 0) {
 				lemonsOnField.RemoveAt(i);
@@ -112,9 +115,17 @@ public class XBuster : Weapon {
 			};
 		}
 
-		if (mmx.hasUltimateArmor && chargeLevel >= 3 && !isStock && mmx.armArmor != ArmorId.Max) {
+		if (mmx.hasUltimateArmor && chargeLevel >= 3 && !isStock &&
+			(mmx.armArmor != ArmorId.Max || mmx.hasFullHyperMaxArmor && !isUnpoBuster)) {
+			if (mmx.armArmor == ArmorId.Max && !mmx.maxBusterFollowupFromHyperCharge) {
+				mmx.stockedMaxBusterLv = 0;
+				mmx.maxBusterFollowupTime = 0;
+			}
 			new Anim(pos.clone(), "buster4_muzzle_flash", xDir, null, true);
 			new BusterPlasmaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
+			if (mmx.armArmor == ArmorId.Plasma) {
+				new BusterForcePlasmaProj(mmx, pos, xDir, player.getNextActorNetId(), true);
+			}
 			character.playSound("plasmaShot", sendRpc: true);	
 			return;
 		}
@@ -133,7 +144,7 @@ public class XBuster : Weapon {
 					pos, xDir, mmx, player, player.getNextActorNetId(), true
 				);
 			} else {
-				createX3SpreadShot(mmx, xDir);
+				createX3SpreadShot(mmx, xDir, mmx.maxBusterFollowupFromHyperCharge);
 			}
 			shootSound = "buster3X3";
 			bool firedOrbs = mmx.stockedMaxBusterLv % 2 == 0;
@@ -209,10 +220,10 @@ public class XBuster : Weapon {
 		}
 	}
 
-	public static void createX3SpreadShot(Character character, int xDir) {
+	public static void createX3SpreadShot(Character character, int xDir, bool fromHyperCharge = false) {
     Player player = character.player;
 
-    if (character is MegamanX { hasUltimateArmor: true }) {
+    if (!fromHyperCharge && character is MegamanX { hasUltimateArmor: true }) {
         for (int i = 0; i < 4; i++) {
             new BusterX3Proj3(
                 character.getShootPos().addxy(6 * xDir, -2),

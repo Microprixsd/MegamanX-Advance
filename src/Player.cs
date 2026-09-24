@@ -186,6 +186,36 @@ public partial class Player {
 
 	public bool scanned;
 	public bool tagged;
+	private readonly HashSet<Character> itemTracerAmmoTargets = new();
+	private float nextItemTracerAmmoRewardTime;
+	public const float itemTracerAmmoRewardCooldown = 30f;
+	public float itemTracerAmmoRewardRemaining => MathF.Max(0, nextItemTracerAmmoRewardTime - Global.time);
+
+	public void markItemTracerAmmoTarget(Character target) {
+		if (ownedByLocalPlayer && character is MegamanX mmx &&
+			mmx.helmetArmor == ArmorId.Giga && target.player != this &&
+			target.player.alliance != alliance && target.alive
+		) {
+			itemTracerAmmoTargets.Add(target);
+		}
+	}
+
+	public void resolveItemTracerAmmoReward(Character victim, Player? killer) {
+		// Consume the mark on any death, including kills by someone else.
+		if (!ownedByLocalPlayer || !itemTracerAmmoTargets.Remove(victim)) return;
+		if (killer != this || victim.player == this || victim.player.alliance == alliance ||
+			Global.time < nextItemTracerAmmoRewardTime ||
+			character is not MegamanX mmx || !mmx.alive ||
+			mmx.helmetArmor != ArmorId.Giga
+		) {
+			return;
+		}
+
+		nextItemTracerAmmoRewardTime = Global.time + itemTracerAmmoRewardCooldown;
+		foreach (Weapon weapon in mmx.weapons) {
+			weapon.addAmmo(weapon.maxAmmo * 0.5f, this);
+		}
+	}
 
 	public List<int> aiArmorUpgradeOrder;
 	public int aiArmorUpgradeIndex;

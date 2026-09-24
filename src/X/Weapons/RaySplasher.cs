@@ -412,7 +412,6 @@ public class RaySplasherChargedState : CharState {
 			mmx.rayTurrets.Add(turret);
 			if (mmx.rayTurrets.Count > 1) {
 				mmx.rayTurrets[0].destroySelf();
-				mmx.rayTurrets.RemoveAt(0);
 			}
 		}
 		if (character.isAnimOver()) {
@@ -422,6 +421,7 @@ public class RaySplasherChargedState : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
+		mmx = character as MegamanX ?? throw new NullReferenceException();
 		character.vel = new Point();
 		character.useGravity = false;
 		

@@ -424,8 +424,12 @@ public class X2ChargeShot : XState {
 			if (mmx.stockedBusterLv >= 1) {
 				mmx.stockedBusterLv--;
 			}
-			weapon.shootCooldown = weapon.fireRate;
-			mmx.shootCooldown = weapon.fireRate;
+			// Keep the stored follow-up available even after leaving the first animation.
+			float cooldown = shootNum == 0 && mmx.stockedBusterLv > 0
+				? Math.Min(weapon.fireRate, 10)
+				: weapon.fireRate;
+			weapon.shootCooldown = cooldown;
+			mmx.shootCooldown = cooldown;
 			if (weapon.shootSounds[3] != "") {
 				character.playSound(weapon.shootSounds[3], sendRpc: true);
 			}
@@ -508,7 +512,7 @@ public class X3ChargeShot : XState {
 			if (state == 0) {
 				Point shootPos = character.getShootPos();
 				int shootDir = character.getShootXDir();
-				if (!mmx.hasUltimateArmor) {
+				if (!mmx.hasUltimateArmor || hyperBusterWeapon != null) {
 					new Anim(
 						shootPos, "buster4_x3_muzzle", shootDir,
 						player.getNextActorNetId(), true, sendRpc: true
@@ -517,7 +521,7 @@ public class X3ChargeShot : XState {
 						shootPos, shootDir,
 						mmx, player, player.getNextActorNetId(), true
 					);
-					if (!(player.weapon is HyperCharge)) {
+					if (!(player.weapon is HyperCharge) || mmx.hasUltimateArmor) {
 						character.playSound("buster3X3", sendRpc: true);
 					}
 				} else {
@@ -531,7 +535,8 @@ public class X3ChargeShot : XState {
 				mmx.stockedTime = 0;
 			} else {
 				character.playSound("buster3X3", sendRpc: true);
-				XBuster.createX3SpreadShot(character, character.getShootXDir()
+				XBuster.createX3SpreadShot(character, character.getShootXDir(),
+					hyperBusterWeapon != null || mmx.maxBusterFollowupFromHyperCharge
 				);
 			}
 			mmx.stockedTime = 0;

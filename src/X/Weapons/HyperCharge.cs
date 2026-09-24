@@ -52,6 +52,14 @@ public class HyperCharge : Weapon {
 		return fireRate * getRateofFireMod(player);
 	}
 
+	public static bool canSelect(Player player) {
+		return player.character is MegamanX mmx && mmx.hyperArmArmor == ArmorId.Max;
+	}
+
+	public override bool canShoot(int chargeLevel, Player player) {
+		return canSelect(player) && base.canShoot(chargeLevel, player);
+	}
+
 	public override bool canShoot(int chargeLevel, MegamanX mmx) {
 		if (mmx.stockedMaxBusterLv >= 1) {
 			return false;
@@ -63,7 +71,7 @@ public class HyperCharge : Weapon {
 	}
 
 	public bool canShootIncludeCooldown(Player player) {
-		return ammo >= getChipFactoredAmmoUsage(player);
+		return canSelect(player) && ammo >= getChipFactoredAmmoUsage(player);
 	}
 
 	public override void shoot(Character character, int[] args) {

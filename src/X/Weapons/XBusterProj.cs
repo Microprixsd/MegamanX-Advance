@@ -408,7 +408,8 @@ public class Buster4Proj : Projectile {
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new Buster4Proj(
 			arg.pos, arg.xDir, arg.owner, arg.player,
-			arg.extraData[0], arg.extraData[1], arg.netId
+			arg.extraData[0], arg.extraData[1], arg.netId, smoothStart:
+			arg.extraData.Length > 2 && arg.extraData[2] !=0
 		);
 	}
 
@@ -426,6 +427,7 @@ public class Buster4Proj : Projectile {
 public class BusterX3Proj1 : Projectile {
     private readonly Actor source;
     private bool split;
+    private float orbSpawnCooldown;
 	public bool tryConsumeForCrossShot() {
     if (!ownedByLocalPlayer || destroyed || split) return false;
 
@@ -474,21 +476,25 @@ public class BusterX3Proj1 : Projectile {
         if (MathF.Abs(vel.x) > 300) {
             vel.x = 300 * xDir;
         }
-		float waveY = MathF.Sin(time * MathF.PI * 6) * 15f;
 
-		new Anim(
-    	pos.addxy(-4, waveY),"buster4_max_orb1", 1, null, true,
-    		zIndex: this.zIndex
-		);
-		new Anim(
-    	pos.addxy(0, -4 - waveY),"buster4_max_orb2", xDir, null, true,
-    	zIndex: this.zIndex
-		);
+        // Keep the original orb hitboxes, but spawn effects every two frames.
+        Helpers.decrementFrames(ref orbSpawnCooldown);
+        if (orbSpawnCooldown > 0) return;
+        orbSpawnCooldown = 2;
 
-		new Anim(
-    	pos.addxy(4, waveY),"buster4_max_orb3", xDir, null, true,
-    	zIndex: this.zIndex
-		);
+        float waveY = MathF.Sin(time * MathF.PI * 6) * 15f;
+        new Anim(
+            pos.addxy(-4, waveY), "buster4_max_orb1", 1, null, true,
+            zIndex: this.zIndex
+        );
+        new Anim(
+            pos.addxy(0, -4 - waveY), "buster4_max_orb2", xDir, null, true,
+            zIndex: this.zIndex
+        );
+        new Anim(
+            pos.addxy(4, waveY), "buster4_max_orb3", xDir, null, true,
+            zIndex: this.zIndex
+        );
     }
 
     public override void onHitDamagable(IDamagable target) {
@@ -754,6 +760,21 @@ public class SpiralBackProj : Projectile {
 
 		projId = (int)ProjIds.Buster4;
 
+	}
+	public static Projectile rpcInvoke(ProjParameters args) {
+    	return new SpiralBackProj(
+        args.pos, args.xDir, args.owner, args.netId,
+        false, args.player
+    	);
+	}
+	public override void preUpdate() {
+    	int previousFrame = frameIndex;
+    	base.preUpdate();
+
+    	if (!destroyed && frameIndex != previousFrame) {
+        	Global.level.removeFromGrid(this);
+        	Global.level.addToGrid(this);
+    	}
 	}
 	public override void update() {
 		base.update();

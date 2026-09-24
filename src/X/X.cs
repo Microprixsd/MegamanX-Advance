@@ -116,7 +116,7 @@ public class MegamanX : Character {
 	public bool maxBusterFollowupReady => maxBusterFollowupTime > 0 && stockedMaxBusterLv == 1;
 
 	public void onMaxBusterShot(bool orbs, bool fromHyperCharge = false) {
-		if (hasUltimateArmor) return;
+		if (hasUltimateArmor && !fromHyperCharge && !maxBusterFollowupFromHyperCharge) return;
 		maxBusterFollowupFromHyperCharge = orbs && fromHyperCharge;
 		stockedMaxBusterLv = orbs ? 1 : 0;
 		// Only Hypercharge stocks expire; manually charged Buster stocks persist.
@@ -385,8 +385,15 @@ public class MegamanX : Character {
 		if (!charState.normalCtrl) {
 			lastShootPressed = 100;
 		}
-		hyperChargeActive = currentWeapon is HyperCharge;
 		fastChipActivation();
+		if (fullArmor == ArmorId.Max) {
+			player.addHyperCharge();
+		}
+		if (currentWeapon is HyperCharge && !HyperCharge.canSelect(player)) {
+			int busterSlot = weapons.FindIndex(XBuster.isNormalBuster);
+			player.changeWeaponSlot(busterSlot >= 0 ? busterSlot : 0);
+		}
+		hyperChargeActive = currentWeapon is HyperCharge;
 	}
 
 	public override bool normalCtrl() {
@@ -444,7 +451,7 @@ public class MegamanX : Character {
 		) {
 			lemonShotBuffer = 6;
 		}
-		if (player.input.isPressed(Control.Special1, player) && helmetArmor == ArmorId.Giga &&
+		if (player.input.isPressed(Control.Special2, player) && helmetArmor == ArmorId.Giga &&
 			itemTracer.shootCooldown == 0
 		) {
 			itemTracer.shoot(this, [0, hyperHelmetArmor == ArmorId.Giga ? 1 : 0]);
@@ -457,6 +464,12 @@ public class MegamanX : Character {
 		}
 		if (player.input.isPressed(Control.Special1, player) && stingActiveTime <= 0
 		) {
+			if (armArmor == ArmorId.Force && forceStocks > 0 &&
+				specialBuster.shootCooldown <= 0 && !isCharging()
+			) {
+				shoot(0, specialBuster, false);
+				return true;
+			}
 			if (specialButtonMode == 1 && specialSaberCooldown <= 0 && !hasLockingProj() && !hasAnyArmor) {
 				changeState(new X6SaberState(grounded), true);
 				specialSaberCooldown = 60;
@@ -565,7 +578,8 @@ public class MegamanX : Character {
 	}
 
 	public void shootCharge(int chargeLevel) {
-		if (!player.hasArmArmor(ArmorId.Force) || currentWeapon is not XBuster) {
+		if (!player.hasArmArmor(ArmorId.Force) || currentWeapon is not XBuster ||
+			hasUltimateArmor && chargeLevel >= 3) {
 			Weapon targetWeapon = currentWeapon ?? specialBuster;
 			if (isSpecialButtonCharge) {
 				targetWeapon = specialBuster;
@@ -576,8 +590,7 @@ public class MegamanX : Character {
 	
 	public void shoot(int chargeLevel, Weapon weapon, bool busterStock) {
 		bool grantsMeleeSaber = chargeLevel >= 4 &&
-			armArmor == ArmorId.Max && !hasFullHyperMaxArmor && !hasUltimateArmor && !busterStock &&
-			weapon is XBuster buster && XBuster.isNormalBuster(buster);
+			armArmor == ArmorId.Max && !hasFullHyperMaxArmor && !hasUltimateArmor && !busterStock;
 		// Las armas siguen recibiendo como máximo el nivel 3.
 		chargeLevel = Math.Min(chargeLevel, 3);
 		bool firesMaxBuster = weapon is XBuster && (
@@ -585,7 +598,8 @@ public class MegamanX : Character {
 				(!maxBusterFollowupFromHyperCharge || currentWeapon is HyperCharge) ||
 			chargeLevel >= 3 && armArmor == ArmorId.Max && !busterStock
 		);
-		if (!hasUltimateArmor && maxBusterShotCooldown > 0 &&
+		if ((!hasUltimateArmor || weapon is HyperCharge || maxBusterFollowupFromHyperCharge) &&
+			maxBusterShotCooldown > 0 &&
 			(weapon is HyperCharge || firesMaxBuster)) {
 			return;
 		}
@@ -655,8 +669,10 @@ public class MegamanX : Character {
 		if (helmetArmor != ArmorId.Force || chargeLevel >= 3 || !weapon.useForceHelmetBuff) {
 			weapon.addAmmo(-weapon.getAmmoUsageEX(chargeLevel, this), player);
 		}
-		//Change to shoot sprite
-		if (player.weapon?.hasCustomAnim == false) setShootAnim();
+		// Preserve the animation selected by charged attacks with their own state.
+		if (!weapon.hasCustomAnim && (chargeLevel < 3 || !weapon.hasCustomChargeAnim)) {
+			setShootAnim();
+		}
 		// Play sound if any.
 		if (shootSound != "") {
 			playSound(shootSound, sendRpc: true);
@@ -881,8 +897,7 @@ public class MegamanX : Character {
 		return !isInvulnerableAttack() && !hasLockingProj();
 	}
 	public override int getMaxChargeLevel() {
-		if (armArmor == ArmorId.Max && !hasFullHyperMaxArmor && !hasUltimateArmor &&
-			currentWeapon is XBuster buster && XBuster.isNormalBuster(buster)) {
+		if (armArmor == ArmorId.Max && !hasFullHyperMaxArmor && !hasUltimateArmor) {
 			return 4;
 		}
 		return base.getMaxChargeLevel();
@@ -916,14 +931,7 @@ public class MegamanX : Character {
 	int forceStocksLogic() {
 		int shots = forceStocks;
 		
-		if (!hasUltimateArmor) {
-			if (chargeTime >= forceStocksChargeTimes[(int)Helpers.clampMax(shots, 3)]) shots++;
-		} /* else {
-			if (uaStockChargeTime >= 60) {
-				uaStockChargeTime = 0;
-				shots++;
-			}
-		} */
+		if (chargeTime >= forceStocksChargeTimes[(int)Helpers.clampMax(shots, 3)]) shots++;
 		return Math.Min(4, shots);
 	}
 
@@ -1094,6 +1102,7 @@ public class MegamanX : Character {
 			"mmx_beam_saber_air2" => MeleeIds.ZSaberAir,
 			"mmx_nova_strike" or "mmx_nova_strike_down" or "mmx_nova_strike_up" when hasUltimateArmor => MeleeIds.NovaStrike,
 			"mmx_nova_strike" or "mmx_nova_strike_down" or "mmx_nova_strike_up"  => MeleeIds.ForceNovaStrike,
+			"mmx_nova_strike_force" => MeleeIds.ForceNovaStrike,
 			// Light  Helmet.
 			"mmx_jump" or "mmx_jump_shoot" or "mmx_wall_kick" or "mmx_wall_kick_shoot"
 			when helmetArmor == ArmorId.Light && vel.y < 0 && stingActiveTime == 0 => MeleeIds.LightHeadbutt,
