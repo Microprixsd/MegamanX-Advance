@@ -48,6 +48,7 @@ public class ControlMenu : IMainMenu {
 			[Control.WeaponLeft, "Alt L"],
 			[Control.WeaponRight, "Alt R"],
 			[Control.Special2, "Command"],
+			[Control.Special3, "Action"],
 			[Control.Taunt, "Taunt"]
 		];
 

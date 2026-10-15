@@ -809,6 +809,8 @@ public enum ProjIds {
 	ViralPosession,
 	BusterX3Proj1 = 31000,
 	BusterX3Proj2 = 31001,
+	X6SaberPiercing = 31002,
+	OverdriveBuster = 31003,
 	// Enviroment effect shenanigans.
 	KillZone = 32000,
 

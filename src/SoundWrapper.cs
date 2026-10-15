@@ -23,7 +23,13 @@ public class SoundBufferWrapper {
 
 	public float volume {
 		get {
-			return volume0To100 / 100f;
+			float gain = soundKey.ToLowerInvariant() switch {
+				"busterx4" or "buster2x4" or "twinslashercharged" or
+				"lightningwebprojweb" or "frosttower" or
+				"fakedoublecyclone" => 0.6f,
+				_ => 1f
+			};
+			return volume0To100 / 100f * gain;
 		}
 	}
 
@@ -111,10 +117,13 @@ public class SoundWrapper {
 		}
 		if (actor != null) {
 			sound.Volume = actor.getSoundVolume() * soundBuffer.volume;
+			if (actor is MegamanX && soundBuffer.soundKey.Equals("ryuenjin", System.StringComparison.OrdinalIgnoreCase)) {
+				sound.Volume *= 0.6f;
+			}
 			// Point pos = actor.getSoundPos();
 			// sound.Position = new SFML.System.Vector3f(pos.x, 0, pos.y);
 		} else {
-			sound.Volume = 100 * Options.main.soundVolume;
+			sound.Volume = 100 * Options.main.soundVolume * soundBuffer.volume;
 		}
 	}
 }

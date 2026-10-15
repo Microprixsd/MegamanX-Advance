@@ -91,7 +91,6 @@ public class HyperZeroStart : ZeroState {
 		base.onEnter(oldState);
 		character.useGravity = false;
 		character.vel = new Point();
-		character.player.currency -= 10;
 		character.clenaseEverithing();
 		if (zero.hyperMode == 2) {
 			zero.changeSpriteFromName("hyper_viral", true);
@@ -116,8 +115,8 @@ public class HyperZeroStart : ZeroState {
 		if (character != null) {
 			character.invulnTime = 0.5f;
 		}
-		if (zero.isAwakened || zero.isBlack) {
-			zero.hyperModeTimer = Zero.maxBlackZeroTime + 30;
+		if (zero.hypermodeActive()) {
+			zero.hyperModeTimer = Zero.maxBlackZeroTime;
 		}
 		virusEffectParts?.destroySelf();
 		bool playedHitSound = false;
@@ -156,14 +155,10 @@ public class HyperZeroStart : ZeroState {
 	public void activateHypermode() {
 		if (zero.hyperMode == 1) {
 			zero.awakenedPhase = 1;
-			float storedAmmo = zero.gigaAttack.ammo;
-			zero.gigaAttack = new ShinMessenkou();
-			zero.gigaAttack.ammo = storedAmmo;
+			zero.equipGiga(ZeroGigaType.ShinMessenkou);
 		} else if (zero.hyperMode == 2) {
 			zero.isViral = true;
-			float storedAmmo = zero.gigaAttack.ammo;
-			zero.gigaAttack = new DarkHoldWeapon();
-			zero.gigaAttack.ammo = storedAmmo;
+			zero.equipGiga(ZeroGigaType.DarkHold);
 			zero.freeBusterShots = 10;
 		} else {
 			zero.isBlack = true;

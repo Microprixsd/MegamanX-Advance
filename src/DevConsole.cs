@@ -223,7 +223,7 @@ public class DevConsole {
 	}
 
 	public static void aiGiga() {
-		Global.level.otherPlayer?.weapons.Add(new GigaCrush());
+		Global.level.otherPlayer?.addGigaCrush();
 		Global.level.otherPlayer?.character?.changeState(new GigaCrushCharState(), true);
 	}
 

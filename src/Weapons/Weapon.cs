@@ -9,7 +9,18 @@ public class Weapon {
 	/// <summary> On fire sounds, skipped if empty. </summary>
 	public string[] shootSounds = ["", "", "", ""];
 	/// <summary> Display ammo. </summary>
-	public float ammo;
+	private float localAmmo;
+	internal MegamanX? sharedGigaAmmoOwner;
+	internal Character? consumableOwner;
+	bool hasFreeConsumableAmmo => consumableOwner?.weaponDriveTime > 0 && Character.isConsumableSpecialWeapon(this);
+	public float ammo {
+		get => hasFreeConsumableAmmo ? maxAmmo : sharedGigaAmmoOwner?.sharedGigaAmmo ?? localAmmo;
+		set {
+			if (hasFreeConsumableAmmo && value < ammo) return;
+			if (sharedGigaAmmoOwner is MegamanX x) x.setSharedGigaAmmo(value);
+			else localAmmo = value;
+		}
+	}
 	/// <summary> Display max posible ammo. </summary>
 	public float maxAmmo;
 	/// <summary> Default shoot cooldown. </summary>
@@ -79,6 +90,8 @@ public class Weapon {
 
 	public bool canRechargeAmmo = false;
 	public float ammoRechargeRate = 75;
+	internal int xSkillCapacityBonus;
+	internal float xSkillRechargeMultiplier = 1;
 	public float rechargeTime;
 	public float rechargeCooldown;
 	public float maxRechargeCooldown = 60;
@@ -336,7 +349,7 @@ public class Weapon {
 
 		if (rechargeCooldown <= 0) {
 			rechargeTime += rechargeStep;
-			if (rechargeTime > maxRechargeTime) {
+			if (rechargeTime > maxRechargeTime * xSkillRechargeMultiplier) {
 				rechargeTime = 0;
 				ammo++;
 				if (ammo > maxAmmo) ammo = maxAmmo;
@@ -355,7 +368,7 @@ public class Weapon {
 	}
 
 	public void addAmmo(float amount, Player player) {
-		if (player.character is MegamanX mmx && mmx.hyperArmArmor == ArmorId.Max && amount < 0) amount *= 0.5f;
+		if (amount < 0 && player.character?.weaponDriveTime > 0 && Character.isConsumableSpecialWeapon(this)) return;
 		ammo += amount;
 		ammo = Helpers.clamp(ammo, 0, maxAmmo);
 	}

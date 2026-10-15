@@ -695,6 +695,12 @@ public partial class Actor : GameObject {
 	// Also why the game lags so much. We need to optimize it ASAP.
 	public void localUpdate(bool underwater) {
 		Character? chr = this as Character;
+		// Carry an attached rider before checking the platform's new position.
+		ShotgunIceProjSled? previousSled = chr?.shotgunIceSled;
+		if (previousSled != null && !previousSled.destroyed && grounded && vel.y >= 0) {
+			movePoint(previousSled.deltaPos, useDeltaTime: false);
+		}
+		if (chr != null) chr.groundedOnLightningWeb = false;
 		float grav = getGravity();
 		float terminalVelDown = Physics.MaxFallSpeed;
 		if (underwater) {
@@ -795,7 +801,7 @@ public partial class Actor : GameObject {
 
 		if (!isStatic) {
 			float xExtraSpeed = xFlinchPushVel + xIceVel + xPushVel + xSwingVel;
-			movePoint((vel / 60f).addxy(xExtraSpeed, 0), true, true, false);
+			movePoint((vel * getVelocityMultiplier() / 60f).addxy(xExtraSpeed, 0), true, true, false);
 			if (yPushVel != 0) {
 				moveXY(0, yPushVel, true, false, false);
 			}
@@ -848,6 +854,11 @@ public partial class Actor : GameObject {
 				vel.y = 0;
 
 				var hitWall = collideData.gameObject as Wall;
+				if (chr != null) {
+					chr.groundedOnLightningWeb = collideData.otherCollider.isLightningWeb;
+					if (chr.groundedOnLightningWeb) chr.useLightningWeb(collideData.otherCollider);
+					else chr.resetLightningWebUses();
+				}
 				if (hitWall?.isMoving == true) {
 					movePoint(hitWall.deltaMove, useDeltaTime: false);
 				} else if (hitWall != null && hitWall.moveX != 0) {
@@ -858,7 +869,11 @@ public partial class Actor : GameObject {
 					}
 				}
 				if (isPlatform && hitActor != null) {
-					movePoint(hitActor.deltaPos, useDeltaTime: false);
+					if (hitActor != previousSled) movePoint(hitActor.deltaPos, useDeltaTime: false);
+					if (chr != null && hitActor is ShotgunIceProjSled sled) {
+						chr.shotgunIceSled = sled;
+						sled.character = chr;
+					}
 				}
 
 				groundedIce = false;
@@ -885,6 +900,16 @@ public partial class Actor : GameObject {
 		}
 		if (grounded) {
 			lastGroundedPos = pos;
+		}
+		if (chr != null) {
+			if (chr.shotgunIceSled != null && (!grounded ||
+				Global.level.checkTerrainCollisionOnce(this, 0, 1, checkPlatforms: true)?.gameObject != chr.shotgunIceSled)) {
+				if (chr.shotgunIceSled.character == chr) chr.shotgunIceSled.character = null;
+				chr.shotgunIceSled = null;
+			}
+			if (!chr.groundedOnLightningWeb && chr.charState is not WallSlide && chr.charState is not WallSlideAttack) {
+				chr.lightningWebSupport = null;
+			}
 		}
 		movedUpOnFrame = false;
 	}
@@ -1001,6 +1026,8 @@ public partial class Actor : GameObject {
 		}
 		return true;
 	}
+
+	public virtual float getVelocityMultiplier() => 1;
 
 	public virtual void postUpdate() {
 
@@ -1192,6 +1219,10 @@ public partial class Actor : GameObject {
 				}
 			} else {
 				healer.creditHealing(reportAmount);
+				if (reportAmount > 0 && this is Character healed && healer != healed.player && healer.alliance == healed.player.alliance) {
+					healer.awardSkillExperience(XSkillActivity.Support, reportAmount, true);
+					healed.player.awardSkillExperience(XSkillActivity.Defense, reportAmount / 2);
+				}
 				addDamageTextHelper(healer, -reportAmount, 16, sendRpc: true);
 			}
 		}

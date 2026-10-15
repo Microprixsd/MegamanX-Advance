@@ -36,7 +36,8 @@ public partial class Character : Actor, IDamagable {
 			if (weaponSlot < 0 || weaponSlot >= weapons.Count) {
 				return null;
 			}
-			return weapons[weaponSlot];
+			Weapon selected = weapons[weaponSlot];
+			return overdriveTime > 0 && this is MegamanX && isOverdriveWeapon(selected) ? overdriveBuster : selected;
 		}
 	}
 
@@ -248,6 +249,7 @@ public partial class Character : Actor, IDamagable {
 		slideOnIce = true;
 		this.isATrans = isATrans;
 		this.player = player;
+		pitReturnPos = pos;
 		// Keep the fork's charge timing for X and Zero; restore upstream for the other characters.
 		if (this is not (MegamanX or RagingChargeX or Zero or BusterZero or PunchyZero)) {
 			charge1Time = 30;
@@ -344,6 +346,7 @@ public partial class Character : Actor, IDamagable {
 			return;
 		}
 		changeState(new DarkHoldState(this, darkHoldTime), true);
+		if (charState is DarkHoldState) creditSkillStatus(attacker, darkHoldTime);
 	}
 
 	public void addAcidTime(Player attacker, float time, float tickRate = 1) {
@@ -800,6 +803,8 @@ public partial class Character : Actor, IDamagable {
 		// Other timers.
 		Helpers.decrementTime(ref limboRACheckCooldown);
 		Helpers.decrementTime(ref dropFlagCooldown);
+		// Grabbers also set this timer on remote victims when releasing them.
+		Helpers.decrementTime(ref grabInvulnTime);
 		if (!ownedByLocalPlayer) {
 			return;
 		}
@@ -809,6 +814,10 @@ public partial class Character : Actor, IDamagable {
 		if (grounded && !isDashing) {
 			dashedInAir = 0;
 		}
+		if (grounded && !touchedHazard && charState is not PitRecovery && pos.y < Global.level.killY) {
+			pitReturnPos = pos;
+		}
+		touchedHazard = false;
 		ai?.preUpdate();
 	}
 
@@ -821,8 +830,9 @@ public partial class Character : Actor, IDamagable {
 			return;
 		}
 
-		if (other.gameObject is KillZone killZone && !isInvulnerable(true)) {
-			killZone.applyDamage(this);
+		if (other.gameObject is KillZone killZone) {
+			touchedHazard = true;
+			if (!isInvulnerable(true)) killZone.applyDamage(this);
 		}
 
 		// Crystal break.
@@ -975,7 +985,6 @@ public partial class Character : Actor, IDamagable {
 		Helpers.decrementTime(ref freezeInvulnTime);
 		Helpers.decrementTime(ref stunInvulnTime);
 		Helpers.decrementTime(ref crystalizeInvulnTime);
-		Helpers.decrementTime(ref grabInvulnTime);
 		Helpers.decrementTime(ref darkHoldInvulnTime);
 	}
 
@@ -1014,6 +1023,7 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public override void update() {
+		updateConsumables();
 		if (charState is not InRideChaser) {
 			camOffsetX = MathInt.Round(Helpers.lerp(camOffsetX, 0, 10));
 		}
@@ -1142,10 +1152,7 @@ public partial class Character : Actor, IDamagable {
 				useGravity = false;
 				wsr.groundStart = true;
 			} else {
-				if (charState is not Die) {
-					incPos(new Point(0, 25));
-				}
-				applyDamage(Damager.envKillDamage, player, this, null, null);
+				applyTerrainHazard(true);
 			}
 		}
 
@@ -1155,7 +1162,7 @@ public partial class Character : Actor, IDamagable {
 		}
 		if (healAmount > 0 && alive) {
 			healTime += Global.spf;
-			if (healTime > 0.05) {
+			if (healTime > (lifeRecoverActive ? 0.125 : 0.05)) {
 				healTime = 0;
 				healAmount--;
 				if (usedSubtank != null) {
@@ -2645,6 +2652,10 @@ public partial class Character : Actor, IDamagable {
 
 	public virtual void getHealthNameOffsets(out bool shieldDrawn, ref float healthPct) {
 		shieldDrawn = false;
+		if (consumableShield > 0) {
+			shieldDrawn = true;
+			healthPct = (float)(consumableShield / 4);
+		}
 		if (rideArmor != null) {
 			shieldDrawn = true;
 			healthPct = rideArmor.health / rideArmor.maxHealth;
@@ -2714,8 +2725,9 @@ public partial class Character : Actor, IDamagable {
 			return MathInt.Ceiling(Player.getModifiedHealth(28) * Player.getHpMod());
 		}
 		return MathInt.Ceiling(
-			(Player.getModifiedHealth(baselineMaxHealth()) +
-				heartTanks * Player.getHeartTankModifier()
+			(Player.getCharacterBaseHealth(baselineMaxHealth()) +
+				heartTanks * (this is MegamanX ? 5 : Player.getHeartTankModifier()) +
+				(this is MegamanX && player.xSkills.has(XSkill.LifeUp) ? 7 : 0)
 			) * Player.getHpMod()
 		);
 	}
@@ -2803,6 +2815,7 @@ public partial class Character : Actor, IDamagable {
 		}
 		// Get armor penetration flag.
 		bool isArmorPiercing = Damager.isArmorPiercing(projId);
+		bool bypassDefenseSavings = projId == (int)ProjIds.X6SaberPiercing;
 		bool giveHyperchargeAmmo = true;
 		// Instakills and hits while dead also ignore armor.
 		if (originalDamage == (decimal)Damager.forceKillDamage ||
@@ -2845,7 +2858,7 @@ public partial class Character : Actor, IDamagable {
 			decimal decDamage = damage % 1;
 			damage = Math.Floor(damage);
 			// Fully nullyfy decimal using damage savings if posible.
-			if (damageSavings >= decDamage) {
+			if (!bypassDefenseSavings && damageSavings >= decDamage) {
 				damageSavings -= decDamage;
 			}
 			// If damage is over one we add it to damagedebt.
@@ -2863,7 +2876,7 @@ public partial class Character : Actor, IDamagable {
 			damageDebt -= 1;
 			damage += 1;
 		}
-		while (damageSavings >= 1 && damage >= 1) {
+		while (!bypassDefenseSavings && damageSavings >= 1 && damage >= 1) {
 			damageSavings -= 1;
 			damage -= 1;
 		}
@@ -2872,7 +2885,10 @@ public partial class Character : Actor, IDamagable {
 			// Limit calculation damage to our max HP.
 			decimal calcDamage = Math.Min(originalDamage, maxHealth);
 			// Apply savings.
-			if (charState is SwordBlock) {
+			if (hyperdriveTime > 0) {
+				damageSavings += calcDamage * 0.5m;
+			}
+			else if (charState is SwordBlock) {
 				if (this is NeoSigma) {
 					damageSavings += (calcDamage * 0.75m);
 				} else {
@@ -2894,7 +2910,10 @@ public partial class Character : Actor, IDamagable {
 				decimal extraDamage = 0.25m + (0.25m * ((decimal)acidTime / 8.0m));
 				damageDebt += (calcDamage * extraDamage);
 			}
-			if (mmx != null) {
+			if (mmx != null && hyperdriveTime <= 0) {
+				if (!mmx.hasAnyArmor && mmx.barrierActiveTime <= 0 && player.xSkills.has(XSkill.ShockBuffer1)) {
+					damageSavings += calcDamage * 0.125m;
+				}
 				if (mmx.barrierActiveTime > 0) {
 					if (mmx.hyperChestArmor == ArmorId.Max) {
 						damageSavings += (calcDamage * 0.5m);
@@ -2912,7 +2931,7 @@ public partial class Character : Actor, IDamagable {
 					damageSavings += (calcDamage * 0.125m);
 				}
 			}
-			if (vile != null && vile.hasFrozenCastle) {
+			if (vile != null && vile.hasFrozenCastle && hyperdriveTime <= 0) {
 				damageSavings += calcDamage * Vile.frozenCastlePercent;
 			}
 			// Limit to max HP.
@@ -2922,7 +2941,7 @@ public partial class Character : Actor, IDamagable {
 		}
 		// This is to defend from overkill damage.
 		// Or at least attempt to.
-		if (damageSavings > 0 &&
+		if (!bypassDefenseSavings && damageSavings > 0 &&
 			health - damage <= 0 &&
 			(health + damageSavings) - damage > 0
 		) {
@@ -2944,10 +2963,35 @@ public partial class Character : Actor, IDamagable {
 		// If somehow the damage is negative.
 		// Heals are not really applied here.
 		if (damage < 0) { damage = 0; }
+		if (damage > 0 && consumableShield > 0 && fDamage < Damager.ohkoDamage) {
+			decimal absorbed = Math.Min(damage, consumableShield);
+			consumableShield -= absorbed;
+			damage -= absorbed;
+		}
+		if (retryChipArmed && health > 0 && damage >= health && fDamage != Damager.forceKillDamage && fDamage != Damager.switchKillDamage) {
+			useConsumable(11, out _, automatic: true);
+			retryChipArmed = false;
+			damage = Math.Max(0, health - 1);
+			stopCharge();
+			changeState(new KnockedDown(0, retryRecovery: true), true);
+			invulnTime = MathF.Max(invulnTime, 2);
+		}
 		health -= damage;
+		tryActivateSpareEnergy();
 		// Clamp to 0. We do not want to go into the negatives here.
 		if (health < 0) {
 			health = 0;
+		}
+		mmx?.convertSkillDamage(originalHP - health);
+		if (fDamage < Damager.ohkoDamage && originalHP > health)
+			player.awardHyperDamage((float)(originalHP - health));
+		if (attacker != null && attacker != player && attacker != Player.stagePlayer &&
+			attacker.alliance != player.alliance && fDamage < Damager.ohkoDamage && originalHP > health) {
+			float lostHp = (float)(originalHP - health);
+			attacker.awardHyperDamage(lostHp, true);
+			player.awardSkillExperience(XSkillActivity.Defense, lostHp);
+			attacker.awardSkillExperience(XSkillActivity.Damage, lostHp, true);
+			if (flag != null) player.awardSkillExperience(XSkillActivity.Objective, lostHp * 2);
 		}
 
 		if (player.showTrainingDps && alive && originalDamage > 0) {
@@ -2973,13 +3017,10 @@ public partial class Character : Actor, IDamagable {
 		if (originalHP > 0 && (originalDamage > 0 || damage > 0)) {
 			addDamageTextHelper(attacker, (float)damage, (float)maxHealth, true);
 		}
-		if (alive && (originalDamage > 0 || damage > 0) && ownedByLocalPlayer) {
-			decimal modifier = (32 / maxHealth);
-			decimal gigaDamage = damage;
-			if (originalDamage > damage) {
-				gigaDamage = originalDamage;
-			}
-			float gigaAmmoToAdd = (float)(gigaDamage * modifier);
+		if (alive && damage > 0 && ownedByLocalPlayer) {
+			decimal modifier = (48 / maxHealth);
+			// Charge only from damage that actually reduced health after mitigation.
+			float gigaAmmoToAdd = (float)(damage * modifier);
 	
 			if (this is Zero zero) {
 				float currentAmmo = zero.gigaAttack.ammo;
@@ -3011,18 +3052,8 @@ public partial class Character : Actor, IDamagable {
 					);
 				}
 			}
-			if (this is MegamanX) {
-				var gigaCrush = weapons.FirstOrDefault(w => w is GigaCrush);
-				if (gigaCrush != null) {
-					float currentAmmo = gigaCrush.ammo;
-					gigaCrush.addAmmo(gigaAmmoToAdd, player);
-					if (player.isMainPlayer) {
-						Weapon.gigaAttackSoundLogic(
-							this, currentAmmo, gigaCrush.ammo,
-							gigaCrush.getAmmoUsage(0), gigaCrush.maxAmmo
-						);
-					}
-				}
+			if (this is MegamanX gigaX) {
+				gigaX.chargeSharedGigaAmmo(gigaAmmoToAdd);
 				var hyperBuster = weapons.FirstOrDefault(w => w is HyperCharge);
 				if (hyperBuster != null) {
 					float currentAmmo = hyperBuster.ammo;
@@ -3032,28 +3063,6 @@ public partial class Character : Actor, IDamagable {
 							this, currentAmmo, hyperBuster.ammo,
 							hyperBuster.getAmmoUsage(0), hyperBuster.maxAmmo,
 							"hyperchargeRecharge", "hyperchargeFull"
-						);
-					}
-				}
-				var novaStrike = weapons.FirstOrDefault(w => w is HyperNovaStrike);
-				if (novaStrike != null) {
-					float currentAmmo = novaStrike.ammo;
-					novaStrike.addAmmo(gigaAmmoToAdd, player);
-					if (player.isMainPlayer) {
-						Weapon.gigaAttackSoundLogic(
-							this, currentAmmo, novaStrike.ammo,
-							novaStrike.getAmmoUsage(0), novaStrike.maxAmmo
-						);
-					}
-				}
-				Weapon? forceNovaStrike = weapons.FirstOrDefault(w => w is ForceNovaStrike);
-				if (forceNovaStrike != null) {
-					float currentAmmo = forceNovaStrike.ammo;
-					forceNovaStrike.addAmmo(gigaAmmoToAdd, player);
-					if (player.isMainPlayer) {
-						Weapon.gigaAttackSoundLogic(
-							this, currentAmmo, forceNovaStrike.ammo,
-							forceNovaStrike.getAmmoUsage(0), forceNovaStrike.maxAmmo
 						);
 					}
 				}
@@ -3146,6 +3155,9 @@ public partial class Character : Actor, IDamagable {
 					}
 				}
 				killer.awardCurrency();
+				creditHyperModeKill(killer);
+				if (ownedByLocalPlayer && killer.alliance != player.alliance)
+					killer.awardSkillExperience(XSkillActivity.Damage, 4, true);
 			} else if (Global.level.gameMode.level.is1v1()) {
 				// In 1v1 the other player should always be considered a killer to prevent suicide
 				var otherPlayer = Global.level.nonSpecPlayers().Find(p => p.id != player.id);
@@ -3156,6 +3168,8 @@ public partial class Character : Actor, IDamagable {
 				assister.addAssist();
 				assister.addKill();
 				assister.awardCurrency();
+				if (ownedByLocalPlayer && assister != killer && assister.alliance != player.alliance)
+					assister.awardSkillExperience(XSkillActivity.Damage, 2, true);
 			}
 			player.addDeath();
 
@@ -3239,7 +3253,7 @@ public partial class Character : Actor, IDamagable {
 	}
 
 	public virtual void increaseCharge() {
-		chargeTime += Global.speedMul;
+		chargeTime += Global.speedMul * (this is Zero && overdriveTime > 0 ? 1.25f : 1);
 	}
 
 	public void dropFlag() {
@@ -3273,6 +3287,11 @@ public partial class Character : Actor, IDamagable {
 	public void setHurt(int dir, int flinchFrames, bool spiked) {
 		if (!ownedByLocalPlayer) {
 			return;
+		}
+		if (flinchFrames > 0) tryActivateEscapeBoost();
+		if (escapeBoostTime > 0) flinchFrames = Math.Min(flinchFrames, Global.halfFlinch);
+		if (this is MegamanX && player.xSkills.has(XSkill.ShockBuffer2) && flinchFrames > 0) {
+			flinchFrames = Math.Max(1, (int)MathF.Round(flinchFrames * 0.875f, MidpointRounding.AwayFromZero));
 		}
 		// Tough Guy.
 		if (this is BaseSigma || isToughGuyHyperMode()) {
@@ -3373,6 +3392,7 @@ public partial class Character : Actor, IDamagable {
 			return;
 		}
 		Damager damager = new Damager(attacker, 4, Global.defFlinch, 0);
+		if (parasiteTime <= 0) creditSkillStatus(attacker, 60);
 		parasiteTime = Global.spf;
 		parasiteDamager = damager;
 		parasiteAnim = new ParasiteAnim(
@@ -3691,7 +3711,8 @@ public partial class Character : Actor, IDamagable {
 	public virtual void aiUpdate(Actor? target) {
 		if (!player.isMainPlayer && player.character != null && !Global.level.is1v1()) {
 			if (heartTanks < UpgradeMenu.getMaxHeartTanks() &&
-				player.currency >= UpgradeMenu.getHeartTankCost()
+				player.currency >= UpgradeMenu.getHeartTankCost() &&
+				XSkillProgress.canBuyHeartTank(player)
 			) {
 				player.currency -= UpgradeMenu.getHeartTankCost();
 				player.heartTanks++;
@@ -3796,6 +3817,10 @@ public partial class Character : Actor, IDamagable {
 		customData[boolMaskPos] = Helpers.boolArrayToByte(boolMask);
 
 		// Add the total arguments size.
+		customData.Add(Helpers.boolArrayToByte([
+			powerDriveTime > 0, escapeBoostTime > 0, consumableShield > 0,
+			retryChipArmed, spareEnergyArmed, overdriveTime > 0
+		]));
 		customData[0] = (byte)customData.Count;
 
 		return customData;
@@ -3880,6 +3905,15 @@ public partial class Character : Actor, IDamagable {
 		} else {
 			rideArmor = null;
 			rideChaser = null;
+		}
+		if (pos < data[0]) {
+			bool[] consumables = Helpers.byteToBoolArray(data[pos]);
+			powerDriveTime = consumables[0] ? 1 : 0;
+			escapeBoostTime = consumables[1] ? 1 : 0;
+			consumableShield = consumables[2] ? 4 : 0;
+			retryChipArmed = consumables[3];
+			spareEnergyArmed = consumables[4];
+			overdriveTime = consumables[5] ? 1 : 0;
 		}
 	}
 }

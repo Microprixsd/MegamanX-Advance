@@ -147,7 +147,10 @@ public partial class Player {
 			}
 		}
 	}
-	public float _maxHealth = 16;
+	public const int defaultBaseHp = 32;
+	public const int defaultHeartTankHp = 4;
+	public const int defaultMaxHeartTanks = 8;
+	public float _maxHealth = defaultBaseHp;
 	public float maxHealth {
 		get {
 			if (character != null) {
@@ -279,6 +282,13 @@ public partial class Player {
 	public static int curMul = Helpers.randomRange(2, 8);
 
 	public ProtectedIntMap<int> charCurrency = [];
+	public readonly int[] consumableInventory = new int[16];
+	public readonly int[] consumableSlots = { -1, -1 };
+	internal readonly int[] activeConsumableSlotItems = { -1, -1 };
+	internal readonly int[] lastConsumedSlotItems = { -1, -1 };
+	public readonly float[] consumableCooldowns = new float[2];
+	public readonly float[] consumableCooldownMax = new float[2];
+	public float consumableClickCooldown;
 	public int currency {
 		get {
 			if (Global.level.mainPlayer != this || Global.serverClient == null) {
@@ -289,6 +299,9 @@ public partial class Player {
 		set {
 			charCurrency[charNum] = value;
 		}
+	}
+	public void addEarnedCurrency(int amount) {
+		currency += amount * (character?.metalGeneratorTime > 0 ? 2 : 1);
 	}
 
 	public bool isSpectator {
@@ -618,6 +631,7 @@ public partial class Player {
 		foreach (int key in charCurrency.Keys) {
 			charCurrency[key] = getStartCurrency();
 		}
+		xSkills.points = Global.level?.server?.customMatchSettings?.startSkillPoints ?? XSkillProgress.initialPoints;
 		foreach (int key in heartTanksMap.Keys) {
 			int htCount = getStartHeartTanksForChar();
 			int altHtCount = getStartHeartTanks();
@@ -653,7 +667,7 @@ public partial class Player {
 	}
 
 	public static int getHeartTankModifier() {
-		return Global.level.server?.customMatchSettings?.heartTankHp ?? 1;
+		return Global.level.server?.customMatchSettings?.heartTankHp ?? defaultHeartTankHp;
 	}
 
 	public float getMaverickMaxHp(MaverickModeId controlMode) {
@@ -687,15 +701,20 @@ public partial class Player {
 		if (Global.level.server.customMatchSettings != null) {
 			return Global.level.server.customMatchSettings.baseHp;
 		}
-		return 16;
+		return defaultBaseHp;
+	}
+
+	// Character upgrades share the existing health pool; preserve character bonuses.
+	public static int getCharacterBaseHealth(int baseline = 16) {
+		return Math.Max(1, MathInt.Ceiling(getBaseHp() + baseline - 16));
 	}
 
 	public static int getModifiedHealth(float health) {
 		if (Global.level.server.customMatchSettings != null) {
 			float retHp = getBaseHp();
-			float extraHP = health - 16;
+			float extraHP = health - defaultBaseHp;
 
-			float hpMulitiplier = getBaseHp() / 16;
+			float hpMulitiplier = getBaseHp() / defaultBaseHp;
 			retHp += MathF.Ceiling(extraHP * hpMulitiplier);
 
 			if (retHp < 1) {
@@ -720,7 +739,8 @@ public partial class Player {
 			bonus = 6;
 		}
 		return MathF.Ceiling(
-			(getModifiedHealth(16 + bonus) + heartTanks * getHeartTankModifier()) * getHpMod()
+			(getCharacterBaseHealth(16 + bonus) + heartTanks * (charNum == 0 ? 5 : getHeartTankModifier()) +
+				(charNum == 0 && xSkills.has(XSkill.LifeUp) ? 7 : 0)) * getHpMod()
 		);
 	}
 
@@ -728,7 +748,7 @@ public partial class Player {
 		teamHealAmount += healAmount;
 		if (teamHealAmount >= 16) {
 			teamHealAmount = 0;
-			currency++;
+			addEarnedCurrency(1);
 		}
 	}
 
@@ -846,6 +866,8 @@ public partial class Player {
 	}
 
 	public void update() {
+		updateHyperMode();
+		updateAutomaticSkillTree();
 		for (int i = copyShotDamageEvents.Count - 1; i >= 0; i--) {
 			if (Global.time - copyShotDamageEvents[i].time > 2) {
 				copyShotDamageEvents.RemoveAt(i);
@@ -1302,12 +1324,6 @@ public partial class Player {
 		}
 		// Hyper mode overrides (POST)
 		if (Global.level.isHyperMatch() && ownedByLocalPlayer) {
-			if (newChar is MegamanX mmx) {
-				mmx.hasUltimateArmor = true;
-				if (!weapons.Any(w => w is HyperNovaStrike)) {
-					weapons.Add(new HyperNovaStrike());
-				}
-			}
 			if (newChar is Zero zero) {
 				if (loadout.zeroLoadout.hyperMode == 0) {
 					zero.isBlack = true;
@@ -2277,9 +2293,9 @@ public partial class Player {
 			return;
 		}
 		if (Global.level?.server?.customMatchSettings != null) {
-			currency += Global.level.server.customMatchSettings.currencyGain;
+			addEarnedCurrency(Global.level.server.customMatchSettings.currencyGain);
 		} else {
-			currency++;
+			addEarnedCurrency(1);
 		}
 	}
 
@@ -2527,7 +2543,7 @@ public partial class Player {
 		) ?? throw new Exception("Error spawning RCX.");
 		// Set the inital state.
 		character.health = 0;
-		character.changeState(new XRevive(), true);
+		character.changeState(new XReviveStart(), true);
 	}
 
 	public void explodeDieStart() {

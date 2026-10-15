@@ -104,6 +104,11 @@ public class SelectWeaponMenu : IMainMenu {
 			return;
 		}
 
+		if (Global.input.isPressedMenu(Control.WeaponLeft) || Global.input.isPressedMenu(Control.WeaponRight)) {
+			Menu.change(Global.input.isPressedMenu(Control.WeaponLeft) ?
+				new QuickArmorSwitchMenu(this) : new XSkillTreeMenu(this, planning: true));
+			return;
+		}
 		if (selCursorIndex < 3) {
 			int maxCursorIndex = weaponList.Length - 1;
 			if (Global.input.isPressedMenu(Control.MenuLeft)) {
@@ -387,6 +392,7 @@ public class SelectWeaponMenu : IMainMenu {
 			}
 		}
 
+		Fonts.drawTextEX(FontType.Grey, "[WeaponL]: Quick Armor  [WeaponR]: Skill Tree", Global.halfScreenW, 196, Alignment.Center);
 		/*
 		Helpers.drawTextStd(Helpers.menuControlText("Left/Right: Change Weapon"), Global.screenW * 0.5f, 195 + botOffY, Alignment.Center, fontSize: 16);
 		Helpers.drawTextStd(Helpers.menuControlText("Up/Down: Change Slot"), Global.screenW * 0.5f, 200 + botOffY, Alignment.Center, fontSize: 16);

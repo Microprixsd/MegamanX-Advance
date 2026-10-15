@@ -14,8 +14,6 @@ public class RagingChargeX : Character {
 	public float maxParryCooldown = 30;
 	public float selfDamageCooldown;
 	public float selfDamageMaxCooldown = 180;
-	public float secondSoundCooldown;
-	public int lastAmmoSound = -1;
 	public Projectile? absorbedProj;
 	public RagingChargeBuster ragingBuster;
 	public float chargePalleteTime;
@@ -32,6 +30,7 @@ public class RagingChargeX : Character {
 		player, x, y, xDir, isVisible, netId, ownedByLocalPlayer, isWarpIn, heartTanks, isATrans
 	) {
 		charId = CharIds.RagingChargeX;
+		this.heartTanks = 0;
 
 		// Start with 5s spawn leitency.
 		selfDamageCooldown = selfDamageMaxCooldown * 3;
@@ -41,6 +40,9 @@ public class RagingChargeX : Character {
 		weapons.Add(ragingBuster);
 		altSoundId = AltSoundIds.X1;
 	}
+
+	// UPX has a fixed health pool, independent of X's health upgrades.
+	public override int getMaxHealth() => 32;
 
 	public override void preUpdate() {
 		base.preUpdate();
@@ -74,7 +76,7 @@ public class RagingChargeX : Character {
 		// Local-only starts here.
 		if (!ownedByLocalPlayer) { return; }
 		// Allow cancel normals into parry.
-		if (player.input.isWeaponLeftOrRightPressed(player) &&
+		if (player.input.isPressed(Control.WeaponRight, player) &&
 			parryCooldown == 0 &&
 			charState is XUPPunchState or XUPGrabState or X6SaberState
 		) {
@@ -82,8 +84,7 @@ public class RagingChargeX : Character {
 		}
 		ragingBuster.update();
 		ragingBuster.charLinkedUpdate(this, true);
-		chargeBusterSound();
-		chargeLogic(null);
+		chargeLogic(releaseChargedAttack);
 		player.changeWeaponControls();
 	}
 	public override void postUpdate() {
@@ -121,6 +122,7 @@ public class RagingChargeX : Character {
         	or VileMK2Grabbed
         	or GenericGrabbedState
         	or XRevive
+			or XReviveStart
         	or Die
     	);
 	}
@@ -163,26 +165,6 @@ public class RagingChargeX : Character {
 				changeState(new X6SaberState(grounded), true);
 				return true;
 			}
-		// Primera Carga
-		if (!player.input.isHeld(Control.Special1, player)) {
-			if (chargeLevel == 1) {
-				{
-					changeState(new XUPPunchState(grounded), true);
-					resetCharge();
-					return true;
-				}
-			}
-			// Segunda Carga
-			if (!player.input.isHeld(Control.Special1, player)) {
-				if (chargeLevel == 2) {
-					{
-						changeState(new XUPChargedPunchState(), true);
-						resetCharge();
-						return true;
-					}
-				}
-			}
-		}
 		if (grounded && kickchargeCooldown == 0 && 
             player.input.isHeld(Control.Down, player) && player.input.isHeld(Control.Dash, player)) 
 			{
@@ -225,37 +207,17 @@ public class RagingChargeX : Character {
 		ragingBuster.addAmmo(-ragingBuster.getAmmoUsage(0), player);
 		punchCooldown = 15;
 	}
-    private void resetCharge() {
-		chargeLevel = 0;
-		chargeTime = 0;
-	}
 	public override bool chargeButtonHeld() {
 		return player.input.isHeld(Control.Special1, player);
 	}
-    private int chargeLevel;
-	public override void increaseCharge() {
-		chargeTime += Global.speedMul;
 
-		if (isCharging()) {
-			if (chargeTime <= 45) {
-				chargeLevel = 1; // Nivel de carga básico
-			} else if (chargeTime > 90 && chargeTime < 150) {
-				chargeLevel = 2; // Nivel maximo
-			}
-		}
-	}
-
-	public void chargeBusterSound() {
-		int busterAmmo = (int)ragingBuster.ammo;
-		if (isCharging()) {
-			if (busterAmmo % 3 == 0 && busterAmmo != lastAmmoSound) {
-				if (busterAmmo == 12) {
-					playSound("gigaCrushAmmoFull");
-				} else if (busterAmmo > 0 && busterAmmo < 12) {
-					playSound("gigaCrushAmmoRecharge");
-				}
-				lastAmmoSound = busterAmmo;
-			}
+	private void releaseChargedAttack(int level) {
+		if (level < getMaxChargeLevel()) {
+			changeState(new XUPPunchState(grounded), true);
+		} else if (upHeld) {
+			changeState(new XUPChargedUppercutState(isUnderwater()), true);
+		} else {
+			changeState(new XUPChargedStrikeState(player.input.isHeld(Control.Down, player), grounded), true);
 		}
 	}
 
@@ -289,7 +251,8 @@ public class RagingChargeX : Character {
 		if (isCharging()) {
 			chargeSound.play();
 			int chargeType = 0;
-			chargeEffect.update(getDisplayChargeLevel(), chargeType);
+			int displayLevel = getDisplayChargeLevel();
+			chargeEffect.update(displayLevel == 3 ? 4 : displayLevel, chargeType);
 		}
 	}
 
@@ -322,6 +285,9 @@ public class RagingChargeX : Character {
 		KickCharge,
 		ZSaber,
 		MaxZSaber,
+		ChargedUppercut,
+		ChargedForwardStrike,
+		ChargedFloorStrike,
 	}
 	// This can run on both owners and non-owners. So data used must be in sync.
 	public override int getHitboxMeleeId(Collider hitbox) {
@@ -330,6 +296,7 @@ public class RagingChargeX : Character {
 			"mmx_unpo_grab_dash" => MeleeIds.DashGrab,
 			"mmx_unpo_punch" or "mmx_unpo_air_punch" => MeleeIds.Punch,
 			"mmx_unpo_punch2" => MeleeIds.PunchCharged,
+			"mmx_shoryuken" => MeleeIds.ChargedUppercut,
 			"mmx_unpo_slide" => MeleeIds.KickCharge,
 			"mmx_unpo_parry_start" => MeleeIds.ParryBlock,
 			"mmx_unpo_gigga" => MeleeIds.UnlimitedCrush,
@@ -340,6 +307,12 @@ public class RagingChargeX : Character {
 
 	public override Projectile? getMeleeProjById(int id, Point projPos, bool addToLevel = true) {
 		Projectile? proj = id switch {
+			(int)MeleeIds.ChargedUppercut or (int)MeleeIds.ChargedForwardStrike or
+			(int)MeleeIds.ChargedFloorStrike => new GenericMeleeProj(
+				RCXGrab.XUPPunchCharged.netWeapon, projPos, ProjIds.UPPunchCharged, player,
+				4, id == (int)MeleeIds.ChargedFloorStrike ? Global.superFlinch : Global.defFlinch,
+				60, owningActor: this, addToLevel: addToLevel
+			),
 			(int)MeleeIds.DashGrab => new GenericMeleeProj(
 				RCXGrab.netWeapon, projPos, ProjIds.UPGrab, player,
 				0, 0, 0, addToLevel: addToLevel
@@ -376,6 +349,25 @@ public class RagingChargeX : Character {
 			_ => null
 		};
 		return proj;
+	}
+
+	public override Dictionary<int, Func<Projectile>> getGlobalProjs() {
+		// Sprite and frame are synchronized, so remote players create the same hitbox.
+		bool forwardStrike = sprite.name == "mmx_hadouken" && frameIndex == 2;
+		bool floorStrike = sprite.name == "mmx_punch_ground" && frameIndex == 6;
+		if (!forwardStrike && !floorStrike) return base.getGlobalProjs();
+		int strikeId = (int)(floorStrike ? MeleeIds.ChargedFloorStrike : MeleeIds.ChargedForwardStrike);
+		return new() {
+			[(int)ProjIds.UPPunchCharged] = () => {
+				Projectile proj = getMeleeProjById(strikeId, pos)!;
+				proj.meleeId = strikeId;
+				proj.globalCollider = new Collider(
+					new Rect(0, 0, 32, floorStrike ? 8 : 32).getPoints(),
+					true, this, false, false, HitboxFlag.Hitbox, new Point(25, 0)
+				);
+				return proj;
+			}
+		};
 	}
 
 	public override void render(float x, float y) {
@@ -423,7 +415,7 @@ public class RagingChargeX : Character {
 			chargePalletes.Add(getDisplayChargeLevel() switch {
 				1 => Player.XBlueC,
 				2 => Player.XYellowC,
-				3 => Player.XPinkC,
+				3 => Player.XBlueC,
 				_ => Player.XGreenC,
 			});
 		}
@@ -431,7 +423,7 @@ public class RagingChargeX : Character {
 	}
 
 	public override int getDisplayChargeLevel() {
-		return Helpers.clamp(MathInt.Ceiling(ragingBuster.ammo / ragingBuster.getAmmoUsage(0)), 1, 4);
+		return getChargeLevel();
 	}
 
 	public override List<byte> getCustomActorNetData() {

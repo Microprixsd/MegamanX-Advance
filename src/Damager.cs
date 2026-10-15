@@ -21,6 +21,7 @@ public class Damager {
 	public const float headshotModifier = 2;
 
 	public static readonly Dictionary<int, float> projectileFlinchCooldowns = new Dictionary<int, float>() {
+		{ (int)ProjIds.OverdriveBuster, 45 },
 		{ (int)ProjIds.ElectricSpark, 60 },
 		{ (int)ProjIds.TriadThunder, 60 },
 		{ (int)ProjIds.TriadThunderBall, 60 },
@@ -134,6 +135,11 @@ public class Damager {
 		if (owner == null) {
 			throw new Exception("Null damage player source. Use stage or self if not from another player.");
 		}
+		Weapon? consumableWeapon = damagingActor is Projectile consumableProj ? consumableProj.weapon : owner.weapons.Find(w => w.index == weaponIndex);
+		bool powerDrive = owner.character?.powerDriveTime > 0 && consumableWeapon != null &&
+			Character.isConsumableSpecialWeapon(consumableWeapon) && !isDot(projId);
+		bool powerDriveNoFlinch = powerDrive && (flinch == 0 || damagingActor is Projectile { damager.flinch: 0 });
+		if (powerDrive && flinch <= Global.miniFlinch) flinch = Global.halfFlinch;
 		if (victim is Character chr && chr.invulnTime > 0) {
 			return false;
 		}
@@ -277,6 +283,7 @@ public class Damager {
 			damage = overrideDamage ?? damage;
 		}
 
+		float skillStatusBefore = preCharacter?.skillStatusFrames ?? 0;
 		if (damagable != null) {
 			DamagerMessage? damagerMessage = null;
 
@@ -577,6 +584,7 @@ public class Damager {
 			if (projectileFlinchCooldowns.ContainsKey(projId)) {
 				flinchCooldown = projectileFlinchCooldowns[projId];
 			}
+			if (powerDriveNoFlinch) flinchCooldown = 90;
 			if (mmx != null) {
 				if (XWeaknesses.checkMaverickWeakness(mmx.player, (ProjIds)projId)) {
 					weakness = true;
@@ -850,6 +858,7 @@ public class Damager {
 			if (projectileFlinchCooldowns.ContainsKey(projId)) {
 				flinchCooldownTime = projectileFlinchCooldowns[projId];
 			}
+			if (powerDriveNoFlinch) flinchCooldownTime = 90;
 			if (maverick.controlMode != MaverickModeId.TagTeam && flinchCooldownTime < 45 && !weakness) {
 				flinchCooldownTime = 45;
 			}
@@ -1029,6 +1038,7 @@ public class Damager {
 			zeroParryState.counterAttack(owner, damagingActor);
 			return true;
 		}
+		if (preCharacter != null) preCharacter.creditSkillStatus(owner, preCharacter.skillStatusFrames - skillStatusBefore);
 		damagable?.applyDamage(finalDamage, owner, damagingActor, weaponKillFeedIndex, projId);
 
 		return true;
@@ -1039,6 +1049,7 @@ public class Damager {
 			return false;
 		}
 		return (ProjIds)projId switch {
+			ProjIds.X6SaberPiercing => true,
 			ProjIds.PlasmaGunProj => true,
 			ProjIds.SpiralMagnum => true,
 			ProjIds.AssassinBullet => true,

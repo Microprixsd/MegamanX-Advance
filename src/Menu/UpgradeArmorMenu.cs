@@ -3,16 +3,9 @@ using SFML.Graphics;
 using System;
 using System.Collections.Generic;
 
-public class UpgradeArmorMenu : IMainMenu {
+public partial class UpgradeArmorMenu : IMainMenu {
 	public int selectArrowPosY;
 	public IMainMenu prevMenu;
-	public UpgradeArmorMenuGolden GoldenMenu;
-	public UpgradeArmorMenuUAX UAXMenu;
-
-	public Point optionPos1 = new Point(25, 40);
-	public Point optionPos2 = new Point(25, 40 + 40);
-	public Point optionPos3 = new Point(25, 40 + 40 * 2);
-	public Point optionPos4 = new Point(25, 40 + 38 * 3);
 
 	public Level level { get { return Global.level; } }
 	public Player mainPlayer { get { return Global.level.mainPlayer; } }
@@ -21,205 +14,10 @@ public class UpgradeArmorMenu : IMainMenu {
 
 	public UpgradeArmorMenu(IMainMenu prevMenu) {
 		this.prevMenu = prevMenu;
-		GoldenMenu = new UpgradeArmorMenuGolden(prevMenu);
-		UAXMenu = new UpgradeArmorMenuUAX(prevMenu);
+		xGame = Math.Clamp(xGame, 1, 4);
+		preparePurchasedArmorIcons();
 	}
 
-	public void update() {
-		MegamanX? mmx = Global.level.mainPlayer.character as MegamanX;
-		//if (updateHyperArmorUpgrades(mainPlayer)) return;
-
-		// Should not be able to reach here but preventing upgrades just in case
-
-		Helpers.menuUpDown(ref selectArrowPosY, 0, 3);
-		if (Global.input.isPressedMenu(Control.MenuLeft)) {
-			xGame--;
-			if (xGame < 1) {
-				xGame = 1;
-				if (!Global.level.server.disableHtSt) {
-					UpgradeMenu.onUpgradeMenu = true;
-					Menu.change(new UpgradeMenu(prevMenu));
-					return;
-				}
-			}
-		} else if (Global.input.isPressedMenu(Control.MenuRight)) {
-			xGame++;
-			if (xGame > 4) {
-				xGame = 4;
-				if (!Global.level.server.disableHtSt) {
-					UpgradeMenu.onUpgradeMenu = true;
-					Menu.change(new UpgradeMenu(prevMenu));
-					return;
-				}
-			}
-		}
-
-		if (Global.input.isPressedMenu(Control.MenuBack)) {
-			Menu.change(prevMenu);
-			return;
-		}
-		// Enable this to disable 14.0 UAX Menu
-		if (mmx?.hasFullHyperMaxArmor == true) {
-		//	Menu.change(new UpgradeArmorMenuGolden(GoldenMenu));
-			return;
-		}
-		if (mmx?.hasUltimateArmor == true) {
-		//	Menu.change(new UpgradeArmorMenuUAX(UAXMenu));
-			return;
-		}
-		if (Global.input.isPressedMenu(Control.MenuConfirm)) {
-			if (selectArrowPosY == 0) {
-				if (mainPlayer.helmetArmorNum != xGame) {
-					if (!mainPlayer.isHeadArmorPurchased(xGame)) {
-						if (mainPlayer.currency >= MegamanX.headArmorCost) {
-							purchaseHelmetArmor(mainPlayer, xGame);
-							Global.playSound("ching");
-							if (mainPlayer.helmetArmorNum == 0) {
-								upgradeHelmetArmor(mainPlayer, xGame);
-							}
-						}
-					} else {
-						upgradeHelmetArmor(mainPlayer, 0);
-						upgradeHelmetArmor(mainPlayer, xGame);
-						Global.playSound("ching");
-					}
-				} else if (mainPlayer.hasAllX3Armor() && mmx?.hyperHelmetActive == false) {
-					mmx.hyperChestActive = false;
-					mmx.hyperArmActive = false;
-					mmx.hyperLegActive = false;
-					mmx.hyperHelmetActive = true;
-					Global.playSound("ching");
-				}
-			}
-			if (selectArrowPosY == 1) {
-				if (mainPlayer.bodyArmorNum != xGame) {
-					if (!mainPlayer.isBodyArmorPurchased(xGame)) {
-						if (mainPlayer.currency >= MegamanX.chestArmorCost) {
-							purchaseBodyArmor(mainPlayer, xGame);
-							Global.playSound("ching");
-							if (mainPlayer.bodyArmorNum == 0) {
-								upgradeBodyArmor(mainPlayer, xGame);
-							}
-						}
-					} else {
-						upgradeBodyArmor(mainPlayer, 0);
-						upgradeBodyArmor(mainPlayer, xGame);
-						Global.playSound("ching");
-					}
-				} else if (mainPlayer.hasAllX3Armor() && mmx?.hyperChestActive == false) {
-					mmx.hyperChestActive = true;
-					mmx.hyperArmActive = false;
-					mmx.hyperLegActive = false;
-					mmx.hyperHelmetActive = false;
-					Global.playSound("ching");
-				}
-			}
-			if (selectArrowPosY == 2) {
-				if (mainPlayer.armArmorNum != xGame) {
-					if (!mainPlayer.isArmArmorPurchased(xGame)) {
-						if (mainPlayer.currency >= MegamanX.armArmorCost) {
-							purchaseArmArmor(mainPlayer, xGame);
-							Global.playSound("ching");
-							if (mainPlayer.armArmorNum == 0) {
-								upgradeArmArmor(mainPlayer, xGame);
-							}
-						}
-					} else {
-						upgradeArmArmor(mainPlayer, 0);
-						upgradeArmArmor(mainPlayer, xGame);
-						Global.playSound("ching");
-					}
-				} else if (mainPlayer.hasAllX3Armor() && mmx?.hyperArmActive == false) {
-					mmx.hyperChestActive = false;
-					mmx.hyperArmActive = true;
-					mmx.hyperLegActive = false;
-					mmx.hyperHelmetActive = false;
-					Global.playSound("ching");
-				}
-			}
-			if (selectArrowPosY == 3) {
-				if (mainPlayer.legArmorNum != xGame) {
-					if (!mainPlayer.isBootsArmorPurchased(xGame)) {
-						if (mainPlayer.currency >= MegamanX.bootsArmorCost) {
-							purchaseBootsArmor(mainPlayer, xGame);
-							Global.playSound("ching");
-							if (mainPlayer.legArmorNum == 0) {
-								upgradeBootsArmor(mainPlayer, xGame);
-							}
-						}
-					} else {
-						upgradeBootsArmor(mainPlayer, 0);
-						upgradeBootsArmor(mainPlayer, xGame);
-						Global.playSound("ching");
-					}
-				} else if (mainPlayer.hasAllX3Armor() && mmx?.hyperLegActive == false) {
-					mmx.hyperChestActive = false;
-					mmx.hyperArmActive = false;
-					mmx.hyperLegActive = true;
-					mmx.hyperHelmetActive = false;
-					Global.playSound("ching");
-				}
-			}
-		} else if (Global.input.isPressedMenu(Control.MenuAlt)) {
-			if (mmx != null && mmx.hasAnyHyperArmor) {
-				mmx.hyperChestActive = false;
-				mmx.hyperArmActive = false;
-				mmx.hyperLegActive = false;
-				mmx.hyperHelmetActive = false;
-			}
-			else if (selectArrowPosY == 0) {
-				if (mainPlayer.helmetArmorNum == xGame) {
-					if (mainPlayer.hasAllX3Armor()) {
-						if (mmx != null) {
-							mmx.hyperChestActive = false;
-							mmx.hyperArmActive = false;
-							mmx.hyperLegActive = false;
-							mmx.hyperHelmetActive = true;
-						}
-					} else {
-						upgradeHelmetArmor(mainPlayer, 0);
-					}
-				}
-			}
-			else if (selectArrowPosY == 1) {
-				if (mainPlayer.bodyArmorNum == xGame) {
-					upgradeBodyArmor(mainPlayer, 0);
-				}
-			}
-			else if (selectArrowPosY == 2) {
-				if (mainPlayer.armArmorNum == xGame || (mainPlayer.armArmorNum == 5 && xGame == 4)) {
-					upgradeArmArmor(mainPlayer, 0);
-				}
-			}
-			else if (selectArrowPosY == 3) {
-				if (mainPlayer.legArmorNum == xGame) {
-					upgradeBootsArmor(mainPlayer, 0);
-				}
-			}
-		}
-
-		else if (Global.input.isPressedMenu(Control.Special1)) {
-			int plasmaXGame = 5;
-			if (selectArrowPosY == 2 && xGame == 4) {
-				if (mainPlayer.armArmorNum != plasmaXGame) {
-					if (!mainPlayer.isArmArmorPurchased(plasmaXGame)) {
-						if (mainPlayer.currency >= MegamanX.armArmorCost) {
-							purchaseArmArmor(mainPlayer, plasmaXGame);
-							Global.playSound("ching");
-							if (mainPlayer.armArmorNum == 0) {
-								upgradeArmArmor(mainPlayer, plasmaXGame);
-							}
-						}
-					} else {
-						upgradeArmArmor(mainPlayer, 0);
-						upgradeArmArmor(mainPlayer, plasmaXGame);
-						Global.playSound("ching");
-					}
-				} 
-			}
-		}
-	}
-	
 	public static void clearAllHyperArmor(MegamanX mmx) {
 		mmx.hyperChestActive = false;
 		mmx.hyperArmActive = false;
@@ -250,7 +48,7 @@ public class UpgradeArmorMenu : IMainMenu {
 			player.removeGigaCrush();
 		}
 
-		if (type == (int)ArmorId.Force) {
+		if (type == (int)ArmorId.Force && player.character is not MegamanX { hasUltimateArmor: true }) {
 			player.addForceNovaStrike();
 		} else {
 			player.removeForceNovaStrike();
@@ -304,175 +102,6 @@ public class UpgradeArmorMenu : IMainMenu {
 		}
 	}
 
-	public void render() {
-		var gameMode = level.gameMode;
-		DrawWrappers.DrawTextureHUD(Global.textures["pausemenu"], 0, 0);
-		string armorName = xGame switch {
-			1 => "Light Armor",
-			2 => "Giga Armor",
-			3 => "Max Armor",
-			4 => "Force Armor",
-			_ => "ERROR"
-		};
-		Fonts.drawText(
-			FontType.Yellow, string.Format($"Upgrade {armorName}", xGame),
-			Global.screenW * 0.5f, 20, Alignment.Center
-		);
-		Fonts.drawText(FontType.OrangeMenu, Global.nameCoins + ": " + mainPlayer.currency, 20, 20);
-
-		if (Global.flFrameCount % 60 < 30) {
-			bool stEnabled = !Global.level.server.disableHtSt;
-			string leftText = xGame switch {
-				1 when stEnabled => "Items",
-				2 => "Light",
-				3 => "Giga",
-				4 => "Max",
-				5 => "Force",
-				_ => ""
-			};
-			string rightText = xGame switch {
-				1 => "Giga",
-				2 => "Max",
-				3 => "Force",
-				4 when stEnabled => "Items",
-				_ => ""
-			};
-			if (leftText != "") {
-				Fonts.drawText(
-					FontType.DarkPurple, "<",
-					14, Global.halfScreenH, Alignment.Center
-				);
-				Fonts.drawText(
-					FontType.DarkPurple, "",//leftText,
-					14, Global.halfScreenH + 15, Alignment.Center
-				);
-			}
-			if (rightText != "") {
-				Fonts.drawText(
-					FontType.DarkPurple, ">",
-					Global.screenW - 14, Global.halfScreenH, Alignment.Center
-				);
-				Fonts.drawText(
-					FontType.DarkPurple, "",//rightText,
-					Global.screenW - 14, Global.halfScreenH + 15, Alignment.Center
-				);
-			}
-		}
-
-		Point optionPos = new Point();
-		if (selectArrowPosY == 0) optionPos = optionPos1;
-		if (selectArrowPosY == 1) optionPos = optionPos2;
-		if (selectArrowPosY == 2) optionPos = optionPos3;
-		if (selectArrowPosY == 3) optionPos = optionPos4;
-		float yOff = xGame == 3 && mainPlayer.hasAllX3Armor() ? 9 : -1;
-		Global.sprites["cursor"].drawToHUD(0, optionPos1.x - 8, optionPos.y + 4 + yOff);
-		bool showChips = mainPlayer.hasAllX3Armor() && xGame == 3;
-
-		switch (xGame) {
-			case 1: case 2: case 3: case 4: Global.sprites["menu_xdefault"].drawToHUD(0, 300, 110); break;
-		} 
-		switch (mainPlayer.helmetArmorNum) {
-			case 1: Global.sprites["menu_xhelmet"].drawToHUD(0, 300, 110); break;
-			case 2: Global.sprites["menu_xhelmet2"].drawToHUD(0, 300, 110); break;
-			case 3: Global.sprites["menu_xhelmet3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xhelmet4"].drawToHUD(0, 300, 110); break;
-		}
-		switch (mainPlayer.bodyArmorNum) {
-			case 1: Global.sprites["menu_xbody"].drawToHUD(0, 300, 110); break;
-			case 2: Global.sprites["menu_xbody2"].drawToHUD(0, 300, 110); break;
-			case 3: Global.sprites["menu_xbody3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xbody4"].drawToHUD(0, 300, 110); break;
-		}
-		switch (mainPlayer.armArmorNum) {
-			case 1: Global.sprites["menu_xarm"].drawToHUD(0, 300, 110); break;
-			case 2: Global.sprites["menu_xarm2"].drawToHUD(0, 300, 110); break;
-			case 3: Global.sprites["menu_xarm3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xarm4"].drawToHUD(0, 300, 110); break;
-			case 5: Global.sprites["menu_xarm5"].drawToHUD(0, 300, 110); break;
-		}
-		switch (mainPlayer.legArmorNum) {
-			case 1: Global.sprites["menu_xboots"].drawToHUD(0, 300, 110); break;
-			case 2: Global.sprites["menu_xboots2"].drawToHUD(0, 300, 110); break;
-			case 3: Global.sprites["menu_xboots3"].drawToHUD(0, 300, 110); break;
-			case 4: Global.sprites["menu_xboots4"].drawToHUD(0, 300, 110); break;
-		}
-		Fonts.drawText(FontType.Yellow, "Head Parts", optionPos1.x, optionPos1.y, selected: selectArrowPosY == 0 && !showChips);
-		Fonts.drawText(FontType.Green, getHeadArmorMessage(), optionPos1.x + 60, optionPos1.y);
-		Fonts.drawText(FontType.Yellow, "Body Parts", optionPos2.x, optionPos2.y, selected: selectArrowPosY == 1 && !showChips);
-		Fonts.drawText(FontType.Green, getBodyArmorMessage(), optionPos2.x + 60, optionPos2.y);
-		Fonts.drawText(FontType.Yellow, "Arm Parts", optionPos3.x, optionPos3.y, selected: selectArrowPosY == 2 && !showChips);
-		Fonts.drawText(FontType.Green, getArmArmorMessage(), optionPos3.x + 60, optionPos3.y);
-		Fonts.drawText(FontType.Yellow, "Foot Parts", optionPos4.x, optionPos4.y, selected: selectArrowPosY == 3 && !showChips);
-		Fonts.drawText(FontType.Green, getBootsArmorMessage(), optionPos4.x + 60, optionPos4.y);
-		switch (xGame) {
-			case 1: //Light
-				Fonts.drawText(FontType.Blue, "Grants a headbutt attack on Jump.", optionPos1.x + 5, optionPos1.y + 10);
-				Fonts.drawText(FontType.Blue, "Can be combined with Upward Dash.", optionPos1.x + 5, optionPos1.y + 20);
-				Fonts.drawText(FontType.Blue, "Reduces Damage by 12.5%", optionPos2.x + 5, optionPos2.y + 10);
-				Fonts.drawText(FontType.Blue, "Reduces Flinch by 25.0%", optionPos2.x + 5, optionPos2.y + 20);
-				Fonts.drawText(FontType.Blue, "Powers up your Spiral Crush Buster", optionPos3.x + 5, optionPos3.y + 10);
-				Fonts.drawText(FontType.Blue, "by charging shots 50% Faster.", optionPos3.x + 5, optionPos3.y + 20);
-				Fonts.drawText(FontType.Blue, "Ground Dash 15% faster and longer.", optionPos4.x + 5, optionPos4.y + 10);
-				break;
-			case 2: //Giga
-				Fonts.drawText(FontType.Blue, "Trace enemy hp and positioning", optionPos1.x + 5, optionPos1.y + 10);
-				Fonts.drawText(FontType.Blue, "by pressing SPECIAL button.", optionPos1.x + 5, optionPos1.y + 20);
-				Fonts.drawText(FontType.Blue, "Grants the Giga Crush attack", optionPos2.x + 5, optionPos2.y + 10);
-				Fonts.drawText(FontType.Blue, "Reduces Damage by 12.5%", optionPos2.x + 5, optionPos2.y + 20);
-				Fonts.drawText(FontType.Blue, "Grants the Double X-Buster.", optionPos3.x + 5, optionPos3.y + 10);
-				Fonts.drawText(FontType.Blue, "Store an extra charge shot.", optionPos3.x + 5, optionPos3.y + 20);
-				Fonts.drawText(FontType.Blue, "Air dash 15% faster and longer.", optionPos4.x + 5, optionPos4.y + 10);
-				break;
-			case 3:	//Max
-				if (!mainPlayer.hasAllX3Armor()) {
-					Fonts.drawText(FontType.Blue, "Communicates with the", optionPos1.x + 5, optionPos1.y + 10);
-					Fonts.drawText(FontType.DarkPurple,"State of the Art Space Satellite.", optionPos1.x + 5, optionPos1.y + 20);
-					Fonts.drawText(FontType.Blue, "To uncover enemy position.", optionPos1.x + 5, optionPos1.y + 30);
-					Fonts.drawText(FontType.Blue, "Gain a Defensive Forcefield", optionPos2.x + 5, optionPos2.y + 10);
-					Fonts.drawText(FontType.Blue, "on taking Damage.", optionPos2.x + 5, optionPos2.y + 20);
-					Fonts.drawText(FontType.Blue, "Forcefield Defense: 25%", optionPos2.x + 5, optionPos2.y + 30);
-					Fonts.drawText(FontType.Blue, "Grants the Hyper Charge.", optionPos3.x + 5, optionPos3.y + 10);
-					Fonts.drawText(FontType.Blue, "Grants the Cross Charge shot.", optionPos3.x + 5, optionPos3.y + 20);
-					Fonts.drawText(FontType.Blue, "Grants an Upwards Dash", optionPos4.x + 5, optionPos4.y + 10);
-				} else {
-					Fonts.drawText(FontType.Pink, "ENHANCEMENT CHIP", optionPos1.x + 5, optionPos1.y + 10, selected: selectArrowPosY == 0);
-					Fonts.drawText(FontType.Blue, "Slowly regenerate Health", optionPos1.x + 5, optionPos1.y + 20);
-					Fonts.drawText(FontType.Blue, "after not taking Damage.", optionPos1.x + 5, optionPos1.y + 30);
-					Fonts.drawText(FontType.Pink, "ENHANCEMENT CHIP", optionPos2.x + 5, optionPos2.y + 10, selected: selectArrowPosY == 1);
-					Fonts.drawText(FontType.Blue, "Forcefield Defense: 50%", optionPos2.x + 5, optionPos2.y + 20);
-					Fonts.drawText(FontType.Pink, "ENHANCEMENT CHIP", optionPos4.x + 5, optionPos3.y + 10, selected: selectArrowPosY == 2);
-					Fonts.drawText(FontType.Blue, "Reduce ammo usage by half.", optionPos3.x + 5, optionPos3.y + 20);
-					Fonts.drawText(FontType.Pink, "ENHANCEMENT CHIP", optionPos4.x + 5, optionPos4.y + 10, selected: selectArrowPosY == 3);
-					Fonts.drawText(FontType.Blue, "Dash Twice in the air", optionPos4.x + 5, optionPos4.y + 20);
-				}
-				if (mainPlayer.character is MegamanX mmx) {
-					if (mmx.hyperHelmetActive) Global.sprites["menu_chip"].drawToHUD(0, 296, optionPos1.y-16);
-					if (mmx.hyperChestActive) Global.sprites["menu_chip"].drawToHUD(0, 296, optionPos2.y+4);
-					if (mmx.hyperArmActive) Global.sprites["menu_chip"].drawToHUD(0, 262, optionPos3.y-8);
-					if (mmx.hyperLegActive) Global.sprites["menu_chip"].drawToHUD(0, 278, optionPos4.y+6);
-				}
-				break;
-			case 4: //Force
-				Fonts.drawText(FontType.Blue, "Grants unlimited ammo", optionPos1.x + 5, optionPos1.y + 10);
-				Fonts.drawText(FontType.Blue, "for uncharged shots.", optionPos1.x + 5, optionPos1.y + 20);
-				Fonts.drawText(FontType.Blue, "Grants the Nova Strike attack", optionPos2.x + 5, optionPos2.y + 10);
-				Fonts.drawText(FontType.Blue, "Reduces Damage by 12.5%", optionPos2.x + 5, optionPos2.y + 20);
-				Fonts.drawText(FontType.Blue, "Grants 4 Stock Shots.", optionPos3.x + 5, optionPos3.y + 10);
-				Fonts.drawText(FontType.Blue, "Grants the Plasma Shot.", optionPos3.x + 5, optionPos3.y + 20);
-				Fonts.drawText(FontType.Blue, "Grants hover.", optionPos4.x + 5, optionPos4.y + 10);
-				break;
-		} 
-		//drawHyperArmorUpgrades(mainPlayer, 0);
-
-		Fonts.drawTextEX(
-			FontType.Grey, "[MLEFT]/[MRIGHT]: Change Armor Set",
-			26, Global.screenH - 28
-		);
-		Fonts.drawTextEX(
-			FontType.Grey, "[OK]: Upgrade, [ALT]: Unupgrade, [BACK]: Back",
-			26, Global.screenH - 18
-		);
-	}
 	/*
 	public static bool updateHyperArmorUpgrades(Player mainPlayer) {
 		if (mainPlayer.character == null) return false;
@@ -1041,7 +670,7 @@ public class SNESArmorHandler : IMenuHandler {
 			canLock = player => player.character is MegamanX mmx && mmx.hyperArmActive,
 			unlock = (player) => { if (player.character is MegamanX mmx) mmx.hyperArmActive = true; },
 			lockit = (player) => { if (player.character is MegamanX mmx) mmx.hyperArmActive = false; },
-			description = "ENHANCEMENT CHIP\nReduce ammo usage by half.",
+			description = "ENHANCEMENT CHIP\nEnables Hyper Charge.",
 			price = "0",
 		};
 		menu[(4, 4)] = new ArmorLoadoutSkill {

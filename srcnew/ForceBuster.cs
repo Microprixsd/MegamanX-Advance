@@ -256,18 +256,18 @@ public class ForceBuster3Proj : Projectile {
 
 	public ForceBuster3Proj(
 		Actor owner, Point pos, int xDir, ushort? netId, 
-		bool rpc = false, Player? player = null
+		bool rpc = false, Player? player = null, bool overdrive = false
 	) : base(
 		pos, xDir, owner, "buster3_x4", netId, player)
 	{
 		weapon = XBuster.netWeapon;
-		maxTime = 0.8f;
+		maxTime = 0.5f;
 		fadeSprite = "buster2_fade";
 		fadeOnAutoDestroy = true;
-		projId = (int)ProjIds.BusterForce3;
+		projId = (int)(overdrive ? ProjIds.OverdriveBuster : ProjIds.BusterForce3);
 
-		vel.x = xDir * 240;
-		damager.damage = 3;
+		vel.x = xDir * 350;
+		damager.damage = overdrive ? 2 : 3;
 		damager.flinch = Global.halfFlinch;
 
 		if (rpc) {
@@ -275,16 +275,10 @@ public class ForceBuster3Proj : Projectile {
 		}
 	}
 
-	public override void update() {
-		base.update();
-	
-		vel.x += Global.spf * xDir * 550f;
-		if (MathF.Abs(vel.x) > 300f) vel.x = 300 * xDir;
-	}
-
 	public static Projectile rpcInvoke(ProjParameters arg) {
 		return new ForceBuster3Proj(
-			arg.owner, arg.pos, arg.xDir, arg.netId
+			arg.owner, arg.pos, arg.xDir, arg.netId,
+			player: arg.player, overdrive: arg.projId == (int)ProjIds.OverdriveBuster
 		);
 	}
 }

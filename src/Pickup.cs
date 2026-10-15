@@ -43,14 +43,15 @@ public class Pickup : Actor {
 
 		if (other.gameObject is Character chr) {
 			if (!chr.ownedByLocalPlayer) return;
+			float recovery = healAmount * (chr is MegamanX && chr.player.xSkills.has(XSkill.SuperRecover) ? 1.25f : 1);
 
 			if (pickupType == PickupType.Health) {
 				if (chr.health >= chr.maxHealth && !chr.player.hasSubtankCapacity()) return;
-				chr.addHealth(healAmount);
+				chr.addHealth(recovery);
 				destroySelf(doRpcEvenIfNotOwned: true);
 			} else if (pickupType == PickupType.Ammo) {
 				if (chr.canAddAmmo()) {
-					chr.addPercentAmmo(healAmount);
+					chr.addPercentAmmo(recovery);
 					destroySelf(doRpcEvenIfNotOwned: true);
 				}
 			}
@@ -65,7 +66,8 @@ public class Pickup : Actor {
 						)) {
 							return;
 						} else {
-							rideArmor.character?.addHealth(healAmount);
+							rideArmor.character?.addHealth(healAmount *
+								(rideArmor.character is MegamanX && rideArmor.character.player.xSkills.has(XSkill.SuperRecover) ? 1.25f : 1));
 						}
 					} else {
 						rideArmor.addHealth(healAmount);
@@ -87,7 +89,8 @@ public class Pickup : Actor {
 						) {
 							return;
 						} else {
-							rideChaser.character?.addHealth(healAmount);
+							rideChaser.character?.addHealth(healAmount *
+								(rideChaser.character is MegamanX && rideChaser.character.player.xSkills.has(XSkill.SuperRecover) ? 1.25f : 1));
 						}
 					} else {
 						rideChaser.addHealth(healAmount);

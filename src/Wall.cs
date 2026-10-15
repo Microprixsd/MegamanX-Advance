@@ -418,6 +418,10 @@ public class KillZone : Geometry {
 	public void applyDamage(IDamagable damagable) {
 		if (!damagable.actor().ownedByLocalPlayer) return;
 		if (damage == Damager.envKillDamage) {
+			if (damagable is Character character) {
+				character.applyTerrainHazard(false);
+				return;
+			}
 			damagable.applyDamage(damage, null, null, null, null);
 			return;
 		}

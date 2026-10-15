@@ -288,7 +288,9 @@ label:
 
 	public void addGigaCrush() {
 		if (!weapons.Any(w => w is GigaCrush)) {
-			weapons.Add(new GigaCrush());
+			var gigaCrush = new GigaCrush();
+			if (character is MegamanX x) x.bindSharedGigaAmmo(gigaCrush);
+			weapons.Add(gigaCrush);
 		}
 	}
 
@@ -299,7 +301,9 @@ label:
 	}
 	public void addForceNovaStrike() {
 		if (!weapons.Any(w => w is ForceNovaStrike)) {
-			weapons.Insert(getLastWeaponIndex(), new ForceNovaStrike());
+			var novaStrike = new ForceNovaStrike();
+			if (character is MegamanX x) x.bindSharedGigaAmmo(novaStrike);
+			weapons.Insert(getLastWeaponIndex(), novaStrike);
 		}
 	}
 

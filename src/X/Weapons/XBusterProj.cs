@@ -5,12 +5,14 @@ using System.Diagnostics.CodeAnalysis;
 namespace MMXOnline;
 public class BusterProj : Projectile {
 	public BusterProj(
-		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false
+		Point pos, int xDir, Actor owner, Player player, ushort? netId, bool rpc = false,
+		bool boosted = false, bool speedShot = false
 	) : base(
 		pos, xDir, owner, "buster1", netId, player
 	) {
 		weapon = XBuster.netWeapon;
-		damager.damage = 1;
+		damager.damage = boosted ? 2 : 1;
+		forceSpeedShot = speedShot || owner is MegamanX && player.xSkills.has(XSkill.SpeedShot);
 		damager.hitCooldown = 0;
 		damager.flinch = 0;
 		vel = new Point(250 * xDir, 0);
@@ -19,13 +21,16 @@ public class BusterProj : Projectile {
 		maxTime = 30 / 60f;
 		projId = (int)ProjIds.Buster;
 		if (rpc) {
-			rpcCreate(pos, owner, ownerPlayer, netId, xDir);
+			rpcCreate(pos, owner, ownerPlayer, netId, xDir,
+				new byte[] { (byte)((boosted ? 1 : 0) | (forceSpeedShot ? 2 : 0)) });
 		}
 	}
 
 	public static Projectile rpcInvoke(ProjParameters args) {
 		return new BusterProj(
-			args.pos, args.xDir, args.owner, args.player, args.netId
+			args.pos, args.xDir, args.owner, args.player, args.netId,
+			boosted: args.extraData.Length > 0 && (args.extraData[0] & 1) != 0,
+			speedShot: args.extraData.Length > 0 && (args.extraData[0] & 2) != 0
 		);
 	}
 

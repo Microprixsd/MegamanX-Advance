@@ -8,6 +8,7 @@ public partial class RPCCreateProj : RPC {
 		// X Stuff.
 		//BUSTERS
 		{ (int)ProjIds.Buster, BusterProj.rpcInvoke },
+		{ (int)ProjIds.OverdriveBuster, ForceBuster3Proj.rpcInvoke },
 		{ (int)ProjIds.Buster2, Buster2Proj.rpcInvoke },
 		{ (int)ProjIds.BusterUnpo, RagingBusterProj.rpcInvoke },
 		{ (int)ProjIds.Buster3, Buster3LightProj.rpcInvoke },

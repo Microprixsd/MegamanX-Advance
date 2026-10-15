@@ -321,6 +321,9 @@ public class ShotgunIceProjSled : Projectile {
 	}
 
 	public override void onDestroy() {
+		base.onDestroy();
+		if (character?.shotgunIceSled == this) character.shotgunIceSled = null;
+		character = null;
 		breakFreeze(owner);
 	}
 }

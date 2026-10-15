@@ -15,6 +15,7 @@ public class Collider {
 	public bool isTrigger;
 	public bool wallOnly = true;
 	public bool isClimbable = true;
+	public bool isLightningWeb;
 	public Actor actor;
 	public Point offset;
 	public bool isStatic = false;

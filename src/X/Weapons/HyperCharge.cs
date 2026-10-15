@@ -24,19 +24,11 @@ public class HyperCharge : Weapon {
 		useForceHelmetBuff = false;
 	}
 
-	public override void update() {
-		base.update();
-	}
-
 	public override float getAmmoUsage(int chargeLevel) {
 		if (chargeLevel >= 3) {
 			return 0;
 		}
 		return 7;
-	}
-
-	public float getChipFactoredAmmoUsage(Player player) {
-		return player.character is MegamanX mmx && mmx.hyperArmArmor == ArmorId.Max ? ammoUsage / 2 : ammoUsage;
 	}
 
 	public static float getRateofFireMod(Player player) {
@@ -65,13 +57,13 @@ public class HyperCharge : Weapon {
 			return false;
 		}
 		return (
-			(ammo >= getChipFactoredAmmoUsage(mmx.player) || chargeLevel >= 3) && 
+			(ammo >= ammoUsage || chargeLevel >= 3) &&
 			base.canShoot(chargeLevel, mmx) && mmx.flag == null
 		);
 	}
 
 	public bool canShootIncludeCooldown(Player player) {
-		return canSelect(player) && ammo >= getChipFactoredAmmoUsage(player);
+		return canSelect(player) && ammo >= ammoUsage;
 	}
 
 	public override void shoot(Character character, int[] args) {

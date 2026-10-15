@@ -610,6 +610,7 @@ public class GameMode {
 				);
 			}
 			#region X
+			if (drawPlayer.character != null) drawConsumableSlotHud(drawPlayer);
 			if (level.mainPlayer.isX) {
 				if (level.mainPlayer.hasHelmetArmor(2)) {
 					Player? mostRecentlyScanned = null;
@@ -1063,8 +1064,7 @@ public class GameMode {
 		if (shouldDrawRadar() && !Menu.inMenu) {
 			drawRadar();
 		}
-		/*
-		if (level.mainPlayer.isX && level.mainPlayer.character?.charState is XReviveStart xrs) {
+		if (level.mainPlayer.character?.charState is XReviveStart xrs) {
 			Character chr = level.mainPlayer.character;
 
 			float boxHeight = xrs.boxHeight;
@@ -1098,7 +1098,6 @@ public class GameMode {
 				Global.sprites["drlight_portrait"].drawToHUD(index, 15, boxStartY + boxHeight * 0.5f);
 			}
 		}
-		*/
 	}
 
 	public void setHUDErrorMessage(
@@ -1486,32 +1485,24 @@ public class GameMode {
 
 		//Health
 		Point pos = getHUDHealthPosition(position, true);
-		int dir = 1;
-		if (position is HUDHealthPosition.Right or
+		bool rightAligned = position is HUDHealthPosition.Right or
 			HUDHealthPosition.TopRight or
-			HUDHealthPosition.BotRight
-		) {
-			dir = -1;
-		}
-		renderHealth(player, pos, false, false);
-		if (renderHealth(player, pos.addxy(6 * dir, 0), true, false)) {
-			pos.x += dir * 6;
-		}
-		;
-		if (renderHealth(player, pos.addxy(6 * dir, 0), false, true)) {
-			pos.x += dir * 6;
-		}
-		;
-		pos.x += dir * 16;
+			HUDHealthPosition.BotRight;
+		renderHealth(player, pos, false, false, rightAligned);
+		if (renderHealth(player, pos.addxy(0, 28), true, false, rightAligned)) pos.y += 28;
+		if (renderHealth(player, pos.addxy(0, 28), false, true, rightAligned)) pos.y += 28;
+		// Keep ammo at its original X HUD position, independent of extra HP rows.
+		pos = getHUDHealthPosition(position, true).addxy(rightAligned ? -16 : 16, 0);
 
 		//Weapon
-		renderWeapon(player, pos);
+		renderWeapon(player, pos, rightAligned);
 
 		if (player.character is ViralSigma viral) {
+			pos.y += 24;
 			renderAmmo(
-				pos.x + 16 * dir, ref pos.y, 58, 39,
+				pos.x, ref pos.y, 58, 39,
 				MathF.Floor(viral.beamLength * 28),
-				maxAmmo: 28, allowSmall: true
+				maxAmmo: 28, allowSmall: true, rightAligned: rightAligned
 			);
 		}
 	}
@@ -1523,17 +1514,17 @@ public class GameMode {
 		} else {
 			x = isHealth ? Global.screenW - 10 : Global.screenW - 25;
 		}
-		float y = Global.screenH / 2 -15;
+		float y = Global.screenH / 2 - 15;
 		if (position == HUDHealthPosition.TopLeft || position == HUDHealthPosition.TopRight) {
-			y -= 27;
+			y = 120;
 		} else if (position == HUDHealthPosition.BotLeft || position == HUDHealthPosition.BotRight) {
-			y += 61;
+			y = Global.screenH - 12;
 		}
 
 		return new Point(x, y);
 	}
 
-	public bool renderHealth(Player player, Point position, bool isMech, bool isMaverick) {
+	public bool renderHealth(Player player, Point position, bool isMech, bool isMaverick, bool rightAligned = false) {
 		bool mechBarExists = false;
 
 		string spriteName = "hud_health_base";
@@ -1611,7 +1602,6 @@ public class GameMode {
 		baseY -= 60;
 		baseX += 14;
 		var healthBaseSprite = spriteName;
-		Global.sprites[healthBaseSprite].drawToHUD(frameIndex, baseX, baseY);
 		baseY -= 14;
 		baseX += 12;	
 		int barIndex = 0;
@@ -1647,25 +1637,48 @@ public class GameMode {
 		}
 		maxHP = MathF.Max(maxHP, savings);
 
+		// Heart tanks remain normal HP, displayed over the unupgraded health bar.
+		float heartLayerStart = maxHP;
+		if (!isMech && !isMaverick && !Global.level.is1v1() &&
+			(player.character?.heartTanks ?? player.heartTanks) > 0
+		) {
+			float baseHealth = MathF.Ceiling(
+				Player.getCharacterBaseHealth(player.character?.baselineMaxHealth() ?? 16) * Player.getHpMod()
+			);
+			heartLayerStart = MathF.Min(maxHP, MathF.Ceiling(baseHealth / modifier));
+		}
+		float healthBarUnits = MathF.Max(heartLayerStart, maxHP - heartLayerStart);
+		if (rightAligned) baseX = position.x - 2 * healthBarUnits - 4;
+		Global.sprites[healthBaseSprite].drawToHUD(frameIndex, baseX - 12, baseY + 14);
+		float healthStartX = baseX;
+
 		for (var i = 0; i < Math.Ceiling(maxHP); i++) {
+			bool isHeartLayer = i >= heartLayerStart;
+			int healthColor = isHeartLayer ? 6 : barIndex;
+			baseX = healthStartX + 2 * (isHeartLayer ? i - heartLayerStart : i);
 			// Draw HP
 			if (i < curHP) {
-				Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY);
+				Global.sprites["hud_health_full"].drawToHUD(healthColor, baseX, baseY);
 			} else if (i < savings) {
 				Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY);
 			} else if (i < greyHp) {
 				Global.sprites["hud_weapon_full_new"].drawToHUD(30, baseX, baseY);
 			} else {
-				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
+				if (!isHeartLayer) {
+					Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
+				}
 				if (i < ceilCurHP) {
-					Global.sprites["hud_health_full"].drawToHUD(barIndex, baseX, baseY, fhpAlpha);
+					Global.sprites["hud_health_full"].drawToHUD(healthColor, baseX, baseY, fhpAlpha);
 				} else if (i < svCeil) {
 					Global.sprites["hud_health_full"].drawToHUD(sBarIndex, baseX, baseY, svAlpha);
 				}
 			}
-			baseX += 2;
 		}
+		baseX = healthStartX + 2 * healthBarUnits;
 		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
+		if (!isMech && !isMaverick && player == level.mainPlayer && player.realCharNum is 0 or 1) {
+			player.drawHyperMode(baseX + 20, baseY - 3);
+		}
 
 		return true;
 	}
@@ -1674,11 +1687,8 @@ public class GameMode {
 	public void renderAmmo(
 		float baseX, ref float baseY, int baseIndex,
 		int barIndex, float ammo, float grayAmmo = 0, float maxAmmo = 32,
-		bool allowSmall = true
+		bool allowSmall = true, bool rightAligned = false
 	) {
-		baseY += 28;
-		Global.sprites["hud_weapon_base_new"].drawToHUD(baseIndex, baseX, baseY);
-		baseY -= 19;
 
 		// Puppeteer small energy bars.
 		bool forceSmallBarsOff = false;
@@ -1691,16 +1701,22 @@ public class GameMode {
 		if (Options.main.enableSmallBars && !forceSmallBarsOff) {
 			ammoDisplayMultiplier = 0.5f;
 		}
+		if (maxAmmo == 32) ammoDisplayMultiplier = 0.5f;
+		float barX = rightAligned ? baseX - 2 * MathF.Ceiling(maxAmmo * ammoDisplayMultiplier) - 4 : baseX + 28;
+		Global.sprites["hud_weapon_base_new"].drawToHUD(baseIndex, barX - 11, baseY - 57);
+		baseX = barX;
+		float barY = baseY - 63;
 		for (var i = 0; i < MathF.Ceiling(maxAmmo * ammoDisplayMultiplier); i++) {
 			if (i < Math.Ceiling(ammo * ammoDisplayMultiplier)) {
-				if (ammo < grayAmmo) Global.sprites["hud_weapon_full_new"].drawToHUD(grayAmmoIndex, baseX, baseY);
-				else Global.sprites["hud_weapon_full_new"].drawToHUD(barIndex, baseX, baseY);
+				if (ammo < grayAmmo) Global.sprites["hud_weapon_full_new"].drawToHUD(grayAmmoIndex, baseX, barY);
+				else Global.sprites["hud_weapon_full_new"].drawToHUD(barIndex, baseX, barY);
 			} else {
-				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, baseY);
+				Global.sprites["hud_health_empty"].drawToHUD(0, baseX, barY);
 			}
 			baseX += 2;
 		}
-		Global.sprites["hud_health_top"].drawToHUD(0, baseX, baseY);
+		Global.sprites["hud_health_top"].drawToHUD(0, baseX, barY);
+		baseY += 24;
 	}
 
 	public bool shouldDrawWeaponAmmo(Player player, Weapon weapon) {
@@ -1711,7 +1727,7 @@ public class GameMode {
 		return true;
 	}
 
-	public void renderWeapon(Player player, Point position) {
+	public void renderWeapon(Player player, Point position, bool rightAligned = false) {
 		float baseX = position.x;
 		float baseY = position.y;
 		bool forceSmallBarsOff = false;
@@ -1746,7 +1762,7 @@ public class GameMode {
 					currentMaverick.flyBarIndexes.icon,
 					currentMaverick.flyBarIndexes.units,
 					MathF.Ceiling(currentMaverick.flyBar / currentMaverick.maxFlyBar * 28),
-					maxAmmo: 28, allowSmall: false
+					maxAmmo: 28, allowSmall: false, rightAligned: rightAligned
 				);
 			}
 			if (currentMaverick.usesAmmo) {
@@ -1756,7 +1772,7 @@ public class GameMode {
 					currentMaverick.barIndexes.units,
 					currentMaverick.ammo,
 					currentMaverick.grayAmmoLevel,
-					currentMaverick.maxAmmo
+					currentMaverick.maxAmmo, rightAligned: rightAligned
 				);
 			}
 			return;
@@ -1771,6 +1787,10 @@ public class GameMode {
 			return;
 		}
 		ammoDisplayMultiplier /= weapon.ammoDisplayScale;
+		if (weapon.maxAmmo == 32) {
+			ammoDisplayMultiplier = MathF.Min(ammoDisplayMultiplier, 0.5f);
+		}
+		if (rightAligned) baseX -= 28 + 2 * MathF.Ceiling(weapon.maxAmmo * ammoDisplayMultiplier) + 4;
 		baseY -= 57;
 		baseX += 17;
 		Global.sprites["hud_weapon_base_new"].drawToHUD(weapon.weaponBarBaseIndex, baseX, baseY);
@@ -1788,7 +1808,7 @@ public class GameMode {
 				if (weapon.drawGrayOnLowAmmo && weapon.ammo < weapon.getAmmoUsage(0) ||
 					(weapon is GigaCrush && !weapon.canShoot(0, player)) ||
 					(weapon is HyperNovaStrike && !weapon.canShoot(0, player)) ||
-					(weapon is HyperCharge hb && !hb.canShootIncludeCooldown(level.mainPlayer))) {
+					(weapon is HyperCharge hb && !hb.canShootIncludeCooldown(player))) {
 					spriteIndex = grayAmmoIndex;
 				}
 				if (spriteIndex >= Global.sprites["hud_weapon_full_new"].frames.Length) {
@@ -2171,6 +2191,29 @@ public class GameMode {
 		}
 	}
 
+	void drawConsumableSlotHud(Player player) {
+		int startX = (int)Global.halfScreenW / 17;
+		// Align Quick Use, Passive and Hypermode above currency with centered values.
+		for (int slot = 0; slot < 2; slot++) {
+			int x = startX + slot * 24;
+			const int y = 118;
+			if (player.consumableSlots[slot] < 0 && player.consumableCooldowns[slot] <= 0 &&
+				player.character!.canUseConsumableSlot(slot)) continue;
+			int item = player.character!.getConsumableHudItem(slot);
+			if (item >= 0) Global.sprites["store_hud"].drawToHUD(ConsumableShopMenu.getIconFrame(item), x, y);
+			if (player.activeConsumableSlotItems[slot] >= 0) {
+				DrawWrappers.DrawRectWH(x - 7, y - 7, 14, 14, false,
+					Color.Yellow, 1, ZIndex.HUD, false);
+			}
+			Fonts.drawText(FontType.Grey, slot == 0 ? "Q" : "P", x, y - 17, Alignment.Center);
+			if (player.consumableCooldowns[slot] > 0) {
+				drawWeaponSlotCooldown(x, y, player.consumableCooldowns[slot] / player.consumableCooldownMax[slot]);
+				Fonts.drawText(FontType.Grey, MathF.Ceiling(player.consumableCooldowns[slot]).ToString(), x, y + 10, Alignment.Center);
+			}
+			else if (item >= 0) Fonts.drawText(FontType.Grey, $"x{player.consumableInventory[item]}", x, y + 10, Alignment.Center);
+		}
+	}
+
 	public void drawXAbilityHud(Player player, MegamanX mmx) {
 		int startX = (int)Global.halfScreenW / 17;
 		int startY = 160;
@@ -2199,6 +2242,17 @@ public class GameMode {
 			var (x, y) = nextSlot();
 			drawGigaWeaponCooldown(180, 0, x, y, isKillFeed: true, xKF: x, yKF: y);
 			drawXStockCount(Math.Min(mmx.forceStocks, 4), x + 3, y + 3);
+		}
+		if (mmx.chestArmor == ArmorId.Max) {
+			var (x, y) = nextSlot();
+			int barrierFrame = mmx.hyperChestArmor == ArmorId.Max || mmx.hasFullHyperMaxArmor ? 16 : 15;
+			Global.sprites["hud_status_icon"].drawToHUD(barrierFrame, x, y);
+			if (mmx.barrierCooldown > 0) {
+				drawWeaponSlotCooldown(x, y, 1 - Helpers.progress(mmx.barrierCooldown, 120));
+			}
+			if (mmx.barrierActiveTime > 0) {
+				DrawWrappers.DrawRectWH(x - 6, y - 6, 12, 12, false, Color.Yellow, 1, ZIndex.HUD, false);
+			}
 		}
 
 		// Keep the other X abilities in the same layout, after the priority slots.

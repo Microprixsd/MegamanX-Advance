@@ -15,13 +15,13 @@ public enum ZeroGigaType {
 
 public class RakuhouhaWeapon : Weapon {
 	public static RakuhouhaWeapon netWeapon = new();
-	public float ammoCost = 8;
+	public float ammoCost = 10;
 
 	public RakuhouhaWeapon() : base() {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
 		maxAmmo = 16;
-		fireRate = 120;
+		fireRate = 150;
 		index = (int)WeaponIds.Rakuhouha;
 		weaponBarBaseIndex = 27;
 		weaponBarIndex = 33;
@@ -29,7 +29,7 @@ public class RakuhouhaWeapon : Weapon {
 		weaponSlotIndex = 51;
 		type = (int)ZeroGigaType.Rakuhouha;
 		displayName = "Rakuhouha";
-		description = new string[] { "Channels stored energy in one blast. Energy cost: 14." };
+		description = new string[] { "Channels stored energy in one blast. Energy cost: 10." };
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
 		allowSmallBar = false;
@@ -67,7 +67,7 @@ public class RekkohaWeapon : Weapon {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
 		maxAmmo = 16;
-		fireRate = 120;
+		fireRate = 300;
 		index = (int)WeaponIds.Rekkoha;
 		weaponBarBaseIndex = 40;
 		weaponBarIndex = 34;
@@ -136,7 +136,7 @@ public class ShinMessenkou : Weapon {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		ammo = 0;
 		maxAmmo = 16;
-		fireRate = 60;
+		fireRate = 120;
 		index = (int)WeaponIds.ShinMessenkou;
 		killFeedIndex = 86;
 		type = (int)ZeroGigaType.ShinMessenkou;
@@ -153,7 +153,7 @@ public class ShinMessenkou : Weapon {
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		return 14;
+		return 10;
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -167,7 +167,7 @@ public class DarkHoldWeapon : Weapon {
 	public DarkHoldWeapon() : base() {
 		ammo = 0;
 		maxAmmo = 16;
-		fireRate = 60 * 3;
+		fireRate = 120;
 		index = (int)WeaponIds.DarkHold;
 		type = (int)ZeroGigaType.DarkHold;
 		killFeedIndex = 175;
@@ -180,7 +180,7 @@ public class DarkHoldWeapon : Weapon {
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		return 14;
+		return 10;
 	}
 
 	public override void shoot(Character character, int[] args) {
@@ -193,7 +193,7 @@ public class TenshouhaWeapon : Weapon {
 	public TenshouhaWeapon() : base() {
 		ammo = 0;
 		maxAmmo = 16;
-		fireRate = 60;
+		fireRate = 120;
 		index = (int)WeaponIds.Tenshouha;
 		type = (int)ZeroGigaType.Tenshouha;
 		displayName = "Tenshouha";
@@ -240,7 +240,7 @@ public class RakuhouhaProj : Projectile {
 		this.isCFlasher = isCFlasher;
 		reflectable = true;
 		fadeOnAutoDestroy = true;
-		maxTime = 0.5f;
+		maxTime = isCFlasher ? 0.5f : 0.36f;
 		if (!isCFlasher) {
 			fadeSprite = "rakuhouha_fade";
 			projId = (int)ProjIds.Rakuhouha;
@@ -614,7 +614,11 @@ public class TenshouhaProj : Projectile {
 		damager.hitCooldown = 30;
 		damager.flinch = Global.defFlinch;
 		projId = (int)ProjIds.Tenshouha;
-		vel.y = 400;
+		// Keep the pillar at its cast position with a continuous trigger hitbox.
+		// The sprite's frame hitboxes alternate in width and start as solid colliders.
+		vel = Point.zero;
+		globalCollider = new Collider(new Rect(0, 0, 54, 191).getPoints(),
+			true, this, false, false, HitboxFlag.Hitbox, Point.zero);
 		maxTime = 2f;
 		destroyOnHit = false;
 		shouldShieldBlock = false;

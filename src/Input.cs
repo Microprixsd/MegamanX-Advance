@@ -474,6 +474,10 @@ public class Input {
 	}
 
 	public bool allowInput(Player player, string inputName) {
+		if (player?.character is Zero zero && zero.quickGigaSelecting && !zero.readingQuickGigaInput &&
+			(inputName == Control.Left || inputName == Control.Right)) return false;
+		if (player?.character is MegamanX x && x.quickArmorSelecting && !x.readingQuickArmorInput &&
+			(inputName == Control.Left || inputName == Control.Right || inputName == Control.Up || inputName == Control.Down)) return false;
 		/*
 		if (player != null && player.isVile && player.weapon is MechMenuWeapon mmw && mmw.isMenuOpened) {
 			if (inputName == Control.Up || inputName == Control.Down) {

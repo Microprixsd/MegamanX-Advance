@@ -558,6 +558,20 @@ public class Sprite {
 				));
 			}
 		}
+		// Armor layers can extend beyond the base X frame. Keep the original
+		// origin so including these pixels does not shift the hover pose.
+		if (isCompositeSprite && armors != null && animData.isXSprite) {
+			if (armors[3] == (int)ArmorId.Max && name == "mmx_hover_shoot") {
+				extraW = MathF.Max(extraW, 2);
+			}
+			if (armors[0] == (int)ArmorId.Force &&
+				(name == "mmx_hover" || name == "mmx_hover_shoot" ||
+				 name == "mmx_hover_forward" || name == "mmx_hover_forward_shoot" ||
+				 name == "mmx_hover_backward" || name == "mmx_hover_backward_shoot")
+			) {
+				extraY = MathF.Max(extraY, extraYOff + 1);
+			}
+		}
 		if (!isCompositeSprite) {
 			DrawWrappers.DrawTexture(
 				bitmap,

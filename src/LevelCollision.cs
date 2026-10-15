@@ -272,6 +272,8 @@ public partial class Level {
 		Actor actor, GameObject gameObject, Collider actorCollider, Collider gameObjectCollider,
 		Point intersection, bool otherway = false
 	) {
+		if (actor is Character webUser && gameObjectCollider.isLightningWeb &&
+			!webUser.canUseLightningWeb(gameObjectCollider)) return true;
 		if (actor is Character && gameObject is Character) {
 			var actorChar = actor as Character;
 			var goChar = gameObject as Character;
@@ -297,11 +299,11 @@ public partial class Level {
 		if (actorCollider.isTrigger || gameObjectCollider.isTrigger) return true;
 
 		if (actor is ShotgunIceProjSled sled && gameObject is Character chr && sled.damager.owner == chr.player) {
-			return false;
+			return true;
 		}
 
 		if (actor is Character chr2 && gameObject is ShotgunIceProjSled sled2 && sled2.damager.owner == chr2.player) {
-			return false;
+			return true;
 		}
 
 		if (actorCollider.wallOnly && gameObject is not Wall) return true;

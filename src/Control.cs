@@ -19,6 +19,7 @@ public class Control {
 	public const string Shoot = "shoot";
 	public const string Dash = "dash";
 	public const string Special1 = "special1";
+	public const string Special3 = "special3";
 	public const string WeaponLeft = "weaponleft";
 	public const string WeaponRight = "weaponright";
 	public const string Scoreboard = "scoreboard";
@@ -288,6 +289,10 @@ public class Control {
 						throw new Exception("Your controls.json file is corrupted, or no longer works with this version. Please delete it, launch the game again and rebind your controls.");
 					}
 				}
+			}
+			// Add the new action to existing configurations without replacing a binding.
+			if (_controllerNameToMapping!.TryGetValue(KeyboardName, out var keyboard)) {
+				keyboard.TryAdd(Special3, (int)Key.Space);
 			}
 			return _controllerNameToMapping!;
 		}

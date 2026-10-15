@@ -5,7 +5,7 @@ public class HadoukenWeapon : Weapon {
 	public static HadoukenWeapon netWeapon = new(null!);
 
 	public HadoukenWeapon(Player player) : base() {
-		damager = new Damager(player, Damager.ohkoDamage, Global.defFlinch, 0.5f);
+		damager = new Damager(player, 4, Global.superduperFlinch, 0.5f);
 		ammo = 0;
 		index = (int)WeaponIds.Hadouken;
 		weaponBarBaseIndex = 19;
@@ -21,9 +21,9 @@ public class HadoukenProj : Projectile {
 		pos, xDir, owner, "hadouken", netId, player	
 	) {
 		weapon = HadoukenWeapon.netWeapon;
-		damager.damage = Damager.ohkoDamage;
+		damager.damage = 4;
 		damager.hitCooldown = 9;
-		damager.flinch = Global.defFlinch;
+		damager.flinch = Global.superduperFlinch;
 		vel = new Point(250 * xDir, 0);
 		maxTime = 0.4f;
 		fadeSprite = "hadouken_fade";

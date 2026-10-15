@@ -207,7 +207,9 @@ public class CharState {
 		}
 		if (inTransition()) {
 			character.frameSpeed = 1;
-			if (character.isAnimOver() && !Global.level.gameMode.isOver) {
+			// Shooting can replace the startup animation before it finishes.
+			if ((character.sprite.name == character.getSprite(defaultSprite) ||
+				character.isAnimOver()) && !Global.level.gameMode.isOver) {
 				sprite = defaultSprite;
 				if (character.shootAnimTime > 0 && shootSprite != "") {
 					character.changeSpriteFromName(shootSprite, true);
@@ -240,7 +242,7 @@ public class CharState {
 		if (wallKickRightData?.otherCollider?.isClimbable == true && wallKickRightData?.gameObject is Wall) {
 			wallKickRightWall = wallKickRightData.otherCollider;
 		} else {
-			wallKickRightData = null;
+			wallKickRightWall = null;
 		}
 
 
@@ -267,7 +269,10 @@ public class CharState {
 	}
 
 	public virtual void airTrasition() {
-		if (airSprite != "" && !character.grounded && wasGrounded != false && sprite == landSprite) {
+		if (airSprite == landSprite) return;
+		// Reconcile the pose even if it changed after the ground contact was detected.
+		bool airborne = !character.grounded || character.vel.y < 0;
+		if (airSprite != "" && airborne && sprite == landSprite) {
 			sprite = airSprite;
 			int oldFrameIndex = character.sprite.frameIndex;
 			float oldFrameTime = character.sprite.frameTime;
@@ -279,7 +284,7 @@ public class CharState {
 				character.sprite.frameIndex = character.sprite.totalFrameNum - 1;
 				character.sprite.frameTime = character.sprite.getCurrentFrame().duration;
 			}
-		} else if (landSprite != "" && character.grounded && wasGrounded != true && sprite == airSprite) {
+		} else if (landSprite != "" && !airborne && sprite == airSprite) {
 			character.playAltSound("land", sendRpc: true, altParams: "larmor");
 			sprite = landSprite;
 			int oldFrameIndex = character.sprite.frameIndex;
@@ -739,6 +744,7 @@ public class Run : CharState {
 		float runSpeed = character.getRunSpeed();
 		if (stateFrames <= 4) {
 			runSpeed = 1 * character.getRunDebuffs();
+			if (character is MegamanX mmx) runSpeed *= mmx.skillRunMultiplier;
 		}
 		if (player.input.isHeld(Control.Left, player)) {
 			character.xDir = -1;
@@ -1109,6 +1115,8 @@ public class AirDash : CharState {
 			float targetSpeed = Physics.DashStartSpeed * character.getRunDebuffs();
 			if (Global.customSettings?.instantDash == true) {
 				targetSpeed = character.getDashSpeed();
+			} else if (character is MegamanX mmx) {
+				targetSpeed *= mmx.skillDashMultiplier;
 			}
 			character.moveXY(targetSpeed * dashDir, 0);
 		}
@@ -1170,7 +1178,8 @@ public class WallSlide : CharState {
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
 		mmx = character as MegamanX;
-		character.dashedInAir = 0;
+		if (wallCollider.isLightningWeb) character.useLightningWeb(wallCollider);
+		else character.dashedInAir = 0;
 		if (player.isAI && character.ai != null) {
 			character.ai.jumpTime = 0;
 		}
@@ -1268,7 +1277,8 @@ public class WallSlideAttack : CharState {
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		character.dashedInAir = 0;
+		if (wallCollider.isLightningWeb) character.useLightningWeb(wallCollider);
+		else character.dashedInAir = 0;
 	}
 
 	public override void update() {
@@ -1460,11 +1470,13 @@ public class LadderEnd : CharState {
 
 public class Taunt : CharState {
 	float tauntTime = 1;
-	public Taunt() : base("win") {
+	readonly bool recovering;
+	public Taunt(bool recovering = false) : base("win") {
+		this.recovering = recovering;
 	}
 	public override void update() {
 		base.update();
-		if (stateTime >= tauntTime) {
+		if (recovering ? !character.hasConsumableRecovery : stateTime >= tauntTime) {
 			character.changeToIdleOrFall();
 		}
 	}

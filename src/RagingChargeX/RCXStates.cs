@@ -89,7 +89,7 @@ public class XUPParryStartState : CharState {
 				bool shootProj = false;
 				bool absorbThenShoot = false;
 				character.playSound("upParryAbsorb", sendRpc: true);
-				if (!player.input.isWeaponLeftOrRightHeld(player)) {
+				if (!player.input.isPressed(Control.WeaponLeft, player)) {
 					mmx.absorbedProj = absorbedProj;
 					//character.player.weapons.Add(new AbsorbWeapon(absorbedProj));
 				} else {
@@ -370,41 +370,50 @@ public class XUPPunchState : CharState {
 	}
 }
 
-public class XUPChargedPunchState : CharState {
-	public float dashTime; //Tiempo del dash
-	public float dustTime; //Generador de Polvo con tiempo
+public class XUPChargedStrikeState : CharState {
+	readonly bool floorStrike;
+	bool fired;
 
-	public XUPChargedPunchState() : base("unpo_punch2", "") {
-		enterSound = "fsplasher";
-	}
-
-	public override void update() {
-    base.update();
-    character.move(new Point(character.xDir * 250, 0f));
-    dashTime += Global.spf;
-
-    // Solo terminar si pasa el tiempo máximo
-    if (dashTime > 0.45f) {
-        character.changeState(new Idle());
-        return;
-    }
-
-    dustTime += Global.spf;
-    if (dustTime > 0.1f) {
-        dustTime = 0f;
-        new Anim(character.pos.addxy(0f, -4f), "dust", character.xDir,
-        base.player.getNextActorNetId(), destroyOnEnd: true, sendRpc: true);
-      }
+	public XUPChargedStrikeState(bool floorStrike, bool grounded)
+		: base(floorStrike ? (grounded ? "punch_ground" : "fall") : "hadouken") {
+		this.floorStrike = floorStrike;
+		useGravity = floorStrike;
 	}
 
 	public override void onEnter(CharState oldState) {
 		base.onEnter(oldState);
-		character.isDashing = true;
-		character.useGravity = true;
+		character.vel.x = 0;
+		if (floorStrike && character.vel.y < 0) character.vel.y = 0;
 	}
-	public override void onExit(CharState newState) {
-		base.onExit(newState);
-		character.useGravity = true;
+
+	public override void update() {
+		base.update();
+		// Only the downward variant advances during startup.
+		if (floorStrike && stateFrames <= 12) character.move(new Point(character.xDir * 120, 0));
+		if (floorStrike && !fired && !character.grounded && sprite != "fall") {
+			sprite = "fall";
+			character.changeSpriteFromName(sprite, true);
+		}
+		if (floorStrike && sprite == "fall") {
+			if (!character.grounded) return;
+			sprite = "punch_ground";
+			character.changeSpriteFromName(sprite, true);
+		}
+		if (!fired && character.frameIndex >= (floorStrike ? 6 : 2)) {
+			fired = true;
+			if (floorStrike) character.playSound("crashX3", sendRpc: true);
+			if (floorStrike) character.shakeCamera(sendRpc: true);
+		}
+		if (character.isAnimOver()) character.changeToIdleOrFall();
+	}
+}
+
+public class XUPChargedUppercutState : Shoryuken {
+	public XUPChargedUppercutState(bool isUnderwater) : base(isUnderwater) { }
+
+	public override void onEnter(CharState oldState) {
+		base.onEnter(oldState);
+		character.vel.x = 0;
 	}
 }
 
@@ -588,9 +597,9 @@ public class XReviveStart : CharState {
 	public float boxHeight;
 	public float boxOffset = 30;
 	const float boxSpeed = 90;
-	public string dialogLine1Content = "X, I want you want you to figth";
+	public string dialogLine1Content = "X, I want you to fight";
 	public string dialogLine2Content = "for the people of the future.";
-	public string dialogLine3Content = "You are the world one true hope.";
+	public string dialogLine3Content = "You are the world's one true hope.";
 	public int dialogType;
 	public float dialogTime;
 

@@ -16,6 +16,8 @@ public class GigaCrush : Weapon {
 		drawGrayOnLowAmmo = true;
 		drawRoundedDown = true;
 		useForceHelmetBuff = false;
+		hasCustomAnim = true;
+		hasCustomChargeAnim = true;
 		index = (int)WeaponIds.GigaCrush;
 		weaponBarBaseIndex = 25;
 		weaponBarIndex = weaponBarBaseIndex;
@@ -52,7 +54,7 @@ public class GigaCrushProj : Projectile {
 		weapon = GigaCrush.netWeapon;
 		damager.damage = 8;
 		damager.hitCooldown = 30;
-		damager.flinch = Global.defFlinch;
+		damager.flinch = Global.superFlinch;
 		maxActiveTime = 0.4f;
 		vel = new Point();
 		projId = (int)ProjIds.GigaCrush;

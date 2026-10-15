@@ -100,6 +100,8 @@ public class RPC {
 	public static RpcUpdateMaxTime updateMaxTime = new();
 	public static RpcReviveSigma reviveSigma = new();
 	public static RPCGiveHyperchargeAmmo giveHyperchargeAmmo = new();
+	public static RPCSkillExperience skillExperience = new();
+	public static RPCHyperModeDamage hyperModeDamage = new();
 	public static RPC[] templates = {
 		// Strings.
 		sendString,
@@ -182,6 +184,8 @@ public class RPC {
 		giveHyperchargeAmmo,
 		// Custom generic RCP.
 		custom,
+		skillExperience,
+		hyperModeDamage,
 	};
 
 	public virtual void invoke(params byte[] arguments) {
@@ -768,7 +772,7 @@ public class RPCActorToggle : RPC {
 			}
 		} else if (toggleId == RPCActorToggleType.AwardCurrency) {
 			if (actor is Character chr) {
-				chr.player.currency += 5;
+				chr.player.addEarnedCurrency(5);
 			}
 		} else if (toggleId == RPCActorToggleType.MorphMothCocoonSelfDestruct) {
 			if (actor is MorphMothCocoon mmc) {
@@ -1606,6 +1610,7 @@ public enum CommandGrabScenario {
 	CrushCGrab,
 	BBuffaloGrab,
 	Release,
+	Shoryuken,
 }
 
 public class RPCCommandGrabPlayer : RPC {
@@ -1687,6 +1692,13 @@ public class RPCCommandGrabPlayer : RPC {
 				if (grabberChar.ownedByLocalPlayer) {
 					grabberChar.changeState(new XUPGrabState(victimChar));
 				}
+			}
+		} else if (hookScenario == CommandGrabScenario.Shoryuken) {
+			if (grabberChar is MegamanX && victimChar?.ownedByLocalPlayer == true &&
+				grabberChar.health > 0 && grabberChar.sprite.name == "mmx_shoryuken" &&
+				grabberChar.player.alliance != victimChar.player.alliance &&
+				victimChar.canBeDamaged(grabberChar.player.alliance, grabberChar.player.id, (int)ProjIds.Shoryuken)) {
+				victimChar.changeState(new ShoryukenGrabbed(grabberChar));
 			}
 		} else if (hookScenario == CommandGrabScenario.Release) {
 			if (victimChar != null) {

@@ -120,6 +120,9 @@ public class ControlPoint : Actor {
 			}
 
 			if (decisiveCaptureTime >= maxCaptureTime) {
+				foreach (Character contributor in attackers) {
+					contributor.player.awardSkillExperience(XSkillActivity.Objective, 30, true);
+				}
 				if (!isHill) {
 					captured = true;
 					locked = true;
@@ -236,6 +239,12 @@ public class ControlPoint : Actor {
 	public override void onCollision(CollideData other) {
 		base.onCollision(other);
 		if (other.otherCollider?.flag == (int)HitboxFlag.Hitbox) return;
+		if (!captured && !locked && other.gameObject is Character participant && participant.ownedByLocalPlayer &&
+			participant.health > 0 && participant.lastSkillObjectiveFrame != Global.frameCount &&
+			(participant.player.alliance == alliance ? canDefend(participant) : canAttack(participant))) {
+			participant.lastSkillObjectiveFrame = Global.frameCount;
+			participant.player.awardSkillExperience(XSkillActivity.Objective, Global.speedMul / 64f);
+		}
 
 		if (!ownedByLocalPlayer) return;
 

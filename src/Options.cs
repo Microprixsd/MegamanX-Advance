@@ -63,6 +63,9 @@ public class Options {
 
 	// X
 	public int gridModeX;
+	public bool automaticSkillTree;
+	public XQuickArmorSet[] quickArmorSets = XQuickArmorSet.defaults();
+	public System.Collections.Generic.List<string> xSkillTreeRoute = new();
 	public int hyperChargeSlot;
 	public bool novaStrikeSpecial;
 	public bool novaStrikeWall;

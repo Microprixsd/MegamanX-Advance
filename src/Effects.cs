@@ -118,7 +118,7 @@ public class ChargeEffect {
 				var rect = new Rect(x - halfWidth, y - halfWidth, x + halfWidth, y + halfWidth);
 				var camRect = new Rect(Global.level.camX, Global.level.camY, Global.level.camX + Global.viewScreenW, Global.level.camY + Global.viewScreenH);
 				if (rect.overlaps(camRect)) {
-					part.sprite.draw((int)Math.Round(part.time), x, y, 1, 1, null, 1, 1, 1, ZIndex.Foreground);
+				part.sprite.draw((int)Math.Round(part.time), x, y, 1, 1, null, 1, 1, 1, ZIndex.Foreground);
 				}
 			} else {
 				part.sprite.visible = false;

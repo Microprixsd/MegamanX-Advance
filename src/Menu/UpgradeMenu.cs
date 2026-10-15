@@ -51,11 +51,11 @@ public class UpgradeMenu : IMainMenu {
 	}
 
 	public static int getMaxHeartTanks() {
-		return Global.level.server?.customMatchSettings?.maxHeartTanks ?? 8;
+		return Global.level.server?.customMatchSettings?.maxHeartTanks ?? Player.defaultMaxHeartTanks;
 	}
 
 	public static int getMaxSubTanks() {
-		return Global.level.server?.customMatchSettings?.maxSubTanks ?? 2;
+		return Global.level.server?.customMatchSettings?.maxSubTanks ?? (Global.level.mainPlayer.realCharNum == 0 ? 4 : 2);
 	}
 
 	public Player mainPlayer {
@@ -68,7 +68,19 @@ public class UpgradeMenu : IMainMenu {
 	}
 
 	public void update() {
+		// X uses only the skill tree and the consolidated armor/subtank page.
+		if (mainPlayer.realCharNum == 0) {
+			Menu.change(new XSkillTreeMenu(prevMenu));
+			return;
+		}
 		//if (UpgradeArmorMenu.updateHyperArmorUpgrades(mainPlayer)) return;
+		if (mainPlayer.realCharNum == (int)CharIds.Zero &&
+			(Global.input.isPressedMenu(Control.MenuRight) ||
+			 Global.input.isPressedMenu(Control.WeaponLeft) ||
+			 Global.input.isPressedMenu(Control.WeaponRight))) {
+			Menu.change(new ZeroSkillTreeMenu(this));
+			return;
+		}
 
 		subtankTargets.Clear();
 		if (mainPlayer.isSigma && mainPlayer.character is BaseSigma sigma) {
@@ -94,26 +106,8 @@ public class UpgradeMenu : IMainMenu {
 
 		if (!subtankTargets.InRange(subtankTargetIndex)) subtankTargetIndex = 0;
 
-		if (Global.input.isPressedMenu(Control.MenuLeft) || Global.input.isPressedMenu(Control.WeaponLeft)) {
-			if (mainPlayer.realCharNum == 0) {
-				if (mainPlayer.canUpgradeXArmor()) {		
-					UpgradeArmorMenu.xGame = 4;
-					Menu.change(new UpgradeArmorMenu(this));
-					onUpgradeMenu = false;
-					return;
-				}
-			}
-		}
-
 		if (Global.input.isPressedMenu(Control.MenuRight) || Global.input.isPressedMenu(Control.WeaponRight)) {
-			if (mainPlayer.realCharNum == 0) {
-				if (mainPlayer.canUpgradeXArmor()) {
-					UpgradeArmorMenu.xGame = 1;
-					Menu.change(new UpgradeArmorMenu(this));
-					onUpgradeMenu = false;
-					return;
-				}
-			} else if (mainPlayer.realCharNum == 2) {
+			if (mainPlayer.realCharNum == 2) {
 				Menu.change(new SelectVileArmorMenu(prevMenu));
 				onUpgradeMenu = false;
 				return;
@@ -124,7 +118,8 @@ public class UpgradeMenu : IMainMenu {
 
 		if (Global.input.isPressedMenu(Control.MenuConfirm)) {
 			if (selectArrowPosY == 0) {
-				if (mainPlayer.heartTanks < getMaxHeartTanks() && mainPlayer.currency >= getHeartTankCost()) {
+				if (mainPlayer.heartTanks < getMaxHeartTanks() && mainPlayer.currency >= getHeartTankCost() &&
+					XSkillProgress.canBuyHeartTank(mainPlayer)) {
 					mainPlayer.currency -= getHeartTankCost();
 					mainPlayer.heartTanks++;
 					Global.playSound("hearthX1");
@@ -148,7 +143,8 @@ public class UpgradeMenu : IMainMenu {
 					*/
 				}
 			} else if (selectArrowPosY >= 1) {
-				if (mainPlayer.subtanks.Count < selectArrowPosY && mainPlayer.currency >= getSubTankCost()) {
+				if (mainPlayer.subtanks.Count < selectArrowPosY && mainPlayer.currency >= getSubTankCost() &&
+					XSkillProgress.canBuySubTank(mainPlayer)) {
 					mainPlayer.currency -= getSubTankCost();
 					mainPlayer.subtanks.Add(new SubTank());
 					Global.playSound("upgrade");
@@ -210,12 +206,19 @@ public class UpgradeMenu : IMainMenu {
 		if (Global.flFrameCount % 60 < 30 && mainPlayer.realCharNum == 2) {
 			Fonts.drawText(FontType.DarkPurple, ">", Global.screenW - 14, Global.halfScreenH, Alignment.Center);
 			//Fonts.drawText(FontType.DarkPurple, "Armor", Global.screenW - 25, Global.halfScreenH + 15, Alignment.Center);
-		} else if (Global.flFrameCount % 60 < 30 && mainPlayer.canUpgradeXArmor()) {
-			Fonts.drawText(FontType.DarkPurple, "<", 14, Global.halfScreenH, Alignment.Center);
+		} else if (Global.flFrameCount % 60 < 30 && mainPlayer.realCharNum == 0) {
+			if (mainPlayer.canUpgradeXArmor()) {
+				Fonts.drawText(FontType.DarkPurple, "<", 14, Global.halfScreenH, Alignment.Center);
+			}
 			//Fonts.drawText(FontType.DarkPurple, "X3", 12, Global.halfScreenH + 15, Alignment.Center);
 
 			Fonts.drawText(FontType.DarkPurple, ">", Global.screenW - 14, Global.halfScreenH, Alignment.Center);
+			Fonts.drawText(FontType.DarkPurple, "Skill Tree", Global.screenW - 24, 156, Alignment.Right);
 			//Fonts.drawText(FontType.DarkPurple, "X1", Global.screenW - 19, Global.halfScreenH + 15, Alignment.Center);
+		}
+
+		if (mainPlayer.realCharNum == (int)CharIds.Zero) {
+			Fonts.drawText(FontType.DarkPurple, "Skill Tree >", Global.screenW - 24, 156, Alignment.Right);
 		}
 
 		bool soldOut = false;
@@ -223,6 +226,7 @@ public class UpgradeMenu : IMainMenu {
 
 		if (mainPlayer.heartTanks >= getMaxHeartTanks()) soldOut = true;
 		string heartTanksStr = soldOut ? "SOLD OUT" : "Buy Heart Tank";
+		if (!soldOut && !XSkillProgress.canBuyHeartTank(mainPlayer)) heartTanksStr = "Heart Tank Locked";
 		Global.sprites["menu_hearttank"].drawToHUD(
 			heartTanksStr == "SOLD OUT" ? 1 : 0, optionPositions[0].x, optionPositions[0].y - 4
 		);
@@ -238,6 +242,7 @@ public class UpgradeMenu : IMainMenu {
 			bool canUseSubtank = true;
 			bool buyOrUse = mainPlayer.subtanks.Count < i + 1;
 			string buyOrUseStr = buyOrUse ? "Buy Sub Tank" : "Use Sub Tank";
+			if (buyOrUse && !XSkillProgress.canBuySubTank(mainPlayer)) buyOrUseStr = "Sub Tank Locked";
 			var optionPos = optionPositions[i + 1];
 			if (!buyOrUse) {
 				var subtank = mainPlayer.subtanks[i];

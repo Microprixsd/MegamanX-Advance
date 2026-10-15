@@ -7,6 +7,7 @@ public class XBuster : Weapon {
 	public static XBuster netWeapon = new();
 	public List<BusterProj> lemonsOnField = new List<BusterProj>();
 	public bool isUnpoBuster;
+	public bool consumableOverdrive;
 
 	public XBuster() : base() {
 		displayName = "X-Buster";
@@ -88,6 +89,12 @@ public class XBuster : Weapon {
 		Point pos = character.getShootPos();
 		int xDir = character.getShootXDir();
 		Player player = character.player;
+		if (consumableOverdrive) {
+			new ForceBuster3Proj(mmx, pos, xDir, player.getNextActorNetId(), true, overdrive: true);
+			new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
+			character.playSound("buster3", sendRpc: true);
+			return;
+		}
 		
 		string shootSound = "buster";
 		shootSound = chargeLevel switch {
@@ -116,7 +123,8 @@ public class XBuster : Weapon {
 		}
 
 		if (mmx.hasUltimateArmor && chargeLevel >= 3 && !isStock &&
-			(mmx.armArmor != ArmorId.Max || mmx.hasFullHyperMaxArmor && !isUnpoBuster)) {
+			(mmx.armArmor != ArmorId.Max || mmx.hasFullHyperMaxArmor && !isUnpoBuster ||
+			mmx.hasUltimateMaxBuster && !mmx.hasFullHyperMaxArmor)) {
 			if (mmx.armArmor == ArmorId.Max && !mmx.maxBusterFollowupFromHyperCharge) {
 				mmx.stockedMaxBusterLv = 0;
 				mmx.maxBusterFollowupTime = 0;
@@ -157,7 +165,8 @@ public class XBuster : Weapon {
 			shootSound = "buster2X4";
 		}
 		else if (chargeLevel == 0) {
-			lemonsOnField.Add(new BusterProj(pos.addxy(xDir * 6, -1), xDir, mmx, player, player.getNextActorNetId(), true));
+			lemonsOnField.Add(new BusterProj(pos.addxy(xDir * 6, -1), xDir, mmx, player, player.getNextActorNetId(), true,
+				boosted: mmx.consumeBusterPlusShot()));
 		} else if (chargeLevel == 1) {
 			new Buster2Proj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 		} else if (chargeLevel == 2) {
@@ -175,7 +184,7 @@ public class XBuster : Weapon {
 				new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
 			} else if (mmx.armArmor == ArmorId.Plasma) {
 				new ForceBuster3Proj(mmx, pos, xDir, player.getNextActorNetId(), true);
-				new Anim(pos.addxy(character.xDir + 2, 0), "buster4_x3_muzzle", xDir, null, destroyOnEnd: true);
+				new Anim(pos.clone(), "buster_unpo_muzzle", xDir, null, destroyOnEnd: true);
 			}
 		} else if (chargeLevel >= 3) {
 			if (isStock) {
@@ -210,6 +219,7 @@ public class XBuster : Weapon {
 				} else if (mmx.armArmor == ArmorId.Giga) {
 					new Buster4GigaProj(pos, xDir, mmx, player, player.getNextActorNetId(), true);
 				} else if (mmx.armArmor == ArmorId.Plasma) {
+					new Anim(pos.clone(), "buster4_muzzle_flash", xDir, null, destroyOnEnd: true);
 					new BusterForcePlasmaProj(mmx, pos, xDir, player.getNextActorNetId(), true);
 				} else {
 					shootLightBuster4(mmx, pos, xDir);

@@ -6,11 +6,12 @@ namespace MMXOnline;
 public class HyperNovaStrike : Weapon {
 	public static HyperNovaStrike netWeapon = new();
 	public const float ammoUsage = 0;
+	private static readonly List<Type> wallCollisionTypes = new() { typeof(Wall) };
 
 	public HyperNovaStrike() : base() {
 		//damager = new Damager(player, 4, Global.defFlinch, 0.5f);
 		shootSounds = new string[] { "", "", "", "" };
-		fireRate = 210;
+		fireRate = 240;
 		switchCooldown = 15;
 		index = (int)WeaponIds.NovaStrike;
 		weaponBarBaseIndex = 42;
@@ -25,13 +26,13 @@ public class HyperNovaStrike : Weapon {
 	}
 
 	public override void shoot(Character character, int[] args) {
-		var hitWall = Global.level.raycast(character.pos,character.pos.addxy(35*character.xDir, 0),new List<Type>() { typeof(Wall) });
-		var hitCeiling = Global.level.raycast(character.pos,character.pos.addxy(0, -40),new List<Type>() { typeof(Wall) });
-		var hitFloor = Global.level.raycast(character.pos,character.pos.addxy(0, 25),new List<Type>() { typeof(Wall) });
 		if (character.flag != null) return;
-		if (hitWall != null && Options.main.novaStrikeWall) return;
-		if (hitCeiling != null && Options.main.novaStrikeCeiling) return;
-		if (hitFloor != null && Options.main.novaStrikeFloor && character.player.input.isHeld(Control.Down, character.player)) return;
+		if (Options.main.novaStrikeWall && Global.level.raycast(character.pos,
+			character.pos.addxy(35 * character.xDir, 0), wallCollisionTypes) != null) return;
+		if (Options.main.novaStrikeCeiling && Global.level.raycast(character.pos,
+			character.pos.addxy(0, -40), wallCollisionTypes) != null) return;
+		if (Options.main.novaStrikeFloor && character.player.input.isHeld(Control.Down, character.player) &&
+			Global.level.raycast(character.pos, character.pos.addxy(0, 25), wallCollisionTypes) != null) return;
 
 		if (character.ownedByLocalPlayer) {
 			if (character.player.input.isHeld(Control.Up, character.player)) {
@@ -46,18 +47,11 @@ public class HyperNovaStrike : Weapon {
 	}
 
 	public override float getAmmoUsage(int chargeLevel) {
-		if (Global.level?.isHyper1v1() == true) {
-			return 0;
-		}
 		return 0;
 	}
 
 	public override bool canShoot(int chargeLevel, Player player) {
-		return player.character?.flag == null && ammo >= getChipFactoredAmmoUsage(player);
-	}
-
-	public float getChipFactoredAmmoUsage(Player player) {
-		return player.character is MegamanX mmx && mmx.hyperArmArmor == ArmorId.Max ? ammoUsage / 2 : ammoUsage;
+		return player.character?.flag == null && ammo >= ammoUsage;
 	}
 }
 
@@ -150,11 +144,10 @@ public class NovaStrikeStateEX : CharState {
 
 		if (!once && character.frameIndex >= 4) {
 			once = true;
-			if (Helpers.randomRange(0, 10) < 10) {
-				character.playSound("novaStrikeX4", forcePlay: false, sendRpc: true);
-			} else {
-				character.playSound("novaStrikeX6", forcePlay: false, sendRpc: true);
-			}
+			character.playSound("NovaStrikeX4", sendRpc: true);
+			if (Helpers.randomRange(0, 1) == 0) {
+				character.playSound("mvsci_ultimatestrike", forcePlay: false, sendRpc: true);
+			} 
 		}
 		if (character.frameIndex <= 2) {
 			character.move(new Point(125 * character.xDir, -95));
@@ -189,11 +182,10 @@ public class NovaStrikeStateUpEX : CharState {
 		base.update();
 		if (!once && character.frameIndex >= 4) {
 			once = true;
-			if (Helpers.randomRange(0, 10) < 10) {
-				character.playSound("novaStrikeX4", forcePlay: false, sendRpc: true);
-			} else {
-				character.playSound("novaStrikeX6", forcePlay: false, sendRpc: true);
-			}
+			character.playSound("NovaStrikeX4", sendRpc: true);
+			if (Helpers.randomRange(0, 1) == 0) {
+				character.playSound("mvsci_ultimatestrike", forcePlay: false, sendRpc: true);
+			} 
 		}
 		if (character.frameIndex <= 3) {
 			character.move(new Point(0, -25));
@@ -228,11 +220,10 @@ public class NovaStrikeStateDownEX : CharState {
 		base.update();
 		if (!once && character.frameIndex >= 4) {
 			once = true;
-			if (Helpers.randomRange(0, 10) < 10) {
-				character.playSound("novaStrikeX4", forcePlay: false, sendRpc: true);
-			} else {
-				character.playSound("novaStrikeX6", forcePlay: false, sendRpc: true);
-			}
+			character.playSound("NovaStrikeX4", sendRpc: true);
+			if (Helpers.randomRange(0, 1) == 0) {
+				character.playSound("mvsci_ultimatestrike", forcePlay: false, sendRpc: true);
+			} 
 		}
 		if (character.frameIndex <= 3) {
 			character.move(new Point(0, 25));

@@ -139,6 +139,7 @@ public class LightningWebProjWeb : Projectile {
 					rect[3].add(new Point(0, 0)),
 				});
 
+				wall.collider.isLightningWeb = true;
 				Global.level.addGameObject(wall);
 			}
 

@@ -37,6 +37,10 @@ public class CustomMatchSettings {
 	[ProtoMember(28)] public bool jumpMoveGlitch;
 	[ProtoMember(29)] public bool universalGuard;
 	[ProtoMember(30)] public bool busterZeroGiga;
+	[ProtoMember(31), System.ComponentModel.DefaultValue(XSkillProgress.initialPoints)]
+	public int startSkillPoints = XSkillProgress.initialPoints;
+	[ProtoMember(32), System.ComponentModel.DefaultValue(1f)]
+	public float hyperModeChargeRate = 1f;
 
 	public CustomMatchSettings() {
 	}
@@ -44,14 +48,16 @@ public class CustomMatchSettings {
 	public static CustomMatchSettings getDefaults() {
 		return new CustomMatchSettings {
 			hyperModeMatch = false,
+			hyperModeChargeRate = 1f,
 			startCurrency = 3,
+			startSkillPoints = XSkillProgress.initialPoints,
 			startHeartTanks = 0,
 			startSubTanks = 0,
 			healthModifier = 1,
-			baseHp = 16,
-			maxHeartTanks = 8,
+			baseHp = Player.defaultBaseHp,
+			maxHeartTanks = Player.defaultMaxHeartTanks,
 			maxSubTanks = 2,
-			heartTankHp = 1,
+			heartTankHp = Player.defaultHeartTankHp,
 			heartTankCost = 2,
 			currencyGain = 1,
 			respawnTime = 5,
@@ -146,6 +152,38 @@ public class CustomMatchSettingsMenu : IMainMenu {
 				}
 			)
 		);
+		menuOptions.Add(
+			new MenuOption(
+				startX, currentY += lineH,
+				() => {
+					Helpers.menuLeftRightInc(ref cSettings.startSkillPoints, 0, XSkillProgress.maxPoints, true);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.Yellow,
+						"Start Skill Points: " + cSettings.startSkillPoints.ToString(),
+						pos.x, pos.y, selected: selectArrowPosY == index
+					);
+				}
+			)
+		);
+		menuOptions.Add(
+			new MenuOption(
+				startX, currentY += lineH,
+				() => {
+					int dir = Global.input.getMenuXDir();
+					if (dir == 0) return;
+					cSettings.hyperModeChargeRate = Helpers.clamp(cSettings.hyperModeChargeRate + 0.25f * dir, 0.25f, 10f);
+				},
+				(Point pos, int index) => {
+					Fonts.drawText(
+						FontType.RedishOrange,
+						$"Hypers Charge R.: {cSettings.hyperModeChargeRate * 100}%",
+						pos.x, pos.y, selected: selectArrowPosY == index
+					);
+				}
+			)
+		);
 		//Currency Gain Custom Setting
 		menuOptions.Add(
 			new MenuOption(
@@ -187,7 +225,7 @@ public class CustomMatchSettingsMenu : IMainMenu {
 			new MenuOption(startX, currentY += lineH,
 				() => {
 					Helpers.menuLeftRightInc(
-						ref cSettings.baseHp, 4, 16, false
+						ref cSettings.baseHp, 4, Player.defaultBaseHp, false
 					);
 				},
 				(Point pos, int index) => {

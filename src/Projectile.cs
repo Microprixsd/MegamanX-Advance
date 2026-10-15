@@ -6,6 +6,20 @@ using System.Linq;
 namespace MMXOnline;
 
 public class Projectile : Actor {
+	Player? speedShotOwner;
+	protected bool forceSpeedShot;
+	public override float getVelocityMultiplier() =>
+		forceSpeedShot || speedShotOwner?.xSkills.has(XSkill.SpeedShot) == true ? 1.2f : 1;
+
+	void setSpeedShotOwner(Player player) {
+		if (player.character is MegamanX && this is BusterProj or Buster2Proj or Buster3LightProj or
+			Buster3GigaProj or Buster3MaxProj or Buster4GigaProj or Buster4Giga2Proj or Buster4MaxProj or
+			Buster4X8Proj or Buster3X4Proj or Buster4Proj or BusterX3Proj1 or BusterX3Proj2 or BusterX3Proj3 or
+			BusterPlasmaProj or SpiralBackProj or BusterStockProj or BusterForcePlasmaProj or ForceBuster3Proj) {
+			speedShotOwner = player;
+		}
+	}
+
 	public Damager damager;
 	public Player owner {
 		get { return damager.owner; }
@@ -112,6 +126,7 @@ public class Projectile : Actor {
 			}
 		}
 		this.ownerPlayer = player;
+		setSpeedShotOwner(player);
 		canBeLocal = true;
 	}
 
@@ -129,6 +144,7 @@ public class Projectile : Actor {
 		ownerPlayer = (
 			player ?? owner?.netOwner ?? Global.level.getPlayerByIdSafe(netId)
 		);
+		setSpeedShotOwner(ownerPlayer);
 		ownerActor = owner;
 		damager = new Damager(ownerPlayer, 0, 0, 0);
 		ownerActor = owner;

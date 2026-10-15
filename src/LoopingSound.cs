@@ -9,6 +9,9 @@ public class LoopingSound {
 	Sound startClip;
 	Sound loopClip;
 	Sound stopClip;
+	float startVolume;
+	float loopVolume;
+	float stopVolume = 1;
 	bool startClipStarted = false;
 	bool startClipDone = false;
 	float prevLoopPos;
@@ -19,6 +22,8 @@ public class LoopingSound {
 		loopClipStr = loopClipStr.ToLowerInvariant();
 		startClip = new Sound(Global.soundBuffers[startClipStr].soundBuffer);
 		loopClip = new Sound(Global.soundBuffers[loopClipStr].soundBuffer);
+		startVolume = Global.soundBuffers[startClipStr].volume;
+		loopVolume = Global.soundBuffers[loopClipStr].volume;
 		loopClip.IsLooping = true;
 		this.actor = actor;
 		Global.level.loopingSounds.Add(this);
@@ -31,6 +36,7 @@ public class LoopingSound {
 	) {
 		stopClipStr = stopClipStr.ToLowerInvariant();
 		this.stopClip = new Sound(Global.soundBuffers[stopClipStr].soundBuffer);
+		stopVolume = Global.soundBuffers[stopClipStr].volume;
 	}
 
 	public bool isPlaying() {
@@ -41,8 +47,8 @@ public class LoopingSound {
 		if (stopped) return;
 		stopClip?.Stop();
 
-		startClip.Volume = actor.getSoundVolume();
-		loopClip.Volume = actor.getSoundVolume();
+		startClip.Volume = actor.getSoundVolume() * startVolume;
+		loopClip.Volume = actor.getSoundVolume() * loopVolume;
 
 		if (!startClipDone) {
 			if (!startClipStarted) {
@@ -79,7 +85,7 @@ public class LoopingSound {
 		reset();
 
 		if (stopClip != null && stopClip.Status != SoundStatus.Playing) {
-			stopClip.Volume = actor.getSoundVolume();
+			stopClip.Volume = actor.getSoundVolume() * stopVolume;
 			stopClip.PlayingOffset = stopClip.SoundBuffer.Duration * (1 - progress);
 			stopClip?.Play();
 		}

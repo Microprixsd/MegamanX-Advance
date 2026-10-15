@@ -14,7 +14,7 @@ public class BubbleSplash : Weapon {
 	public BubbleSplash() : base() {
 		displayName = "Bubble Splash";
 		shootSounds = new string[] { "bubbleSplash", "bubbleSplash", "bubbleSplash", "bubbleSplashCharged" };
-		fireRate = 9;
+		fireRate = 8;
 		isStream = true;
 		index = (int)WeaponIds.BubbleSplash;
 		weaponBarBaseIndex = 10;

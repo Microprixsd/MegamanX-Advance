@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MMXOnline;
 
-public class Zero : Character {
+public partial class Zero : Character {
 	// Hypermode stuff.
 	public bool isViral;
 	public int awakenedPhase;
@@ -13,9 +13,8 @@ public class Zero : Character {
 	public int hyperMode;
 
 	// Hypermode timers.
-	public static readonly float maxBlackZeroTime = 20 * 60;
+	public static readonly float maxBlackZeroTime = 15 * 60;
 	public float hyperModeTimer;
-	public float scrapDrainCounter = 120;
 	public bool hyperOvertimeActive;
 
 	// Hypermode effects stuff.
@@ -123,6 +122,7 @@ public class Zero : Character {
 	}
 
 	public override void preUpdate() {
+		updateQuickGigaSelector();
 		base.preUpdate();
 		if (grounded || charState is WallSlide) {
 			if (charState is not ZeroUppercut)
@@ -182,38 +182,25 @@ public class Zero : Character {
 		if (hyperModeTimer > 0) {
 			hyperModeTimer -= Global.speedMul;
 			if (hyperModeTimer <= 180) {
-				hypermodeBlink = (byte)MathInt.Ceiling(hyperModeTimer - 180);
+				hypermodeBlink = (byte)MathInt.Ceiling(Math.Max(0, hyperModeTimer));
+			} else {
+				hypermodeBlink = 0;
 			}
 			if (hyperModeTimer <= 0) {
 				hypermodeBlink = 0;
 				hyperModeTimer = 0;
-				if (hyperOvertimeActive && isAwakened && player.currency >= 4) {
+				if (hyperOvertimeActive && awakenedPhase == 1) {
 					awakenedPhase = 2;
+					hyperModeTimer = maxBlackZeroTime;
 					heal(player, (float)maxHealth * 2, true);
 					gigaAttack.addAmmoPercentHeal(100);
 				} else {
 					awakenedPhase = 0;
 					isBlack = false;
-					float oldAmmo = gigaAttack.ammo;
-					gigaAttack = RakuhouhaWeapon.getWeaponFromIndex(gigaAttackSelected);
-					gigaAttack.ammo = oldAmmo;
+					isViral = false;
+					removeHyperGiga();
 				}
 				hyperOvertimeActive = false;
-			}
-		}
-		// Genmu Zero scrap drain.
-		else if (awakenedPhase == 2) {
-			if (scrapDrainCounter > 0) {
-				scrapDrainCounter--;
-			} else {
-				scrapDrainCounter = 120;
-				player.currency--;
-				if (player.currency < 0) {
-					player.currency = 0;
-					awakenedPhase = 0;
-					isBlack = false;
-					hyperOvertimeActive = false;
-				}
 			}
 		}
 		// For the shooting animation.
@@ -262,7 +249,7 @@ public class Zero : Character {
 	public override bool canCharge() {
 		return (!isInvulnerable
 			(charState.attackCtrl || getChargeLevel() > 0) &&
-			(player.currency > 0 || freeBusterShots > 0) &&
+			(player.currency > 0 || freeBusterShots > 0 || overdriveTime > 0) &&
 			donutsPending == 0
 		);
 	}
@@ -272,7 +259,7 @@ public class Zero : Character {
 	}
 
 	public void shoot(int chargeLevel) {
-		if (player.currency <= 0 && freeBusterShots <= 0) { return; }
+		if (player.currency <= 0 && freeBusterShots <= 0 && overdriveTime <= 0) { return; }
 		if (chargeLevel == 0) { return; }
 		int currencyUse = 0;
 
@@ -305,7 +292,7 @@ public class Zero : Character {
 				shootPos, xDir, this, player, player.getNextActorNetId(), rpc: true
 			);
 		}
-		if (currencyUse > 0) {
+		if (currencyUse > 0 && overdriveTime <= 0) {
 			if (freeBusterShots > 0) {
 				freeBusterShots--;
 			} else if (player.currency > 0) {
@@ -336,7 +323,7 @@ public class Zero : Character {
 	}
 
 	public void shootDonuts(int chargeLevel) {
-		if (player.currency <= 0 && freeBusterShots <= 0) { return; }
+		if (player.currency <= 0 && freeBusterShots <= 0 && overdriveTime <= 0) { return; }
 		if (chargeLevel == 0) { return; }
 		int currencyUse = 0;
 
@@ -352,7 +339,7 @@ public class Zero : Character {
 			donutsPending = (chargeLevel - 1);
 		}
 		currencyUse = 1;
-		if (currencyUse > 0) {
+		if (currencyUse > 0 && overdriveTime <= 0) {
 			if (freeBusterShots > 0) {
 				freeBusterShots--;
 			} else if (player.currency > 0) {
@@ -410,15 +397,10 @@ public class Zero : Character {
 	// Non-attacks like guard and hypermode activation.
 	public override bool normalCtrl() {
 		// Hypermode activation.
-		int cost = Player.zeroHyperCost;
-		if (isAwakened) {
-			cost = 4;
-		}
-		if (player.currency >= cost &&
-			player.input.isHeld(Control.Special2, player) &&
+		if (player.input.isHeld(Control.Special2, player) &&
 			charState is not HyperZeroStart and not WarpIn && (
-				!isViral && !isAwakened && !isBlack ||
-				isAwakened && !hyperOvertimeActive && player.currency >= 2
+				!hypermodeActive() && player.zeroHyperModeReady ||
+				awakenedPhase == 1 && !hyperOvertimeActive
 			)
 		) {
 			hyperProgress += Global.spf;
@@ -429,9 +411,9 @@ public class Zero : Character {
 			hyperProgress = 0;
 			hyperOvertimeActive = true;
 			Global.level.gameMode.setHUDErrorMessage(player, "Overtime mode active");
-		} else if (hyperProgress >= 1 && player.currency >= Player.zeroHyperCost) {
+		} else if (hyperProgress >= 1 && player.zeroHyperModeReady) {
 			hyperProgress = 0;
-			changeState(new HyperZeroStart(), true);
+			player.activateZeroHyperMode();
 			return true;
 		}
 		// If we changed state this frame. Return.
@@ -1065,6 +1047,7 @@ public class Zero : Character {
 	}
 
 	public override void render(float x, float y) {
+		drawQuickGigaSelector(x, y);
 		if (isViral && visible) {
 			addRenderEffect(RenderEffectType.Trail);
 		} else {
@@ -1125,20 +1108,24 @@ public class Zero : Character {
 	}
 
 	public override void updateCustomActorNetData(byte[] data) {
+		if (data.Length < 11 || data[0] < 11 || data[0] > data.Length - 2) return;
+		int baseLength = 11 + System.Numerics.BitOperations.PopCount((uint)(data[9] & 254)) +
+			((data[9] & 1) != 0 ? 2 : 0);
+		if (data[0] < baseLength) return;
+		ReadOnlySpan<byte> zeroData = data.AsSpan(data[0]);
+		byte flags = zeroData[1];
+		bool blinking = (flags & 128) != 0;
+		if (blinking && zeroData.Length < 3) return;
+
 		// Update base arguments.
 		base.updateCustomActorNetData(data);
-		data = data[data[0]..];
 
 		// Per-player data.
-		gigaAttack.ammo = data[0];
-		bool[] flags = Helpers.byteToBoolArray(data[1]);
-		awakenedPhase = (flags[2] ? 2 : (flags[1] ? 1 : 0));
-		isBlack = flags[3];
-		isViral = flags[4];
-
-		if (flags[0]) {
-			hypermodeBlink = data[2];
-		}
+		gigaAttack.ammo = zeroData[0];
+		awakenedPhase = (flags & 32) != 0 ? 2 : (flags & 64) != 0 ? 1 : 0;
+		isBlack = (flags & 16) != 0;
+		isViral = (flags & 8) != 0;
+		hypermodeBlink = blinking ? zeroData[2] : (byte)0;
 	}
 
 	public override void aiAttack(Actor? target) {
@@ -1153,10 +1140,10 @@ public class Zero : Character {
 		bool isTargetDistant = enemyDist <= 90;
 		bool isTargetInAir = enemyDistY >= 20;
 		bool isFacingTarget = (pos.x < target?.pos.x && xDir == 1) || (pos.x >= target?.pos.x && xDir == -1);
-		if (player.currency >= Player.zeroHyperCost && !isInvulnerable() &&
+		if (player.zeroHyperModeReady && !isInvulnerable() &&
 		   charState is not (HyperZeroStart or LadderClimb) && !hypermodeActive() && !player.isMainPlayer
 		) {
-			changeState(new HyperZeroStart(), true);
+			player.activateZeroHyperMode();
 		}
 
 		if (isAwakened) hyperOvertimeActive = true;

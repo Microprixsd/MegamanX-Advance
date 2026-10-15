@@ -403,7 +403,7 @@ public class X2ChargeShot : XState {
 		landSprite = "cross_shot";
 		airSprite = "cross_air_shot";
 		canJump = true;
-		if (shootNum == 1) {
+		if (this.shootNum == 1) {
 			sprite = "cross_shot2";
 			defaultSprite = sprite;
 			landSprite = sprite;
@@ -533,6 +533,16 @@ public class X3ChargeShot : XState {
 					character.playSound("plasmaShot", sendRpc: true);
 				}
 				mmx.stockedTime = 0;
+			} else if (mmx.hasUltimateMaxBuster && !mmx.hasFullHyperMaxArmor &&
+				hyperBusterWeapon == null) {
+				Point shootPos = character.getShootPos();
+				int shootDir = character.getShootXDir();
+				new Anim(shootPos, "buster4_muzzle_flash", shootDir, null, true);
+				new BusterPlasmaProj(
+					shootPos, shootDir, mmx,
+					player, player.getNextActorNetId(), rpc: true
+				);
+				character.playSound("plasmaShot", sendRpc: true);
 			} else {
 				character.playSound("buster3X3", sendRpc: true);
 				XBuster.createX3SpreadShot(character, character.getShootXDir(),
@@ -549,11 +559,11 @@ public class X3ChargeShot : XState {
 			if (state == 0 && pressFire && mmx.hasUltimateArmor) {
 				sprite = "cross_shot2";
 				landSprite = "cross_shot2";
+				airSprite = "cross_air_shot2";
+				defaultSprite = landSprite;
 				if (!character.grounded || character.vel.y < 0) {
-					sprite = "cross_air_shot2";
-					defaultSprite = sprite;
+					sprite = airSprite;
 				}
-				defaultSprite = sprite;
 				character.changeSpriteFromName(sprite, true);
 				state = 1;
 				fired = false;
@@ -568,10 +578,8 @@ public class X3ChargeShot : XState {
 				character.vel.y = -character.getJumpPower();
 				if (state == 0) {
 					sprite = "cross_air_shot";
-					defaultSprite = sprite;
 				} else {
 					sprite = "cross_air_shot2";
-					defaultSprite = sprite;
 				}
 				character.changeSpriteFromName(sprite, false);
 			}
@@ -601,6 +609,7 @@ public class X3ChargeShot : XState {
 			sprite = "cross_shot2";
 			defaultSprite = sprite;
 			landSprite = "cross_shot2";
+			airSprite = "cross_air_shot2";
 			if (!character.grounded) {
 				sprite = "cross_air_shot2";
 			}

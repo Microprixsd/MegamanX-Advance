@@ -759,6 +759,13 @@ public class OptionsMenu : IMainMenu {
 			};
 		} else if (charNum == 0) {
 			menuOptions = new List<MenuOption>() {
+				new MenuOption(30, startY,
+					() => Helpers.menuLeftRightBool(ref Options.main.automaticSkillTree),
+					(Point pos, int index) => {
+						Fonts.drawText(optionFontText, "Automatic skill tree:", pos.x, pos.y, selected: selectedArrowPosY == index);
+						Fonts.drawText(optionFontValue, Options.main.automaticSkillTree ? "Yes" : "No", pos.x + 166, pos.y, selected: selectedArrowPosY == index);
+					},
+					"Buy skills in the order configured in X's loadout.\nWaits until you can afford the next node."),
 				new MenuOption(
 					30, startY,
 					() => {

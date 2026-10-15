@@ -356,6 +356,7 @@ public class AimingLaserProj : Projectile {
 		};
 
 		DrawWrappers.DrawPolygon(getPoints(), colors[type], true, ZIndex.Actor);
+
 	}
 
 	public override List<byte> getCustomActorNetData() {
